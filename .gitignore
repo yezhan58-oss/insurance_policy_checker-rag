@@ -1,0 +1,23 @@
+# Secrets
+.env
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# SLURM and vLLM logs
+logs/
+
+# Chroma index (rebuilt on each machine with `python -m src.ingest`)
+data/index/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
