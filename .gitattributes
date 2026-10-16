@@ -1,0 +1,5 @@
+# Normalise line endings; shell scripts must stay LF so bash on the cluster can run them.
+* text=auto
+*.sh text eol=lf
+*.sbatch text eol=lf
+*.pdf binary

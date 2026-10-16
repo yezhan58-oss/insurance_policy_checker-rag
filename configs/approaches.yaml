@@ -1,0 +1,14 @@
+# Per-approach settings (brief section 8). Same model, embeddings, chunks and base prompt for all.
+B0: {}                  # no retrieval
+A0:
+  top_k: 5
+A2:
+  top_k: 5
+  min_relevant: 2       # rewrite the query if fewer than this many chunks are graded relevant
+  max_rewrites: 2
+A4: {}                  # settings added by Member B
+# Optional, only if M2 is met on time
+A1:
+  top_k: 15
+A3:
+  max_tool_calls: 8
