@@ -1,0 +1,18 @@
+local_ollama:
+  provider: openai
+  base_url: http://localhost:11434/v1
+  model: qwen3.5:4b
+  api_key: ollama
+vllm_llama8b:
+  provider: openai
+  base_url: http://localhost:${VLLM_PORT}/v1   # your own port; laptop via tunnel, or inside a batch job
+  model: meta-llama/Llama-3.1-8B-Instruct
+  api_key: ${VLLM_API_KEY}
+claude_sonnet:
+  provider: anthropic
+  model: claude-sonnet-5-5
+  api_key: ${ANTHROPIC_API_KEY}
+claude_haiku_judge:
+  provider: anthropic
+  model: claude-haiku-5-5
+  api_key: ${ANTHROPIC_API_KEY}

@@ -1,0 +1,130 @@
+# Hand transcriptions of policy tables that text extraction cannot read correctly.
+#
+# Some tables carry their meaning in tick/cross icons that are part of a background image (no
+# text), and some have multi-column cells whose lines interleave when extracted. For each table,
+# src/ingest.py drops every extracted text line whose centre lies inside `bbox` (PDF points,
+# [x0, y0, x1, y1], origin top-left) on `page` (1-based PDF page) and inserts `text` there instead.
+#
+# Row text is copied from the PDF text layer; Yes/No/Not paid/n/a were read from the rendered
+# page and must be re-checked against the PDF if the policy file changes (see SNAPSHOT.md).
+
+fwd:
+  - page: 10
+    bbox: [0, 398, 596, 800]
+    what: events table for Trip cancellation / Trip postponement / Trip cut short (tick icons)
+    text: |
+      *Check the table below to see what events you can claim for.
+      What events you can claim for (Yes = you can claim under that benefit, No = you cannot):
+      You or your travel companion suffers a serious injury or illness and is medically unfit to travel as confirmed by a medical practitioner in writing (for Trip cut short benefit, this must be confirmed by a medical practitioner in writing while you or your travel companion are overseas): Trip cancellation and loss of deposit = Yes; Trip postponement = Yes; Trip cut short = Yes.
+      You, your travel companion, or your family member, dies: Trip cancellation and loss of deposit = Yes; Trip postponement = Yes; Trip cut short = Yes.
+      Your family member suffers a life-threatening illness or injury as confirmed by a medical practitioner in writing: Trip cancellation and loss of deposit = Yes; Trip postponement = Yes; Trip cut short = Yes.
+      You or your travel companion needs to be a witness in court during your scheduled period of travel: Trip cancellation and loss of deposit = Yes; Trip postponement = Yes; Trip cut short = Yes.
+      Your or your travel companion's home is seriously damaged by fire, or natural disaster, and as a result you cannot travel, or have to cut short your trip: Trip cancellation and loss of deposit = Yes; Trip postponement = Yes; Trip cut short = Yes.
+      A serious public event happens in Singapore or at one of your travel destinations, which prevents you from starting or continuing the trip: Trip cancellation and loss of deposit = Yes; Trip postponement = Yes; Trip cut short = Yes.
+      Your onward flight is cancelled by the airline due to airport, runway or airspace closure, or poor weather conditions, which forces the airplanes to be grounded: Trip cancellation and loss of deposit = Yes; Trip postponement = No; Trip cut short = No.
+      The aircraft you are on-board is hijacked for more than 12 hours: Trip cancellation and loss of deposit = No; Trip postponement = No; Trip cut short = Yes.
+
+  - page: 11
+    bbox: [0, 108, 596, 416]
+    what: travel costs table for Trip cancellation / Trip postponement / Trip cut short (tick icons)
+    text: |
+      Please refer to the table below to see what travel costs are covered.
+      What we pay (Yes = paid under that benefit, No = not paid):
+      Any unused accommodation and transport expenses (air, sea or land travel), excursions, tours and activities that you have paid in advance and cannot get back from any other source, as well as cancellation fees: Trip cancellation and loss of deposit = Yes; Trip postponement = No; Trip cut short = Yes.
+      Any rebooking fees so that you can reorganise the trip (to the same destination as the original trip) to such later date within 180 days from your original scheduled departure date: Trip cancellation and loss of deposit = No; Trip postponement = Yes; Trip cut short = No.
+      Any additional administrative expenses incurred where it is possible to amend the original return ticket (for travel via air, land or sea) and/or booking for accommodation; or Additional transport and/or accommodation expenses (economy class for transport and standard room for accommodation) for your immediate return to Singapore, if you are unable to amend your original return ticket (for travel via air, land or sea) and/or booking for accommodation: Trip cancellation and loss of deposit = No; Trip postponement = No; Trip cut short = Yes.
+
+  - page: 15
+    bbox: [0, 110, 596, 430]
+    what: Theft of or damage to baggage - how much we pay table (multi-column cells)
+    text: |
+      How much we pay, by covered item:
+      Mobile phone: with proof of purchase, the higher of the following, capped at the maximum benefit limit: [(24 - Age of the item in months) / 24 months] x proof of purchase price; or the telco trade-in value; or S$50.
+      Laptop, tablet and other electronic devices: with proof of purchase, the higher of the following, capped at the maximum benefit limit: [(36 - Age of the item in months) / 36 months] x proof of purchase price; or S$50.
+      Personal belongings including baggage: with proof of purchase, the higher of the following, capped at the maximum benefit limit: [(60 - Age of the item in months) / 60 months] x proof of purchase price; or S$50.
+      Jewellery: with proof of purchase, 100% of the proof of purchase price, capped at the maximum benefit limit.
+      Without proof of purchase (all items above): the current market value of the item as determined by us, up to S$50 per item. We will only pay for a maximum of 5 items without proof of purchase.
+
+  - page: 18
+    bbox: [30, 280, 296, 760]
+    what: Personal accident - percentage of benefit limit table (cells interleave)
+    text: |
+      Percentage of benefit limit paid, by death or disability:
+      Accidental death: 100%.
+      Total and permanent disability: 100%.
+      Total and permanent severance or loss of use of two or more limbs above the wrist or ankle: 100%.
+      Total and permanent loss of sight in both eyes: 100%.
+      Third degree burns to 8% or more of the head or more than 20% of the body: 100%.
+      Third degree burns to between 5% and 8% of the head: 50%.
+      Third degree burns to between 15% and 20% of the body: 50%.
+      Total and permanent severance or loss of use of one limb above the wrist or ankle: 50%.
+      Total and permanent loss of all sight in one eye: 50%.
+      Total and permanent loss of all hearing in one ear: 50%.
+      Total and permanent loss of speech: 50%.
+
+  - page: 22
+    bbox: [0, 460, 596, 665]
+    what: Pre-existing medical conditions cover - events table (tick icons)
+    text: |
+      *Check the table below to see what events you can claim for.
+      What events you can claim for under the Pre-existing medical conditions cover (Yes = you can claim under that benefit, No = you cannot):
+      You or your travel companion (see note 1) suffers a serious injury or illness and is medically unfit to travel as confirmed by a medical practitioner in writing (for Trip cut short benefit, this must be confirmed by a medical practitioner in writing while you or your travel companion are overseas): Trip cancellation and loss of deposit = Yes; Trip postponement = Yes; Trip cut short = Yes.
+      You, your travel companion, or family member (see note 1) dies during the trip: Trip cancellation and loss of deposit = Yes; Trip postponement = Yes; Trip cut short = Yes.
+      Note 1: Your travel companion or family member will only be covered if they are travelling with you on the trip, are insured under this policy, and have purchased the Pre-existing medical conditions cover.
+
+  - page: 23
+    bbox: [0, 183, 596, 595]
+    what: Pre-existing medical conditions cover - travel costs table (tick icons)
+    text: |
+      Please refer to the table below to see what travel costs are covered.
+      What we pay under the Pre-existing medical conditions cover (Yes = paid under that benefit, No = not paid):
+      Any unused accommodation and transport expenses (air, sea or land travel) that you have paid in advance and cannot get back from any other source, as well as cancellation fees: Trip cancellation and loss of deposit = Yes; Trip postponement = No; Trip cut short = Yes; Trip disruption = Yes (see note 1).
+      Any rebooking fees so that you can reorganise the trip (to the same destination as the original trip) to such later date within 180 days from your original scheduled departure date: Trip cancellation and loss of deposit = No; Trip postponement = Yes; Trip cut short = No; Trip disruption = No.
+      Any additional administrative expenses incurred where it is possible to amend the original return ticket (for travel via air, land or sea) and/or booking for accommodation; or Additional transport and/or accommodation expenses (economy class for transport and standard room for accommodation) for your immediate return to Singapore, if you are unable to amend your original return ticket (for travel via air, land or sea) and/or booking for accommodation: Trip cancellation and loss of deposit = No; Trip postponement = No; Trip cut short = Yes; Trip disruption = No.
+      Additional transport and/or accommodation expenses (economy class for transport and standard room for accommodation) you have to pay to continue your trip: Trip cancellation and loss of deposit = No; Trip postponement = No; Trip cut short = No; Trip disruption = Yes (see note 1).
+      Note 1: We will only for pay for either of the travel costs incurred.
+
+  - page: 25
+    bbox: [0, 145, 596, 675]
+    what: Pre-existing medical conditions cover - what we do not pay table (cross icons; grey = not applicable)
+    text: |
+      What we do not pay under the Pre-existing medical conditions cover (Not paid = excluded for that benefit, n/a = not applicable to that benefit):
+      Any claim if the Pre-existing medical conditions cover was purchased less than 72 hours before your scheduled departure from Singapore: Trip cancellation and loss of deposit = Not paid; Trip postponement = Not paid; Trip cut short = n/a; Trip disruption = n/a.
+      Any amounts refunded or compensation received regardless of the form of such refund/compensation. Examples of forms of refund/compensation include any cash, voucher, or form of credit, points or miles received as a refund or compensation: Trip cancellation and loss of deposit = Not paid; Trip postponement = Not paid; Trip cut short = Not paid; Trip disruption = Not paid.
+      Any expenses to upgrade you to a better class or category of transport or accommodation compared to that in your original itinerary. For example, changing your flight from a budget airline to a full-service airline or an upgrade from an economy class seat to one in a better class: Trip cancellation and loss of deposit = n/a; Trip postponement = Not paid; Trip cut short = Not paid; Trip disruption = Not paid.
+      The cost of your unused portion of the original transport ticket back to Singapore which you have already paid for: Trip cancellation and loss of deposit = n/a; Trip postponement = n/a; Trip cut short = Not paid; Trip disruption = n/a.
+      Any additional travelling expenses if you have not purchased a return ticket to Singapore in your original itinerary: Trip cancellation and loss of deposit = n/a; Trip postponement = n/a; Trip cut short = Not paid; Trip disruption = n/a.
+      Any other additional expenses you incur to extend your trip longer than what was originally scheduled: Trip cancellation and loss of deposit = n/a; Trip postponement = n/a; Trip cut short = n/a; Trip disruption = Not paid.
+      Any claims for incurred expenses related to any mode of public transport such as, buses, taxis, private-hire vehicles, and any other ride-hailing or on-demand services: Trip cancellation and loss of deposit = n/a; Trip postponement = n/a; Trip cut short = Not paid; Trip disruption = Not paid.
+      Any claim that results from your pre-booked flight being cancelled due to any fault on the airline's part such as aircrew rotation, rescheduled flights, operational requirements or mechanical breakdown of the airplane: Trip cancellation and loss of deposit = Not paid; Trip postponement = Not paid; Trip cut short = Not paid; Trip disruption = Not paid.
+
+  - page: 27
+    bbox: [0, 305, 596, 492]
+    what: Cancel for any reason - travel costs table (tick icons)
+    text: |
+      Please refer to the table below to see what travel costs are covered.
+      What we pay under Cancel for any reason (Yes = paid under that benefit, No = not paid):
+      Any unused accommodation and transport expenses (air, sea or land travel) that you have paid in advance and cannot get back from any other source, as well as cancellation fees: Trip cancellation for any reason = Yes; Trip postponement for any reason = No; Trip cut short for any reason = Yes.
+      Any rebooking fees so that you can reorganise the trip (to the same destination as the original trip) to such later date within 180 days from your original scheduled departure date: Trip cancellation for any reason = No; Trip postponement for any reason = Yes; Trip cut short for any reason = No.
+
+  - page: 29
+    bbox: [300, 115, 596, 445]
+    what: Sports equipment protector - how much we pay table (multi-column cells)
+    text: |
+      How much we pay, by age of sports equipment:
+      Bought during the trip: with proof of purchase, 100% of purchase price, capped at the maximum benefit limit.
+      1 year old: with proof of purchase, 70% of purchase price, capped at the maximum benefit limit.
+      2 years old: with proof of purchase, 50% of purchase price, capped at the maximum benefit limit.
+      3 years old: with proof of purchase, 20% of purchase price, capped at the maximum benefit limit.
+      Without proof of purchase (any age): the current market value of the item as determined by us, up to S$50 per item. We will only pay for a maximum of 5 items without proof of purchase.
+
+  - page: 30
+    bbox: [0, 312, 596, 490]
+    what: Home contents - how much we pay table (multi-column cells)
+    text: |
+      How much we pay, by age of item:
+      Less than 1 year old: with proof of purchase, 70% of purchase price, capped at the maximum benefit limit.
+      1 year to 2 years old: with proof of purchase, 50% of purchase price, capped at the maximum benefit limit.
+      2 years to 3 years old: with proof of purchase, 30% of purchase price, capped at the maximum benefit limit.
+      More than 3 years old: with proof of purchase, 20% of purchase price, capped at the maximum benefit limit.
+      Without proof of purchase (any age): the current market value of the item as determined by us, up to S$50 per item. We will only pay for a maximum of 5 items without proof of purchase.
