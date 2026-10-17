@@ -15,7 +15,7 @@ A half-study, half-build project for SMU IS469 (Generative and Agentic AI). Team
 ## 2. Environment and conventions
 
 - **Two machines, two shells.**
-  - Laptops: Windows, Python 3.11 or 3.12, **Windows CMD** for local commands (YZ). No NVIDIA GPU.
+  - Laptops: Windows, Python 3.11 or 3.12, **Windows CMD or PowerShell** for local commands (YZ). No NVIDIA GPU.
   - SMU SCIS GPU cluster "origami" (login node `10.193.104.102`, each member uses their own SMU ID): Linux, **bash**, SLURM. Reachable on campus Wi-Fi or the SMU VPN.
 - **Models**
   - Open model: `meta-llama/Llama-3.1-8B-Instruct`, served with vLLM on the cluster (node `avenue`, NVIDIA A40 48 GB, `student` partition). Each member runs their own server on their own port (section 4).
@@ -28,7 +28,7 @@ A half-study, half-build project for SMU IS469 (Generative and Agentic AI). Team
 - **Embeddings:** one embedding model everywhere so every setup searches the same index. Default: `BAAI/bge-small-en-v1.5` via `sentence-transformers` Always load it with `device="cpu"` (on the cluster the GPU is busy with vLLM, and CPU keeps results identical across machines). `src/ingest.py` is deterministic, so each machine rebuilds the same Chroma index with `python -m src.ingest`.
 - Libraries: `langchain`, `langchain-openai`, `langchain-anthropic`, `langchain-chroma`, `chromadb`, `langgraph`, `sentence-transformers`, `pymupdf`, `pydantic`, `pandas`, `scipy`, `statsmodels`, `matplotlib`, `streamlit`, `pyyaml`, `python-dotenv`, `pytest`. vLLM is installed only on the cluster.
 - Laptop: a `venv` inside the repo and a pinned `requirements.txt`. Cluster: a separate venv at `~/venvs/rag` (Python 3.11, built with `uv`).
-- Secrets go in `.env` on each machine, never committed: `ANTHROPIC_API_KEY`, `VLLM_API_KEY`, `VLLM_PORT`, `HF_TOKEN`. `src/llm.py` expands `${VAR}` in models.yaml from `.env`. Commit `.env.example` with empty values.
+- Secrets go in `.env` on each machine, never committed: `ANTHROPIC_API_KEY`, `VLLM_API_KEY`, `VLLM_PORT`, `HF_TOKEN` (only needed if the Qwen backup has to be downloaded). `src/llm.py` expands `${VAR}` in models.yaml from `.env`. Commit `.env.example` with empty values.
 - Fixed seeds, temperature 0 for all experiment runs. Every run writes its config and git commit hash next to its results.
 - Small, reviewable steps. After each task, stop and summarise what was built, how to run it, and how it was verified.
 
@@ -44,14 +44,14 @@ A half-study, half-build project for SMU IS469 (Generative and Agentic AI). Team
    The human will say "I am Member A" or "I am Member B" at the start of a session. Work only on that member's tasks (section 11) unless told otherwise.
    ```
 2. Claude Console (where the credits are): invite Member B to the organisation. Each member creates their own API key. If the Console allows a workspace spend limit, set it to about US$70.
-3. Do the cluster setup (section 4) first and note any fixes in the README, so Member B's setup goes quickly.
+3. Do the cluster setup (section 4) first and record the tested steps in `CLUSTER_SETUP.md`, so Member B's setup goes quickly. (Done 17 Oct.)
 
 ### 3.2 Both members do on their own laptop
 
 1. Clone the repo, create the venv, `pip install -r requirements.txt`.
 2. Install the SMU VPN.
-3. Request Llama 3.1 8B access on Hugging Face with your own account. Each member needs their own approval and token, because weights download into each person's own cluster home folder.
-4. Do the cluster setup in section 4 with your own SMU ID (about 1 hour, mostly waiting for installs).
+3. (No Hugging Face access request needed: the cluster has a shared copy of Llama 3.1 8B, see section 4.1.)
+4. Do the cluster setup in `CLUSTER_SETUP.md` with your own SMU ID (about 30 minutes).
 5. Create `.env` with your own `ANTHROPIC_API_KEY`, your own made-up `VLLM_API_KEY`, and your `VLLM_PORT` (A: 8471, B: 8472).
 6. **Claude Code must run on your normal Claude subscription, not the API key.** Keep `ANTHROPIC_API_KEY` only in the repo's `.env` (read by our Python code). Never set it as a Windows environment variable: the Claude Code command-line tool uses that variable instead of your subscription, and every coding chat would then spend the US$100 of credits. The Claude desktop app signs in with your account and does not read it.
 
@@ -61,122 +61,42 @@ If a member uses macOS or Linux instead of Windows, use the Terminal equivalents
 
 Both members have their own cluster account, and each runs their own copy of the setup and their own model server. This way neither depends on the other being online, and a server dying when one person's session times out does not stop the other.
 
+**The tested step-by-step commands are in `CLUSTER_SETUP.md`** (tested end to end by Member A on 17 Oct). This section only records the decisions.
+
 | | Member A (YZ) | Member B |
 | --- | --- | --- |
 | SMU ID | `yz.wong.2024` | own ID |
 | `VLLM_PORT` (interactive) | 8471 | 8472 |
 | Batch job port | 8481 | 8482 |
-| `VLLM_API_KEY` | own made-up password | own made-up password |
+| `VLLM_API_KEY` | own random password | own random password |
 
-Different ports matter because both of you may land on the same node (avenue has 4 A40s). Replace `<smu-id>` and `<port>` below with your own values.
+Different ports matter because both of you may land on the same node (avenue has 4 A40s).
 
-Etiquette: hold a GPU only while actively working; avenue's GPUs are shared with other undergrads. If one of you is offline for a long time, the other can still lend their server by sharing the port and password privately.
+Etiquette: hold a GPU only while actively working; the GPUs are shared with other students. If one of you is offline for a long time, the other can still lend their server by sharing the port and password privately.
 
-### 4.1 Laptop: SSH key (Windows CMD, both members)
+### 4.1 Decisions (changed from the first draft of this brief)
 
-```
-ssh-keygen -t ed25519
-type %USERPROFILE%\.ssh\id_ed25519.pub | ssh <smu-id>@10.193.104.102 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
-ssh <smu-id>@10.193.104.102
-```
+- **Model weights:** the cluster's shared copy at `/common/public/llm-models/meta-models/LLAMA3.1/Meta-Llama-3.1-8B-Instruct`. No Hugging Face access request or download is needed. vLLM serves it under the name `meta-llama/Llama-3.1-8B-Instruct`, so `configs/models.yaml` and every results file use the official name.
+- **Python:** `~/venvs/rag`, Python 3.11 built with `uv` (no `module load`). vLLM plus our `requirements.txt` (no `torch` pin) are installed with `scripts/install_vllm.sbatch`.
+- **Everything GPU runs through `sbatch`** (no interactive `srun` sessions): `scripts/serve_llama.sbatch` for the interactive server (own port, 4 h default), `scripts/run_llama.sbatch` for full runs. Every job uses `--qos=studentqos --partition=student --gres=gpu:a40:1`; a GPU type is required because a bare `gpu:1` can land on a GTX 1080 Ti. Limits: 1 GPU per job, 2 running jobs, 1 day per job.
+- **`VLLM_USE_FLASHINFER_SAMPLER=0`** in every job: otherwise vLLM 0.31 tries to compile a FlashInfer kernel at startup, and compute nodes have no `nvcc`.
+- **Secrets:** `~/insurance-rag/.env` on the cluster (plain `KEY=value` lines, `chmod 600`) holds `VLLM_API_KEY` and `VLLM_PORT`; the laptop `.env` holds the same two values. vLLM reads `VLLM_API_KEY` from the environment, so the password never appears on the command line.
+- **Caches:** `HF_HOME` and the uv cache live in `~/scratchDirectory`; code, venv, index (`data/index/`) and `results/` stay in the repo paths the code expects.
+- **Laptop access:** SSH key plus a `Host origami` entry in `~/.ssh/config`, then a tunnel `ssh -N -L <port>:<node>:<port> origami` opened by the human.
 
-The last command should log in without a password.
+### 4.2 Daily routine
 
-### 4.2 Cluster: get a GPU session inside tmux (bash)
-
-```bash
-tmux new -s work
-srun -p student --gres=gpu:1 --nodelist=avenue --time=02:00:00 --pty bash
-nvidia-smi
-```
-
-`nvidia-smi` should show one NVIDIA A40. If avenue is busy, drop `--nodelist=avenue` (any GPU with at least 24 GB works) and use that node's name in the tunnel. Detach from tmux with Ctrl+B then D; reattach with `tmux attach -t work`.
-
-### 4.3 Cluster: Python 3.11 environment with uv (inside the GPU session)
-
-The system Python is 3.9, too old for vLLM. uv installs its own Python into the home folder.
-
-```bash
-rm -rf ~/venvs/rag
-curl -LsSf https://astral.sh/uv/install.sh | sh
-export PATH="$HOME/.local/bin:$PATH"
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-uv venv --python 3.11 ~/venvs/rag
-source ~/venvs/rag/bin/activate
-python --version
-uv pip install vllm
-python -c "import vllm; print(vllm.__version__)"
-```
-
-`python --version` must print 3.11.x. vLLM pulls in `huggingface_hub`, which provides the `hf` command used in 4.4. If the install is cut off by the time limit, start a new session, activate the venv and rerun the install line.
-
-### 4.4 Cluster: Hugging Face login
-
-After Llama access is approved, create a **Read** token on Hugging Face (Settings, Access Tokens) and run:
-
-```bash
-source ~/venvs/rag/bin/activate
-hf auth login
-```
-
-(Older versions: `huggingface-cli login`.) Weights download to `~/.cache/huggingface` (about 16 GB; home quota is 120 GB).
-
-### 4.5 Cluster: start your model server (inside a GPU session)
-
-```bash
-source ~/venvs/rag/bin/activate
-export VLLM_API_KEY=<your password>
-vllm serve meta-llama/Llama-3.1-8B-Instruct --host 0.0.0.0 --port <port> --api-key $VLLM_API_KEY --max-model-len 16384 --seed 0 --enable-auto-tool-choice --tool-call-parser llama3_json
-```
-
-`--api-key` stops other cluster users from using your server. The tool flags are only needed for the optional ReAct agent but are harmless. Wait for "Application startup complete". Note which node you got (shown in the prompt or via `hostname`), since the tunnel needs it.
-
-### 4.6 Laptop: tunnel (Windows CMD, keep the window open)
-
-```
-ssh -N -L <port>:avenue:<port> <smu-id>@10.193.104.102
-```
-
-Replace `avenue` if your GPU session landed on another node. Test from another CMD window:
-
-```
-curl http://localhost:<port>/v1/models -H "Authorization: Bearer <your password>"
-```
-
-### 4.7 Daily routine
-
-1. On campus Wi-Fi or VPN: `ssh` in, `tmux attach -t work` (or `tmux new -s work`).
-2. `srun ... --pty bash`, activate the venv, start `vllm serve` (4.5).
-3. Open the tunnel (4.6) and work.
-4. When finished: Ctrl+C vLLM, `exit` the GPU session to release it.
+1. On campus Wi-Fi or VPN. Submit `scripts/serve_llama.sbatch` and wait for "Application startup complete" in `logs/serve-<jobid>.out` (first line shows the node).
+2. Open the tunnel in its own window and work.
+3. When finished: close the tunnel and `scancel` the server job to release the GPU.
 
 Never run heavy work on the login node `origami`. Always set `--time`.
 
-### 4.8 Full Llama runs: batch job (no laptop needed)
+### 4.3 Full Llama runs: batch job (no laptop needed)
 
-Code reaches the cluster via GitHub. One-time setup on the cluster (in a GPU session, venv active): `git clone` the repo into `~/insurance-rag`, `cd ~/insurance-rag`, `mkdir -p logs` (git ignores `logs/`, and SLURM cannot create it), `uv pip install -r requirements.txt` (requirements.txt must not pin `torch`, so vLLM's version is kept), then `python -m src.ingest` to build the cluster's index. Before each run: `git pull`. Put a cluster `.env` in `~/insurance-rag/.env` with plain `KEY=value` lines (no spaces around `=`), since bash reads it. It needs `VLLM_API_KEY` and `VLLM_PORT`; no Claude key is needed on the cluster. Save as `scripts/run_llama.sbatch`:
+Code reaches the cluster via GitHub: `git pull` in `~/insurance-rag` before each run. `scripts/run_llama.sbatch` starts a private vLLM server on the batch port, rebuilds the index with `python -m src.ingest` (so it always matches the checked-out code), runs `python -m src.eval.run --model vllm_llama8b --split ${SPLIT:-test}`, then stops the server. Submit from `~/insurance-rag` with `sbatch scripts/run_llama.sbatch`. Member B's dev runs: `BATCH_PORT=8482 SPLIT=dev APPROACHES=A4 sbatch scripts/run_llama.sbatch` (sbatch passes your shell variables to the job; this form also allows commas, e.g. `APPROACHES=B0,A0`). Check with `squeue --me`, cancel with `scancel <jobid>`. `src/eval/run.py` must be resumable so a cut-off job can be resubmitted. Either member can submit batch jobs for development; the **final** test runs are submitted by Member A only, from `main`, so all reported numbers come from one consistent run. Claude runs need no GPU and are run from a laptop.
 
-```bash
-#!/bin/bash
-#SBATCH -p student
-#SBATCH --gres=gpu:1
-#SBATCH --nodelist=avenue
-#SBATCH --time=08:00:00
-#SBATCH --output=logs/%j.out
-
-source ~/venvs/rag/bin/activate
-cd ~/insurance-rag
-set -a; source .env; set +a
-export VLLM_PORT=${BATCH_PORT:-8481}     # batch port, so it never clashes with your interactive server
-vllm serve meta-llama/Llama-3.1-8B-Instruct --host 127.0.0.1 --port $VLLM_PORT --api-key $VLLM_API_KEY --max-model-len 16384 --seed 0 --enable-auto-tool-choice --tool-call-parser llama3_json > logs/vllm_$SLURM_JOB_ID.log 2>&1 &
-VLLM_PID=$!
-until curl -sf -H "Authorization: Bearer $VLLM_API_KEY" http://127.0.0.1:$VLLM_PORT/v1/models > /dev/null; do kill -0 $VLLM_PID 2>/dev/null || exit 1; sleep 10; done
-python -m src.eval.run --model vllm_llama8b --split ${SPLIT:-test} ${APPROACHES:+--approaches $APPROACHES}
-```
-
-Submit from `~/insurance-rag` with `sbatch scripts/run_llama.sbatch`. Member B's dev runs: `BATCH_PORT=8482 SPLIT=dev APPROACHES=A4 sbatch scripts/run_llama.sbatch` (sbatch passes your shell variables to the job; this form also allows commas, e.g. `APPROACHES=B0,A0`). Check with `squeue --me`, cancel with `scancel <jobid>`. `src/eval/run.py` must be resumable so a cut-off job can be resubmitted. Either member can submit batch jobs for development; the **final** test runs are submitted by Member A only, from `main`, so all reported numbers come from one consistent run. Claude runs need no GPU and are run from a laptop.
-
-### 4.9 configs/models.yaml
+### 4.4 configs/models.yaml
 
 ```yaml
 local_ollama:
@@ -206,10 +126,11 @@ insurance-rag/
   README.md                 setup (laptop + cluster), data download, how to run every experiment
   PROJECT_BRIEF.md          this file
   CLAUDE.md                 "read PROJECT_BRIEF.md first"
+  CLUSTER_SETUP.md          tested cluster setup and daily routine (section 4)
   requirements.txt
   .env.example
   configs/
-    models.yaml             named model endpoints (section 4.9)
+    models.yaml             named model endpoints (section 4.4)
     approaches.yaml         per-approach settings (top_k, max_rewrites, ...)
     run.yaml                seeds, which approaches x models to run, dataset split
   data/
@@ -222,7 +143,9 @@ insurance-rag/
       dev.jsonl             20 agreed scenarios for tuning
       test.jsonl            about 120 agreed scenarios, scored once at the end
   scripts/
-    run_llama.sbatch        batch job (section 4.8)
+    install_vllm.sbatch     one-time install of vLLM + requirements into ~/venvs/rag
+    serve_llama.sbatch      interactive model server on your own port
+    run_llama.sbatch        full Llama runs as one batch job (section 4.3)
   src/
     schema.py               CONTRACT: Scenario, Chunk, VerdictOutput
     llm.py                  CONTRACT: get_llm(name) from models.yaml
@@ -432,7 +355,7 @@ Report sections: A writes method, setups and results; B writes data and labellin
 - Never print, log or commit tokens, passwords or API keys.
 - Do not change CONTRACT files without telling the human that the other member must agree.
 - Cluster commands from the laptop: use one-off, non-interactive SSH, e.g. `ssh -o BatchMode=yes <smu-id>@10.193.104.102 "squeue --me"`. Never wait on a password prompt.
-- Do not start blocking commands yourself: the SSH tunnel (`ssh -N -L ...`), `srun --pty` sessions and `vllm serve` are run by the human in their own windows. For GPU work you start, use `sbatch`.
+- Do not start blocking commands yourself: the SSH tunnel (`ssh -N -L ...`) is opened by the human in their own window, and there are no `srun --pty` sessions or foreground `vllm serve`. GPU work (including the model server) goes through the `sbatch` scripts in `scripts/`. Cancel a server job you started once the human is done with it.
 - Before any run that calls Claude, print the estimated token cost and wait for the human to confirm.
 
 ## 13. Things to ask the human about (do not guess)
