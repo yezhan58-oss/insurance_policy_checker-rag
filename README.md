@@ -30,4 +30,6 @@ index. Prints 10 random sections per policy for a parsing check.
 
 ## Cluster setup
 
-TODO (Member A): notes and fixes from the first cluster setup (brief section 4).
+Follow `CLUSTER_SETUP.md` (tested on 17 Oct 2026): SSH key and tunnel, clone, `.env`, uv environment,
+`sbatch scripts/install_vllm.sbatch`, then `sbatch scripts/serve_llama.sbatch` each work session. Llama 3.1 8B
+comes from the cluster's shared copy, so no Hugging Face access request is needed.
