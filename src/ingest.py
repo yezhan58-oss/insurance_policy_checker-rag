@@ -46,6 +46,7 @@ class Line:
     color: int
     text: str
     kind: str = "text"   # "table" for inserted transcriptions
+    all_bold: bool = False
 
 
 @dataclass
@@ -129,7 +130,8 @@ def page_lines(page, pno: int, header_y: float, footer_y: float, regions: list[d
         for s in spans:
             style[(round(s["size"], 1), s["font"], s["color"])] += len(s["text"].strip())
         size, font, color = style.most_common(1)[0][0]
-        lines.append(Line(pno, x0, y0, x1, y1, size, font, color, text))
+        all_bold = all("Bold" in s["font"] for s in spans if s["text"].strip())
+        lines.append(Line(pno, x0, y0, x1, y1, size, font, color, text, all_bold=all_bold))
     for r in regions:
         x0, y0, x1, y1 = r["bbox"]
         lines.append(Line(pno, x0, y0, x1, y1, 9.0, "table", 0, r["text"].strip(), kind="table"))
@@ -489,10 +491,258 @@ def parse_fwd(pdf_path: Path, tables: list[dict]) -> list[Section]:
     return sections
 
 
+# ---------------------------------------------------------------- MSIG
+
+MSIG_NAME = "MSIG TravelEasy Insurance"
+MSIG_HEADER_Y, MSIG_FOOTER_Y = 80, 785   # page 1 letterhead / "QTD052510 | Page N of 70"
+# Chapter bars (white text) -> type of their sections; None = skip (contents pages).
+MSIG_CHAPTERS = {"A GUIDE TO THE POLICY": None, "IMPORTANT CONDITIONS": "condition",
+                 "DEFINITION OF WORDS": "definition", "THE BENEFITS": "benefit", "EXCLUSIONS": "exclusion",
+                 "GENERAL EXCLUSIONS": "exclusion", "GENERAL CONDITIONS": "condition",
+                 "CLAIM CONDITIONS": "condition", "PREMIUM WARRANTY": "condition", "USEFUL PROCEDURES": "other"}
+MSIG_NUMBERED = {"GENERAL EXCLUSIONS": "general_exclusion", "GENERAL CONDITIONS": "general_condition",
+                 "CLAIM CONDITIONS": "claim_condition"}   # one section per top-level numbered item
+TIGHT = 13.5   # MSIG line spacing is ~12.3pt inside a paragraph and ~25pt between paragraphs
+
+
+@dataclass
+class Row:
+    page: int
+    y0: float
+    cells: list   # Lines left to right
+
+    @property
+    def text(self) -> str:
+        return " | ".join(c.text for c in self.cells)
+
+
+def msig_rows(doc) -> list[Row]:
+    rows = []
+    for pno in range(1, doc.page_count + 1):
+        lines, _ = page_lines(doc[pno - 1], pno, MSIG_HEADER_Y, MSIG_FOOTER_Y, [])
+        cur = []
+        for ln in sorted(lines, key=lambda l: (l.y0, l.x0)):
+            if cur and ln.y0 - cur[0].y0 > 3:
+                rows.append(Row(pno, cur[0].y0, sorted(cur, key=lambda l: l.x0)))
+                cur = []
+            cur.append(ln)
+        if cur:
+            rows.append(Row(pno, cur[0].y0, sorted(cur, key=lambda l: l.x0)))
+    return rows
+
+
+def parse_msig(pdf_path: Path, tables: list[dict]) -> list[Section]:
+    doc = pymupdf.open(pdf_path)
+    rows = msig_rows(doc)
+    sections, def_rows = [], []
+    st = dict(cur=None, chapter=None, label=None, prev=None, table=None, last_tr=None, heads=[], group=[])
+
+    def start(row: Row, title: str, sid: str, typ: str) -> None:
+        close_group()
+        sec = Section("msig", title, "msig", st["label"], None, row.page, section_id=f"msig:{sid}", type=typ)
+        sec.path = " > ".join(dict.fromkeys(x for x in (MSIG_NAME, st["label"], title) if x))
+        sections.append(sec)
+        st.update(cur=sec, prev=None, table=None, last_tr=None, heads=[])
+
+    def render_tr(tr: dict) -> str:
+        vals = "; ".join(f"{p} {tr['vals'][p]}" for p, _ in st["table"] if p in tr["vals"])
+        return tr["label"] + (f" [{vals}]" if vals else "")
+
+    def close_group() -> None:
+        """Rows of one benefit (after a label-only row such as 'Section 2 ...'). A plan with a value on
+        exactly one of them and blanks elsewhere is a merged cell drawn across all the rows."""
+        group, st["group"] = st.get("group", []), []
+        if len(group) < 2 or not st["table"]:
+            return
+        for plan, _ in st["table"]:
+            have = [tr for tr in group if plan in tr["vals"]]
+            if len(have) == 1:
+                for tr in group:
+                    tr["vals"].setdefault(plan, have[0]["vals"][plan])
+        for tr in group:
+            st["cur"].paras[tr["i"]] = (tr["page"], "text", render_tr(tr))
+
+    def table_row(row: Row) -> bool:
+        """Rows of a plan table become 'label [Lite Plan $x; ...]'. Returns False if the table has ended."""
+        cols = st["table"]
+        first_x, last_x = cols[0][1], cols[-1][1]
+        cells = row.cells
+        if len(cells) == 1 and cells[0].x0 < first_x - 60 and cells[0].x1 > last_x - 10 and not cells[0].all_bold:
+            close_group()
+            st["table"] = None   # a full-width paragraph: the table is over
+            return False
+        labels = [c for c in cells if (c.x0 + c.x1) / 2 < first_x - 25]
+        vals = {}
+        for c in cells:
+            if c not in labels:
+                plan = min(cols, key=lambda p: abs(p[1] - (c.x0 + c.x1) / 2))[0]
+                vals[plan] = join(vals[plan], c.text) if plan in vals else c.text
+        label = " ".join(c.text for c in labels)
+        tr, sec = st["last_tr"], st["cur"]
+        if tr and not label and vals:                                         # 2nd line of value cells
+            for p, v in vals.items():
+                tr["vals"][p] = join(tr["vals"][p], v) if p in tr["vals"] else v
+            if tr not in st["group"]:
+                st["group"].append(tr)
+        elif tr and label[:1].islower() and not vals and row.page == tr["page"] and row.y0 - tr["y"] <= TIGHT:
+            tr["label"] = join(tr["label"], label)                           # label wraps onto a 2nd line
+        else:
+            if not vals:
+                close_group()                                                # label-only row starts a benefit
+            tr = dict(label=label, vals=vals, page=row.page, i=len(sec.paras))
+            sec.paras.append((row.page, "text", ""))
+            st["last_tr"] = tr
+            if vals:
+                st["group"].append(tr)
+        tr["y"] = row.y0
+        sec.paras[tr["i"]] = (tr["page"], "text", render_tr(tr))
+        return True
+
+    def header_row(row: Row) -> bool:
+        """Bold/white rows may be plan-table headers, possibly split over two lines ('Pre-Ex Elite' / 'Plan')."""
+        if not all(c.all_bold or c.color == WHITE for c in row.cells):
+            return False
+        st["heads"] = [r for r in st["heads"] if r.page == row.page and row.y0 - r.y0 <= 30] + [row]
+        cells = [c for r in st["heads"] for c in r.cells]
+        plans = [c for c in cells if c.x0 > 150 and c.text.endswith("Plan")]
+        if len(plans) < 3 or not any(c.text.endswith("Plan") for c in row.cells):
+            return all(c.color == WHITE for c in row.cells)   # other white header cells: decoration, skip
+        close_group()
+        cols = {}
+        for c in plans:
+            name = c.text
+            if name == "Plan":
+                above = [a for a in cells if 0 < c.y0 - a.y0 <= 16 and abs((a.x0 + a.x1) - (c.x0 + c.x1)) < 40]
+                name = f"{above[-1].text} Plan" if above else name
+            xc = (c.x0 + c.x1) / 2
+            if all(abs(xc - x) > 20 for x in cols.values()):
+                cols[name] = xc
+        st["table"], st["last_tr"] = sorted(cols.items(), key=lambda kv: kv[1]), None
+        return True
+
+    for row in rows:
+        first, single, t = row.cells[0], len(row.cells) == 1, row.text
+        if single and first.color == WHITE and t in MSIG_CHAPTERS:
+            st.update(chapter=t, label=t.capitalize(), in_defs=False)
+            if MSIG_CHAPTERS[t] and t != "DEFINITION OF WORDS":
+                start(row, t.capitalize(), slug(t), "other" if t == "THE BENEFITS" else MSIG_CHAPTERS[t])
+            else:
+                st["cur"] = None
+            continue
+        if st["chapter"] == "A GUIDE TO THE POLICY":
+            continue
+        if st["chapter"] == "DEFINITION OF WORDS":
+            def_rows.append(row)
+            continue
+        cur, prev = st["cur"], st["prev"]
+        tight = bool(single and prev and cur and cur.paras and cur.paras[-1][1] == "text" and (
+            (row.page == prev.page and 0 < row.y0 - prev.y0 <= TIGHT)
+            or (row.page != prev.page and not cur.paras[-1][2].endswith((".", ":", ";")))))
+        m_sec = re.match(r"SECTION (\d+) - (.+)", t)
+        if single and first.size >= 9.9 and first.all_bold and not t.startswith(("MSIG Assist", "+65")):
+            if m_sec:
+                start(row, f"Section {m_sec[1]} - {m_sec[2].capitalize()}", f"section_{m_sec[1]}", "benefit")
+            elif "Benefits Summary" in t or t.startswith("COVID-19 COVER"):
+                label = "COVID-19 cover" if t.startswith("COVID") else t
+                st.update(chapter=label, label=label)
+                start(row, label, slug(label), "benefit")
+            else:
+                start(row, t.capitalize() if t.isupper() else t, slug(t),
+                      "condition" if "LIMIT" in t else "other")
+            continue
+        if single and first.all_bold and t.isupper() and len(t) > 6 and not tight:
+            covid = st["chapter"] == "COVID-19 cover"
+            start(row, t.capitalize(), ("covid_19_" if covid and "COVID" not in t else "") + slug(t),
+                  "condition" if any(w in t for w in ("CONDITION", "TERMS", "LIMIT")) else ("benefit" if covid else "other"))
+            continue
+        if st["chapter"] == "EXCLUSIONS" and single and first.all_bold and t.startswith("Exclusions which apply"):
+            start(row, t, "exclusions_sections_" + "_".join(re.findall(r"\d+", t)), "exclusion")
+            continue
+        m_num = re.match(r"(\d+)\.?\s+(.+)", first.text)
+        if st["chapter"] in MSIG_NUMBERED and first.x0 < 50 and m_num:
+            kind = MSIG_NUMBERED[st["chapter"]]
+            short = m_num[2] if len(m_num[2]) <= 70 else m_num[2][:70].rsplit(" ", 1)[0] + " ..."
+            start(row, f"{kind.replace('_', ' ').capitalize()} {m_num[1]}: {short.rstrip('.;:')}",
+                  f"{kind}_{m_num[1]}", MSIG_CHAPTERS[st["chapter"]])
+            st["cur"].paras.append((row.page, "text", t))
+            st["prev"] = row
+            continue
+        if cur is None:
+            continue
+        if header_row(row):
+            continue
+        if st["table"] and table_row(row):
+            continue
+        if tight:
+            page, _, text = cur.paras[-1]
+            cur.paras[-1] = (page, "text", join(text, t))
+        elif single and first.all_bold:
+            cur.paras.append((row.page, "sub", t))
+        else:
+            cur.paras.append((row.page, "text", t))
+        st["prev"] = row if cur.paras[-1][1] == "text" else None
+    close_group()
+
+    defs = msig_definitions(doc, def_rows)
+    return sorted(defs + [s for s in sections if s.paras], key=lambda s: s.page)
+
+
+def msig_definitions(doc, def_rows: list[Row]) -> list[Section]:
+    """TERM | DEFINITION table. A term can be vertically centred in its cell (first definition line above
+    it), so lines are grouped by the table's horizontal rules rather than by reading order."""
+    rules: dict[int, list[float]] = {}
+
+    def band(page: int, ln: Line) -> int:
+        if page not in rules:
+            ys = set()
+            for d in doc[page - 1].get_drawings():
+                for it in d["items"]:
+                    if it[0] == "re" and it[1].width > 300 and it[1].height < 2:
+                        ys.add(it[1].y0)
+                    elif it[0] == "l" and abs(it[1].y - it[2].y) < 1 and abs(it[1].x - it[2].x) > 300:
+                        ys.add(it[1].y)
+            rules[page] = sorted(ys)
+        return sum(1 for y in rules[page] if y <= (ln.y0 + ln.y1) / 2)
+
+    cells, started = {}, False   # (page, band) -> ([term lines], [definition lines]), in reading order
+    for row in def_rows:
+        if row.text == "TERM | DEFINITION":
+            started = True
+            continue
+        if started:   # (rows before the first header are the chapter intro)
+            for c in row.cells:
+                cells.setdefault((row.page, band(row.page, c)), ([], []))[0 if c.x0 < 190 else 1].append(c)
+
+    sections = []
+    for (page, _), (terms, lines) in cells.items():
+        if terms:
+            title = terms[0].text
+            for t in terms[1:]:
+                title = join(title, t.text)
+            sec = Section("msig", title, "definition", "Definition of words", None, page, type="definition",
+                          section_id=f"msig:definitions:{slug(title)}",
+                          path=f"{MSIG_NAME} > Definition of words > {title}")
+            sections.append(sec)
+        elif sections:
+            sec = sections[-1]        # a definition continued from the previous page
+        else:
+            continue
+        prev = None
+        for c in sorted(lines, key=lambda l: l.y0):
+            continued = prev is None and not terms and sec.paras and not sec.paras[-1][2].endswith((".", ":", ";"))
+            if sec.paras and ((prev and 0 < c.y0 - prev.y0 <= TIGHT) or continued):
+                sec.paras[-1] = (sec.paras[-1][0], "text", join(sec.paras[-1][2], c.text))
+            else:
+                sec.paras.append((c.page, "text", c.text))
+            prev = c
+    return sections
+
+
 # ---------------------------------------------------------------- main
 
 POLICIES = {   # policy key -> (PDF file in data/policies/, parser)
     "fwd": ("fwd_travel_policy_wording.pdf", parse_fwd),
+    "msig": ("msig_traveleasy_policy.pdf", parse_msig),
 }
 
 

@@ -50,3 +50,20 @@ def test_parsed_fwd_sections():
            "Trip postponement = No; Trip cut short = Yes" in sections["fwd:trip_cut_short"]["text"]
     assert "Travel delay [Premium S$300, Business S$500, First S$1,000]" in \
         sections["fwd:benefit_limits:protecting_your_travel_plans"]["text"]
+
+
+@needs_index
+def test_parsed_msig_sections():
+    sections = {s["section_id"]: s for s in map(json.loads, SECTIONS_PATH.open(encoding="utf-8"))}
+    msig = [s for s in sections.values() if s["policy"] == "msig"]
+    assert sum(s["section_id"].startswith("msig:section_") for s in msig) == 52
+    assert sum(s["section_id"].startswith("msig:general_exclusion_") for s in msig) == 18
+    assert sum(s["type"] == "definition" for s in msig) == 42
+    assert "every full six hours in a row of delay" in sections["msig:section_25"]["text"]
+    # term centred in its table cell: the definition line above it still belongs to it
+    assert sections["msig:definitions:travel_companion"]["text"].startswith("A person who has made travel bookings")
+    # plan values carry their plan name; a merged "Not covered" cell applies to every row it spans
+    assert "Adult insured person aged below 70 [Premier Plan $500,000; Elite Plan $200,000; " \
+           "Standard Plan $150,000; Lite Plan $50,000]" in sections["msig:section_1"]["text"]
+    assert "Child [Lite Plan Not covered; Standard Plan Not covered; Elite Plan $ 150,000; Premier Plan $ 200,000]" \
+        in sections["msig:traveleasy_benefits_summary"]["text"]

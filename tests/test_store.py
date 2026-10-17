@@ -13,6 +13,12 @@ def test_search_finds_travel_delay():
     assert [h.score for h in hits] == sorted((h.score for h in hits), reverse=True)
 
 
+def test_search_msig_stays_in_policy():
+    hits = store.search("Am I covered if I give birth overseas?", "msig", k=5)
+    assert all(h.policy == "msig" for h in hits)
+    assert {"msig:section_11", "msig:general_exclusion_4"} <= {h.section_id for h in hits}
+
+
 def test_search_drops_identical_copies():
     hits = store.search("cancel my trip because my mother was hospitalised", "fwd", k=8)
     bodies = [h.text.split("\n", 1)[1] for h in hits]
