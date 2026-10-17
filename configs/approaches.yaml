@@ -6,7 +6,10 @@ A2:
   top_k: 5
   min_relevant: 2       # rewrite the query if fewer than this many chunks are graded relevant
   max_rewrites: 2
-A4: {}                  # settings added by Member B
+A4:
+  fallback_k: 8         # search depth used only if the benefit pick reply is unusable
+  max_benefits: 3
+  max_definitions: 6
 # Optional, only if M2 is met on time
 A1:
   top_k: 15
