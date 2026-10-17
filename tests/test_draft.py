@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from src.scenarios.draft import check
+from src.scenarios.draft import check, split
 from src.store import SECTIONS_PATH
 
 pytestmark = pytest.mark.skipif(not SECTIONS_PATH.exists(), reason="index not built (python -m src.ingest)")
@@ -25,3 +25,14 @@ def test_check(tmp_path):
 
     path.write_text(json.dumps(GOOD), encoding="utf-8")
     assert check(path) == []
+
+
+def test_split_is_deterministic_and_drops_deleted(tmp_path):
+    rows = [{**GOOD, "id": f"{p}-{n:03d}", "policy": p, "status": "deleted" if n == 0 else "accepted"}
+            for p in ("fwd", "msig") for n in range(15)]
+    (tmp_path / "reviewed.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
+    dev, test = split(tmp_path)
+    assert len(dev) == 20 and len(test) == 8
+    assert sum(r["policy"] == "fwd" for r in dev) == 10
+    assert not {r["id"] for r in dev + test} & {"fwd-000", "msig-000"}
+    assert [r["id"] for r in split(tmp_path)[0]] == [r["id"] for r in dev]

@@ -7,8 +7,11 @@ from, and checks the drafts file before review.
     python -m src.scenarios.draft list fwd [--type benefit]
     python -m src.scenarios.draft show fwd:travel_delay
     python -m src.scenarios.draft check [data/scenarios/drafts.jsonl]
+    python -m src.scenarios.draft split        reviewed.jsonl -> dev.jsonl (10 per policy) + test.jsonl
 """
 import argparse
+import json
+import random
 import sys
 from collections import Counter
 from pathlib import Path
@@ -18,7 +21,24 @@ from pydantic import ValidationError
 from src import store
 from src.schema import Scenario
 
-DRAFTS_PATH = Path(__file__).resolve().parents[2] / "data" / "scenarios" / "drafts.jsonl"
+SCEN_DIR = Path(__file__).resolve().parents[2] / "data" / "scenarios"
+DRAFTS_PATH = SCEN_DIR / "drafts.jsonl"
+SPLIT_SEED, DEV_PER_POLICY = 469, 10
+
+
+def split(scen_dir: Path = SCEN_DIR) -> tuple[list[dict], list[dict]]:
+    """Kept reviewed scenarios -> (dev, test). Dev takes DEV_PER_POLICY random scenarios from each policy."""
+    rows = [json.loads(l) for l in (scen_dir / "reviewed.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    kept = [r for r in rows if r["status"] != "deleted"]
+    rng = random.Random(SPLIT_SEED)
+    dev_ids = set()
+    for policy in sorted({r["policy"] for r in kept}):
+        dev_ids |= set(rng.sample(sorted(r["id"] for r in kept if r["policy"] == policy), DEV_PER_POLICY))
+    dev = [r for r in kept if r["id"] in dev_ids]
+    test = [r for r in kept if r["id"] not in dev_ids]
+    for name, part in (("dev", dev), ("test", test)):
+        (scen_dir / f"{name}.jsonl").write_text("".join(json.dumps(r) + "\n" for r in part), encoding="utf-8")
+    return dev, test
 
 
 def check(path: Path) -> list[str]:
@@ -61,6 +81,7 @@ def main() -> None:
     p.add_argument("--type", choices=["benefit", "definition", "exclusion", "condition", "other"])
     sub.add_parser("show", help="full text of one section").add_argument("section_id")
     sub.add_parser("check", help="validate a scenarios file").add_argument("path", nargs="?", default=DRAFTS_PATH)
+    sub.add_parser("split", help="write dev.jsonl and test.jsonl from reviewed.jsonl")
     args = ap.parse_args()
 
     if args.cmd == "list":
@@ -69,6 +90,11 @@ def main() -> None:
     elif args.cmd == "show":
         c = store.get_section(args.section_id)
         print(c.text if c else f"No section {args.section_id}")
+    elif args.cmd == "split":
+        dev, test = split()
+        print(f"dev {len(dev)}, test {len(test)} (seed {SPLIT_SEED})")
+        for name in ("dev", "test"):
+            check(SCEN_DIR / f"{name}.jsonl")
     else:
         problems = check(Path(args.path))
         print("\n".join(problems))
