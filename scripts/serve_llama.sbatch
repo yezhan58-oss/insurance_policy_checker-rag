@@ -17,7 +17,7 @@ cd ~/insurance-rag
 set -a; source .env; set +a                 # exports VLLM_API_KEY (vLLM reads it itself) and VLLM_PORT
 PORT=${PORT:-$VLLM_PORT}
 export HF_HOME="$HOME/scratchDirectory/hf"
-export VLLM_USE_FLASHINFER_SAMPLER=0        # FlashInfer's sampler JIT-compiles and needs nvcc, which compute nodes lack
+export VLLM_USE_FLASHINFER_SAMPLER=0        # FlashInfer kernels JIT-compile and need nvcc, which compute nodes lack
 echo "NODE=$(hostname) PORT=$PORT"
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 exec vllm serve /common/public/llm-models/meta-models/LLAMA3.1/Meta-Llama-3.1-8B-Instruct \
