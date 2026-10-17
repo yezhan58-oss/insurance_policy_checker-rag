@@ -187,9 +187,19 @@ def join(a: str, b: str) -> str:
 
 
 def chunk_section(sec: Section) -> list[tuple[int, str]]:
-    """[(page, body)]: whole section if short, else paragraph-packed chunks with a small overlap."""
+    """[(page, body)]. A long benefit sharing a block with others (see FWD_GROUPS) is cut where the shared
+    block starts, so that block yields identical chunks in every member and search can drop the copies.
+    Short ones stay whole: each is a complete, distinct section."""
+    split = next((i for i, p in enumerate(sec.paras) if p[1] == "note"), None)
+    long = len(sec.text.split()) > CHUNK_IF_OVER
+    parts = [sec.paras[:split], sec.paras[split:]] if split and long else [sec.paras]
+    return [chunk for paras in parts for chunk in _chunk_paras(paras)]
+
+
+def _chunk_paras(paras: list) -> list[tuple[int, str]]:
+    """Whole text if short, else paragraph-packed chunks with a small overlap."""
     units = []
-    for page, _, text in sec.paras:
+    for page, _, text in paras:
         words = text.split()
         if len(words) <= CHUNK_WORDS:
             units.append((page, text, len(words)))
@@ -198,7 +208,7 @@ def chunk_section(sec: Section) -> list[tuple[int, str]]:
             for i in range(0, len(words), step):
                 units.append((page, " ".join(words[i:i + CHUNK_WORDS]), len(words[i:i + CHUNK_WORDS])))
     if sum(n for *_, n in units) <= CHUNK_IF_OVER:
-        return [(sec.page, sec.text)]
+        return [(paras[0][0], "\n".join(t for _, _, t in paras))]
     chunks, cur = [], []
     for unit in units:
         if cur and sum(n for *_, n in cur) + unit[2] > CHUNK_WORDS:
@@ -336,7 +346,9 @@ def fwd_limit_tables(doc) -> list[Section]:
         values = [l for l in body if l.x0 >= GUTTER]
         groups = sorted((l for l in white if l.x0 < GUTTER and "Maximum benefit" not in l.text), key=lambda l: l.y0)
 
-        heads = [l for l in labels if "Bold" in l.font]
+        bold = [l for l in labels if "Bold" in l.font]   # a bold label wrapping onto a 2nd line is still one row
+        heads = [h for i, h in enumerate(bold)
+                 if not (i and abs(h.x0 - bold[i - 1].x0) < 2 and h.y0 - bold[i - 1].y0 <= 12)]
         blocks = []   # (group title, parent head, [label lines], [value lines])
         parent = None
         for i, h in enumerate(heads):
@@ -349,10 +361,21 @@ def fwd_limit_tables(doc) -> list[Section]:
                            [l for l in labels if h.y0 - 4 <= l.y0 < end],
                            [v for v in values if h.y0 - 4 <= v.y0 < end]))
 
+        joined = []   # a value cell drawn across two rows (merged cell) is one limit shared by both rows
         for gtitle, parent, labs, vals in blocks:
+            prev = joined[-1] if joined else None
+            if (not vals and prev and prev[3] and prev[1] == parent
+                    and max((v.y0 + v.y1) / 2 for v in prev[3]) > max(l.y1 for l in prev[2])):
+                prev[2][0].text = f"{prev[2][0].text} and {labs[0].text} (one combined limit)"
+                prev[2].extend(labs[1:])
+                continue
+            joined.append((gtitle, parent, labs, vals))
+
+        for gtitle, parent, labs, vals in joined:
             merged, last_y0 = [], None   # a label that wraps onto a second line (11pt below) is one label
             for l in labs:
-                if merged and abs(l.x0 - merged[-1].x0) < 2 and l.y0 - last_y0 <= 12 and "Bold" not in l.font:
+                if (merged and abs(l.x0 - merged[-1].x0) < 2 and l.y0 - last_y0 <= 12
+                        and ("Bold" in l.font) == ("Bold" in merged[-1].font)):
                     merged[-1] = Line(l.page, merged[-1].x0, merged[-1].y0, max(l.x1, merged[-1].x1), l.y1,
                                       l.size, merged[-1].font, l.color, join(merged[-1].text, l.text))
                 else:

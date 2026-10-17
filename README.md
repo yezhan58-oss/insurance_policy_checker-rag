@@ -28,6 +28,13 @@ Reads the PDFs in `data/policies/` (see `data/policies/SNAPSHOT.md`) and writes 
 and section files to `data/index/` (git-ignored). Deterministic, so every machine builds the same
 index. Prints 10 random sections per policy for a parsing check.
 
+Search it from Python with `src.store` (`search`, `get_section`, `list_sections`, `definitions`).
+Run the checks before opening a pull request:
+
+```
+pytest -q
+```
+
 ## Cluster setup
 
 Follow `CLUSTER_SETUP.md` (tested on 17 Oct 2026): SSH key and tunnel, clone, `.env`, uv environment,
