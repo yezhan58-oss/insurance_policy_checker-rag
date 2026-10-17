@@ -1,14 +1,15 @@
 # Cluster setup (SMU SCIS "origami")
 
 Tested end to end on 17 Oct 2026 on Member A's account: vLLM 0.31.0, torch 2.13 (CUDA 13.0), Llama 3.1 8B
-on an A40 on `avenue`, reached from a Windows laptop through an SSH tunnel. Based on Member B's draft.
+and gpt-oss-20b on A40s on `avenue`, reached from a Windows laptop through an SSH tunnel. Based on Member B's draft.
 
 Claude Code can do every step marked **(agent)** once step 1 works. Steps marked **(human)** need you.
 
 | | Member A (YZ) | Member B |
 | --- | --- | --- |
 | SMU ID | `yz.wong.2024` | own ID |
-| `VLLM_PORT` (interactive server) | 8471 | 8472 |
+| `VLLM_PORT` (interactive Llama server) | 8471 | 8472 |
+| `VLLM_GPTOSS_PORT` (interactive gpt-oss server) | 8473 | 8474 |
 | Batch job port (`BATCH_PORT`) | 8481 | 8482 |
 
 ## Rules
@@ -19,7 +20,9 @@ Claude Code can do every step marked **(agent)** once step 1 works. Steps marked
   no Python workloads.
 - Every job needs `--qos=studentqos --partition=student` and a GPU **type** (`gpu:a40:1`). A bare `gpu:1` can land
   on a GTX 1080 Ti, which vLLM cannot use. Alternatives with enough memory: `l40s`, `3090` (24 GB).
-- Limits: 1 GPU per job, at most 2 running jobs, at most 1 day per job. Release the GPU when you stop working.
+- Limits (`studentqos`): 1 GPU, 4 CPUs and 32 GB RAM per job, at most 2 running jobs, at most 1 day per job. The
+  biggest GPU a job can get is 48 GB (A40/L40S); `block` (Blackwell) hands out shared ~24 GB slices. So models
+  above ~20B (Llama 3.3 70B, gpt-oss-120b) do not fit. Release the GPU when you stop working.
 - Secrets live only in `.env` files (`chmod 600` on the cluster). Never in git, logs or chat.
 
 ## 1. Laptop: SSH key and shortcut (human, once)
@@ -68,14 +71,14 @@ password = the token.
 
 ## 3. Cluster: `.env` (agent or human, once)
 
-Generate a random server password and store it with your port (use 8472 for Member B):
+Generate a random server password and store it with your ports (Member B: 8472 and 8474):
 
 ```bash
-ssh origami 'umask 077; printf "VLLM_API_KEY=%s\nVLLM_PORT=8471\n" "$(openssl rand -hex 16)" > ~/insurance-rag/.env'
+ssh origami 'umask 077; printf "VLLM_API_KEY=%s\nVLLM_PORT=8471\nVLLM_GPTOSS_PORT=8473\n" "$(openssl rand -hex 16)" > ~/insurance-rag/.env'
 ```
 
-Put the **same** `VLLM_API_KEY` and `VLLM_PORT` into the laptop's `insurance-rag\.env` (copy `.env.example` first).
-The cluster needs no Claude key and no Hugging Face token.
+Put the **same** `VLLM_API_KEY`, `VLLM_PORT` and `VLLM_GPTOSS_PORT` into the laptop's `insurance-rag\.env` (copy
+`.env.example` first). The cluster needs no Claude key and no Hugging Face token.
 
 ## 4. Cluster: Python environment (agent, once)
 
@@ -96,43 +99,49 @@ Takes about 3 minutes once running. Done when `logs/install-<jobid>.out` ends wi
 and `INSTALL_DONE`. If A40s are busy, any 24 GB+ GPU works for the install:
 `sbatch --gres=gpu:3090:1 scripts/install_vllm.sbatch`.
 
-## 6. Model
+## 6. Models
 
-Use the cluster's shared copy. **No Hugging Face access request or download is needed:**
+Use the cluster's shared copies (installed by the cluster admins, original licenses: Llama 3.1 Community
+License, Apache 2.0). **No Hugging Face access request or download is needed:**
 
 ```
 /common/public/llm-models/meta-models/LLAMA3.1/Meta-Llama-3.1-8B-Instruct
+/common/public/llm-models/openai/gpt-oss-20b
 ```
 
-The scripts serve it under the name `meta-llama/Llama-3.1-8B-Instruct`, so `configs/models.yaml` works unchanged.
+The scripts serve them as `meta-llama/Llama-3.1-8B-Instruct` and `openai/gpt-oss-20b`, the names in
+`configs/models.yaml`. gpt-oss-20b needs `--attention-backend TRITON_ATTN` (in `scripts/serve_gptoss.sbatch`).
 
 ## 7. Daily routine
 
-1. **Start the server (agent):** `ssh origami 'cd ~/insurance-rag && sbatch scripts/serve_llama.sbatch'`
-   (4 h limit; `sbatch --time=01:00:00 scripts/serve_llama.sbatch` for less). "ReqNodeNotAvail" right after
+1. **Start the server (agent):** `ssh origami 'cd ~/insurance-rag && sbatch scripts/serve_llama.sbatch'`, or
+   `scripts/serve_gptoss.sbatch` for gpt-oss-20b (4 h limit; `sbatch --time=01:00:00 ...` for less). "ReqNodeNotAvail" right after
    submitting is normal; check `squeue --me` again a few seconds later.
-2. **Wait until ready (agent):** `logs/serve-<jobid>.out` shows `Application startup complete` (1 to 3 minutes).
+2. **Wait until ready (agent):** `logs/serve-<jobid>.out` (or `logs/serve-gptoss-<jobid>.out`) shows
+   `Application startup complete` (1 to 3 minutes).
    Its first line says `NODE=<node> PORT=<port>`.
 3. **Open the tunnel (human),** in its own PowerShell window, left open while you work (no output = working):
    ```powershell
    ssh -N -L 8471:avenue:8471 origami
    ```
-   Use your own port, and replace `avenue` if the job landed on another node.
+   Use your own port (gpt-oss: 8473 / 8474), and replace `avenue` if the job landed on another node. Two
+   servers need two `-L` options: `ssh -N -L 8471:avenue:8471 -L 8473:avenue:8473 origami`.
 4. **Check (agent):** from the repo on the laptop,
    ```powershell
    .venv\Scripts\python -c "from src.llm import get_llm; print(get_llm('vllm_llama8b').invoke('Say hi').content)"
    ```
 5. **Finish:** close the tunnel window (Ctrl+C) and release the GPU: `ssh origami "scancel <jobid>"`.
 
-## 8. Full Llama runs without the laptop
+## 8. Full runs without the laptop
 
 ```bash
-ssh origami 'cd ~/insurance-rag && git pull && sbatch scripts/run_llama.sbatch'
+ssh origami 'cd ~/insurance-rag && git pull && MODEL=vllm_llama8b sbatch scripts/run_eval.sbatch'
+ssh origami 'cd ~/insurance-rag && git pull && MODEL=vllm_gptoss20b sbatch scripts/run_eval.sbatch'
 ```
 
-The job starts a private server on the batch port, rebuilds the index from the checked-out code, runs
-`src.eval.run` and stops the server. Member B's dev runs:
-`BATCH_PORT=8482 SPLIT=dev APPROACHES=A4 sbatch scripts/run_llama.sbatch`. Final test runs: Member A, from `main`.
+The job starts a private server for that model on the batch port, rebuilds the index from the checked-out code,
+runs `src.eval.run` and stops the server. Member B's dev runs:
+`MODEL=vllm_gptoss20b BATCH_PORT=8482 SPLIT=dev APPROACHES=A4 sbatch scripts/run_eval.sbatch`. Final test runs: Member A, from `main`.
 Check with `squeue --me`; cancel with `scancel <jobid>`.
 
 ## Troubleshooting
@@ -143,6 +152,9 @@ Check with `squeue --me`; cancel with `scancel <jobid>`.
 | `ssh` times out | Off campus without the SMU VPN. |
 | Clone: 403 "Write access to repository not granted" | Token lacks **Contents: Read-only**. Edit the token, retry; delete `~/.git-credentials` if a bad token was saved. |
 | Clone: "destination path already exists" | `~/insurance-rag` was created first. `rm -rf ~/insurance-rag` (only if it holds nothing but `logs/`), then clone. |
+| Server log: `FlashInfer backend is not available` (gpt-oss) | Serve gpt-oss with `--attention-backend TRITON_ATTN` (the script does this). |
+| `CUDA out of memory` with `total capacity of 23.62 GiB` | You got a ~24 GB `block` slice; the model is too big for it. Use an A40 (48 GB). |
+| `QOSMaxCpuPerJobLimit` on submit | More than 4 CPUs (or 32 GB RAM) requested; student jobs are capped there. |
 | Server log: `Could not find nvcc and default cuda_home='/usr/local/cuda' doesn't exist` | FlashInfer tried to compile. Make sure `VLLM_USE_FLASHINFER_SAMPLER=0` is exported (the scripts do this). |
 | Job pending for a long time | A40s busy (`sinfo -p student -o "%N %G %t"`). For the server, `sbatch --gres=gpu:l40s:1 ...` or `gpu:3090:1`. |
 | Job rejected for QOS/account | Missing `--qos=studentqos --partition=student`. Never use the `project` partition. |

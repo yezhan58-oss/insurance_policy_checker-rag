@@ -2,5 +2,5 @@
 seed: 0
 temperature: 0
 split: dev                      # dev | test
-models: [vllm_llama8b]          # names from configs/models.yaml
+models: [vllm_llama8b, vllm_gptoss20b]   # names from configs/models.yaml
 approaches: [B0, A0, A2, A4]    # keys of src.approaches.REGISTRY

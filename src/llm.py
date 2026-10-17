@@ -50,7 +50,7 @@ def get_llm(name: str, temperature: float = 0.0, **overrides) -> BaseChatModel:
     if provider == "anthropic":
         from langchain_anthropic import ChatAnthropic
 
-        kwargs = dict(model=cfg["model"], api_key=cfg["api_key"], temperature=temperature,
-                      max_tokens=2048)
+        # No temperature: Claude 5.5 models (our Haiku judge) reject any value other than the default.
+        kwargs = dict(model=cfg["model"], api_key=cfg["api_key"], max_tokens=2048)
         return ChatAnthropic(**{**kwargs, **overrides})
     raise ValueError(f"Unknown provider '{provider}' for model '{name}'")

@@ -38,5 +38,6 @@ pytest -q
 ## Cluster setup
 
 Follow `CLUSTER_SETUP.md` (tested on 17 Oct 2026): SSH key and tunnel, clone, `.env`, uv environment,
-`sbatch scripts/install_vllm.sbatch`, then `sbatch scripts/serve_llama.sbatch` each work session. Llama 3.1 8B
-comes from the cluster's shared copy, so no Hugging Face access request is needed.
+`sbatch scripts/install_vllm.sbatch`, then `sbatch scripts/serve_llama.sbatch` (or `serve_gptoss.sbatch`) each work
+session. Both tested models, Llama 3.1 8B and gpt-oss-20b, come from the cluster's shared copies, so no Hugging Face
+access request is needed. Only the LLM judge (Claude Haiku 5.5) uses the Claude API.

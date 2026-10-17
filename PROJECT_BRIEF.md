@@ -20,16 +20,17 @@ A half-study, half-build project for SMU IS469 (Generative and Agentic AI). Team
 - **Models**
   - Open model: `meta-llama/Llama-3.1-8B-Instruct`, served with vLLM on the cluster (node `avenue`, NVIDIA A40 48 GB, `student` partition). Each member runs their own server on their own port (section 4).
   - Backup open model if Llama access is delayed: `Qwen/Qwen2.5-7B-Instruct` (not gated). If used, change `model:` in models.yaml and serve it with `--tool-call-parser hermes` instead of `llama3_json`.
-  - Frontier model: **Claude Sonnet 5.5** via the Anthropic API ($2 in / $10 out per million tokens). Budget: **US$100 of credits that expire on 5 Nov 2026**. All Sonnet runs must finish by 2 Nov, and all judge runs by 4 Nov. Do prompt tuning on Llama (free); spend Claude credits only on the final dev check, the test runs and judge scoring. Log token usage per run and stop to ask the human if projected spend exceeds US$70. Use prompt caching for repeated instructions. Make normal (synchronous) calls only, so latency is measured the same way for every setup.
-  - LLM judge: Claude Haiku 5.5 (cheap). It scores both the Llama and the Claude test runs, so it must finish before the credits expire. Note in the report that the judge is from the same family as the frontier model.
-  - The demo must not depend on Claude after 5 Nov: run it on Llama, or cache the scripted demo answers.
+  - Second model: `openai/gpt-oss-20b` (OpenAI open-weight reasoning model, Apache 2.0), from the cluster's shared copy, served with vLLM on an A40 (section 4). It replaces the first draft's Claude Sonnet 5.5: the US$100 thought to be API credits turned out to be Claude Code cloud-session credits, which cannot pay for API calls. The study therefore compares a small standard model with a larger reasoning model, both free on SMU's cluster. (Larger shared models such as Llama 3.3 70B and gpt-oss-120b do not fit in the 48 GB a student job can get.)
+  - Make normal (synchronous) calls only, so latency is measured the same way for every setup. gpt-oss-20b also produces reasoning tokens; log them in `usage`.
+  - LLM judge: **Claude Haiku 5.5** via the Anthropic API ($0.10 in / $0.50 out per million tokens), paid from US$5 of Claude Console credits bought by Member A. It comes from a different company than both tested models. Print the estimated cost and wait for the human before every judge run; stop and ask if projected spend exceeds US$4.
+  - The demo runs on the cluster models (with cached answers for the scripted demo questions) and never needs Claude.
   - Local Ollama `qwen3.5:4b` is only for quick "does the code run" checks. **Tune prompts on Llama 3.1 8B, not on the 4B model.**
 - **One client interface for every model.** `src/llm.py` reads `configs/models.yaml` and builds `langchain_openai.ChatOpenAI` (with `base_url`) for vLLM and Ollama, or `langchain_anthropic.ChatAnthropic` for Claude, based on a `provider` field. Approach code never changes when the model changes.
 - **Embeddings:** one embedding model everywhere so every setup searches the same index. Default: `BAAI/bge-small-en-v1.5` via `sentence-transformers` Always load it with `device="cpu"` (on the cluster the GPU is busy with vLLM, and CPU keeps results identical across machines). `src/ingest.py` is deterministic, so each machine rebuilds the same Chroma index with `python -m src.ingest`.
 - Libraries: `langchain`, `langchain-openai`, `langchain-anthropic`, `langchain-chroma`, `chromadb`, `langgraph`, `sentence-transformers`, `pymupdf`, `pydantic`, `pandas`, `scipy`, `statsmodels`, `matplotlib`, `streamlit`, `pyyaml`, `python-dotenv`, `pytest`. vLLM is installed only on the cluster.
 - Laptop: a `venv` inside the repo and a pinned `requirements.txt`. Cluster: a separate venv at `~/venvs/rag` (Python 3.11, built with `uv`).
-- Secrets go in `.env` on each machine, never committed: `ANTHROPIC_API_KEY`, `VLLM_API_KEY`, `VLLM_PORT`, `HF_TOKEN` (only needed if the Qwen backup has to be downloaded). `src/llm.py` expands `${VAR}` in models.yaml from `.env`. Commit `.env.example` with empty values.
-- Fixed seeds, temperature 0 for all experiment runs. Every run writes its config and git commit hash next to its results.
+- Secrets go in `.env` on each machine, never committed: `VLLM_API_KEY`, `VLLM_PORT`, `VLLM_GPTOSS_PORT`, `ANTHROPIC_API_KEY` (only for whoever runs the judge), `HF_TOKEN` (only needed if the Qwen backup has to be downloaded). `src/llm.py` expands `${VAR}` in models.yaml from `.env`. Commit `.env.example` with empty values.
+- Fixed seeds, temperature 0 for all experiment runs (the Haiku judge keeps its default temperature: Claude 5.5 models reject any other value). Even at temperature 0, vLLM can give slightly different answers to identical calls; say so in the report. Every run writes its config and git commit hash next to its results.
 - Small, reviewable steps. After each task, stop and summarise what was built, how to run it, and how it was verified.
 
 ## 3. Team setup (one time, this weekend)
@@ -43,7 +44,7 @@ A half-study, half-build project for SMU IS469 (Generative and Agentic AI). Team
 
    The human will say "I am Member A" or "I am Member B" at the start of a session. Work only on that member's tasks (section 11) unless told otherwise.
    ```
-2. Claude Console (where the credits are): invite Member B to the organisation. Each member creates their own API key. If the Console allows a workspace spend limit, set it to about US$70.
+2. Claude Console: buy US$5 of API credits (only the Haiku judge uses them), set a spend limit if the Console allows it, and create an API key for the repo's `.env`. Member B needs a key only if they run the judge.
 3. Do the cluster setup (section 4) first and record the tested steps in `CLUSTER_SETUP.md`, so Member B's setup goes quickly. (Done 17 Oct.)
 
 ### 3.2 Both members do on their own laptop
@@ -52,8 +53,8 @@ A half-study, half-build project for SMU IS469 (Generative and Agentic AI). Team
 2. Install the SMU VPN.
 3. (No Hugging Face access request needed: the cluster has a shared copy of Llama 3.1 8B, see section 4.1.)
 4. Do the cluster setup in `CLUSTER_SETUP.md` with your own SMU ID (about 30 minutes).
-5. Create `.env` with your own `ANTHROPIC_API_KEY`, your own made-up `VLLM_API_KEY`, and your `VLLM_PORT` (A: 8471, B: 8472).
-6. **Claude Code must run on your normal Claude subscription, not the API key.** Keep `ANTHROPIC_API_KEY` only in the repo's `.env` (read by our Python code). Never set it as a Windows environment variable: the Claude Code command-line tool uses that variable instead of your subscription, and every coding chat would then spend the US$100 of credits. The Claude desktop app signs in with your account and does not read it.
+5. Create `.env` from `.env.example`: your own made-up `VLLM_API_KEY`, your `VLLM_PORT` (A: 8471, B: 8472) and `VLLM_GPTOSS_PORT` (A: 8473, B: 8474); `ANTHROPIC_API_KEY` only if you run the judge.
+6. **Claude Code must run on your normal Claude subscription, not the API key.** Keep `ANTHROPIC_API_KEY` only in the repo's `.env` (read by our Python code). Never set it as a Windows environment variable: the Claude Code command-line tool uses that variable instead of your subscription, and every coding chat would then be billed to the API credits. The Claude desktop app signs in with your account and does not read it.
 
 If a member uses macOS or Linux instead of Windows, use the Terminal equivalents of the CMD commands (e.g. `cat ~/.ssh/id_ed25519.pub | ssh ...` instead of `type ... | ssh ...`).
 
@@ -66,7 +67,8 @@ Both members have their own cluster account, and each runs their own copy of the
 | | Member A (YZ) | Member B |
 | --- | --- | --- |
 | SMU ID | `yz.wong.2024` | own ID |
-| `VLLM_PORT` (interactive) | 8471 | 8472 |
+| `VLLM_PORT` (interactive Llama server) | 8471 | 8472 |
+| `VLLM_GPTOSS_PORT` (interactive gpt-oss server) | 8473 | 8474 |
 | Batch job port | 8481 | 8482 |
 | `VLLM_API_KEY` | own random password | own random password |
 
@@ -76,25 +78,26 @@ Etiquette: hold a GPU only while actively working; the GPUs are shared with othe
 
 ### 4.1 Decisions (changed from the first draft of this brief)
 
-- **Model weights:** the cluster's shared copy at `/common/public/llm-models/meta-models/LLAMA3.1/Meta-Llama-3.1-8B-Instruct`. No Hugging Face access request or download is needed. vLLM serves it under the name `meta-llama/Llama-3.1-8B-Instruct`, so `configs/models.yaml` and every results file use the official name.
+- **Model weights:** the cluster's shared copies at `/common/public/llm-models/meta-models/LLAMA3.1/Meta-Llama-3.1-8B-Instruct` and `/common/public/llm-models/openai/gpt-oss-20b` (installed by the cluster admins with their original licenses). No Hugging Face access request or download is needed. vLLM serves them under their official names `meta-llama/Llama-3.1-8B-Instruct` and `openai/gpt-oss-20b`, which `configs/models.yaml` and every results file use.
+- **Student limits:** 1 GPU, 4 CPUs and 32 GB RAM per job, at most 2 running jobs, 1 day per job. The biggest GPU a job can get is 48 GB (A40 or L40S); the Blackwell node `block` hands out shared ~24 GB slices.
 - **Python:** `~/venvs/rag`, Python 3.11 built with `uv` (no `module load`). vLLM plus our `requirements.txt` (no `torch` pin) are installed with `scripts/install_vllm.sbatch`.
-- **Everything GPU runs through `sbatch`** (no interactive `srun` sessions): `scripts/serve_llama.sbatch` for the interactive server (own port, 4 h default), `scripts/run_llama.sbatch` for full runs. Every job uses `--qos=studentqos --partition=student --gres=gpu:a40:1`; a GPU type is required because a bare `gpu:1` can land on a GTX 1080 Ti. Limits: 1 GPU per job, 2 running jobs, 1 day per job.
-- **`VLLM_USE_FLASHINFER_SAMPLER=0`** in every job: otherwise vLLM 0.31 tries to compile a FlashInfer kernel at startup, and compute nodes have no `nvcc`.
-- **Secrets:** `~/insurance-rag/.env` on the cluster (plain `KEY=value` lines, `chmod 600`) holds `VLLM_API_KEY` and `VLLM_PORT`; the laptop `.env` holds the same two values. vLLM reads `VLLM_API_KEY` from the environment, so the password never appears on the command line.
+- **Everything GPU runs through `sbatch`** (no interactive `srun` sessions): `scripts/serve_llama.sbatch` and `scripts/serve_gptoss.sbatch` for interactive servers (own ports, 4 h default), `scripts/run_eval.sbatch` for full runs of either model. Every job uses `--qos=studentqos --partition=student --gres=gpu:a40:1`; a GPU type is required because a bare `gpu:1` can land on a GTX 1080 Ti.
+- **`VLLM_USE_FLASHINFER_SAMPLER=0`** in every job: otherwise vLLM 0.31 tries to compile a FlashInfer kernel at startup, and compute nodes have no `nvcc`. For the same reason gpt-oss-20b is served with `--attention-backend TRITON_ATTN`.
+- **Secrets:** `~/insurance-rag/.env` on the cluster (plain `KEY=value` lines, `chmod 600`) holds `VLLM_API_KEY`, `VLLM_PORT` and `VLLM_GPTOSS_PORT`; the laptop `.env` holds the same values. vLLM reads `VLLM_API_KEY` from the environment, so the password never appears on the command line.
 - **Caches:** `HF_HOME` and the uv cache live in `~/scratchDirectory`; code, venv, index (`data/index/`) and `results/` stay in the repo paths the code expects.
 - **Laptop access:** SSH key plus a `Host origami` entry in `~/.ssh/config`, then a tunnel `ssh -N -L <port>:<node>:<port> origami` opened by the human.
 
 ### 4.2 Daily routine
 
-1. On campus Wi-Fi or VPN. Submit `scripts/serve_llama.sbatch` and wait for "Application startup complete" in `logs/serve-<jobid>.out` (first line shows the node).
+1. On campus Wi-Fi or VPN. Submit `scripts/serve_llama.sbatch` (or `scripts/serve_gptoss.sbatch`) and wait for "Application startup complete" in `logs/serve-<jobid>.out` (first line shows the node).
 2. Open the tunnel in its own window and work.
 3. When finished: close the tunnel and `scancel` the server job to release the GPU.
 
 Never run heavy work on the login node `origami`. Always set `--time`.
 
-### 4.3 Full Llama runs: batch job (no laptop needed)
+### 4.3 Full runs: batch job (no laptop needed)
 
-Code reaches the cluster via GitHub: `git pull` in `~/insurance-rag` before each run. `scripts/run_llama.sbatch` starts a private vLLM server on the batch port, rebuilds the index with `python -m src.ingest` (so it always matches the checked-out code), runs `python -m src.eval.run --model vllm_llama8b --split ${SPLIT:-test}`, then stops the server. Submit from `~/insurance-rag` with `sbatch scripts/run_llama.sbatch`. Member B's dev runs: `BATCH_PORT=8482 SPLIT=dev APPROACHES=A4 sbatch scripts/run_llama.sbatch` (sbatch passes your shell variables to the job; this form also allows commas, e.g. `APPROACHES=B0,A0`). Check with `squeue --me`, cancel with `scancel <jobid>`. `src/eval/run.py` must be resumable so a cut-off job can be resubmitted. Either member can submit batch jobs for development; the **final** test runs are submitted by Member A only, from `main`, so all reported numbers come from one consistent run. Claude runs need no GPU and are run from a laptop.
+Code reaches the cluster via GitHub: `git pull` in `~/insurance-rag` before each run. `scripts/run_eval.sbatch` starts a private vLLM server for one model (`MODEL=vllm_llama8b` or `MODEL=vllm_gptoss20b`) on the batch port, rebuilds the index with `python -m src.ingest` (so it always matches the checked-out code), runs `python -m src.eval.run --model $MODEL --split ${SPLIT:-test}`, then stops the server. Submit from `~/insurance-rag` with `MODEL=vllm_llama8b sbatch scripts/run_eval.sbatch`. Member B's dev runs: `MODEL=vllm_gptoss20b BATCH_PORT=8482 SPLIT=dev APPROACHES=A4 sbatch scripts/run_eval.sbatch` (sbatch passes your shell variables to the job; this form also allows commas, e.g. `APPROACHES=B0,A0`). Check with `squeue --me`, cancel with `scancel <jobid>`. `src/eval/run.py` must be resumable so a cut-off job can be resubmitted. Either member can submit batch jobs for development; the **final** test runs are submitted by Member A only, from `main`, so all reported numbers come from one consistent run. The Haiku judge needs no GPU and runs from a laptop.
 
 ### 4.4 configs/models.yaml
 
@@ -109,10 +112,11 @@ vllm_llama8b:
   base_url: http://localhost:${VLLM_PORT}/v1   # your own port; laptop via tunnel, or inside a batch job
   model: meta-llama/Llama-3.1-8B-Instruct
   api_key: ${VLLM_API_KEY}
-claude_sonnet:
-  provider: anthropic
-  model: claude-sonnet-5-5
-  api_key: ${ANTHROPIC_API_KEY}
+vllm_gptoss20b:
+  provider: openai
+  base_url: http://localhost:${VLLM_GPTOSS_PORT}/v1   # your own gpt-oss port; laptop via tunnel, or inside a batch job
+  model: openai/gpt-oss-20b
+  api_key: ${VLLM_API_KEY}
 claude_haiku_judge:
   provider: anthropic
   model: claude-haiku-5-5
@@ -144,8 +148,9 @@ insurance-rag/
       test.jsonl            about 120 agreed scenarios, scored once at the end
   scripts/
     install_vllm.sbatch     one-time install of vLLM + requirements into ~/venvs/rag
-    serve_llama.sbatch      interactive model server on your own port
-    run_llama.sbatch        full Llama runs as one batch job (section 4.3)
+    serve_llama.sbatch      interactive Llama 3.1 8B server on your own port
+    serve_gptoss.sbatch     interactive gpt-oss-20b server on your own port
+    run_eval.sbatch         full runs of one model as one batch job (section 4.3)
   src/
     schema.py               CONTRACT: Scenario, Chunk, VerdictOutput
     llm.py                  CONTRACT: get_llm(name) from models.yaml
@@ -220,7 +225,7 @@ Start with **FWD and MSIG**. Add Singlife only if M1 lands early. Download, save
 
 ### Labelling workflow: AI drafts, humans decide
 
-AI never sets the final gold label, because the study tests Claude and grading Claude against Claude's own answers would bias the results.
+AI never sets the final gold label, because the drafts come from an LLM and grading the tested models against an LLM's own answers would bias the results.
 
 1. **Labelling guide (Member B, AI-assisted):** one page in `LABELLING_GUIDE.md` defining the four verdicts with an example each. partially_covered means some costs are covered and some are excluded, or a sub-limit applies. insufficient_info means a fact needed to decide is missing. Also covers how to pick `gold_sections`.
 2. **Draft by construction (`src/scenarios/draft.py`, Member B):** pick a clause, then write scenarios designed to land on different verdicts. Illustrative example from FWD Travel delay, which pays for delays of 6 continuous hours or more: 7 hours = covered; 4 hours = not covered; a cause listed in the exclusions = not covered; "my flight was delayed" = insufficient_info. Every intended answer must be confirmed against the actual policy text during review. Each draft stores `source_clause` and an intended answer. Drafting can be done by Claude Code directly at no API cost.
@@ -280,12 +285,12 @@ A2 and A4 are two different agentic styles: a generic self-correcting retriever 
 | wrong_covered_rate | predicted covered (or partially) when gold is not_covered (safety) |
 | clause_recall | share of gold_sections present in cited_sections |
 | faithfulness | LLM judge: explanation supported by cited text (yes / partly / no) |
-| latency_s, model_calls, tokens, cost | means from `usage` |
+| latency_s, model_calls, tokens | means from `usage` (incl. reasoning tokens). Both models run free on the cluster, so cost is measured as tokens, calls and latency rather than dollars |
 
 - 95% confidence intervals by bootstrap (1,000 resamples, fixed seed).
 - **Paired significance tests (McNemar on per-scenario correctness), pre-registered:** (1) best agent vs A0, (2) A0 vs B0, (3) A2 vs A4. If A1 is run, add best agent vs A1. Holm correction across them.
 - `src/eval/judge.py`: Claude Haiku 5.5 judge. Export 30 random judgments to CSV for a human to check agreement.
-- `src/eval/report.py`: leaderboard table (markdown + CSV), accuracy vs cost scatter (one point per approach x model), accuracy by category bar chart, error-type counts.
+- `src/eval/report.py`: leaderboard table (markdown + CSV), accuracy vs latency and tokens scatter (one point per approach x model), accuracy by category bar chart, error-type counts.
 - Error types (assigned by a human with a draft LLM label): missed_exclusion, misread_definition, wrong_section_retrieved, agent_loop_or_stall, accepted_false_assumption, parse_error, other.
 
 **Decision rule for "best" (fixed before looking at test results):** highest verdict_accuracy on test, provided its wrong_covered_rate is no worse than A0's. If McNemar does not separate the top two, pick the cheaper and faster one.
@@ -300,7 +305,7 @@ A2 and A4 are two different agentic styles: a generic self-correcting retriever 
 - Show the winning approach's verdict, the quoted clauses with section IDs, and an expandable trace of `steps`.
 - Optional toggle to show A0's answer side by side.
 - Guardrails: never promise a payout amount or approval ("likely covered under Section X, subject to the insurer's assessment"); always show the clause text; return insufficient_info and say what detail is missing when evidence is not found; fixed disclaimer that this is not insurance or legal advice.
-- Runs on Llama, with cached responses for the scripted demo questions so it works offline and after the Claude credits expire.
+- Runs on the cluster models, with cached responses for the scripted demo questions so it works offline.
 
 ## 11. Team split and integration
 
@@ -315,7 +320,7 @@ Member A = YZ. Member B = teammate. The split is even at about 34 hours each (es
 | A2 CRAG | 5 | A4 workflow agent | 7 |
 | `run.py`, `score.py` (CIs, McNemar), `agreement.py` | 6 | `judge.py` and 30 hand-checks | 3 |
 | `report.py` charts and leaderboard | 2 | Error analysis | 4 |
-| Final runs (Llama batch job + Claude) | 3 | Streamlit demo | 7 |
+| Final runs (batch jobs, both models) | 3 | Streamlit demo | 7 |
 | Blind-label 40 test scenarios | 2 | | |
 | **Total** | **34** | **Total** | **34** |
 
@@ -340,8 +345,8 @@ Report sections: A writes method, setups and results; B writes data and labellin
 | Thu 22 Oct | FWD + MSIG ingested and checked; B0, A0 run on dev | About 150 drafts; `label_app.py`; review started | **M1** |
 | Mon 26 Oct | | Review done; dev/test split made, so A can start blind labelling | |
 | Thu 29 Oct | A2 CRAG; `run.py`, `score.py`; blind 40 done; kappa | A4 agent; `tools.py`; `judge.py`; disagreements resolved; test frozen | **M2**: all 4 core setups valid on dev on Llama |
-| Mon 2 Nov | Full Llama test run; all Sonnet runs done | Error analysis started | Sonnet deadline |
-| Wed 4 Nov | Leaderboard, McNemar, charts; winner picked | All judge runs done (credits expire 5 Nov); judge hand-checks; demo on winner | **M3** |
+| Mon 2 Nov | Full test runs on both models | Error analysis started | |
+| Wed 4 Nov | Leaderboard, McNemar, charts; winner picked | All judge runs done (Haiku, about US$1); judge hand-checks; demo on winner | **M3** |
 | Mon 9 Nov | Report sections, README | Report sections, demo polished with cached answers | **M4**: ship, rehearse |
 
 **Suggested first prompt (Member A):** "I am Member A. Read PROJECT_BRIEF.md, then set up the repo skeleton (section 5), requirements.txt, configs/models.yaml and the CONTRACT files with stubs. Then write src/ingest.py for FWD only and stop after printing 10 sample sections with their IDs so I can check the parsing."
@@ -360,7 +365,7 @@ Report sections: A writes method, setups and results; B writes data and labellin
 
 ## 13. Things to ask the human about (do not guess)
 
-- Any Claude spend beyond the US$70 working budget, or switching the frontier model.
+- Any Claude spend beyond the US$5 judge budget, or changing the tested models or the judge.
 - Any change to the gold labels, the decision rule, or the dev/test split.
 - Adding Singlife, A1, A3 or any other extension before M2 is done.
 - Anything that would send policy text or scenarios to a new third-party service.
@@ -372,4 +377,5 @@ Report sections: A writes method, setups and results; B writes data and labellin
 - LangGraph CRAG notebook (starting point for A2): https://github.com/langchain-ai/langgraph/blob/main/examples/rag/langgraph_crag.ipynb
 - LangChain blog, "Self-Reflective RAG with LangGraph" (background on CRAG and Self-RAG in LangGraph): https://www.langchain.com/blog/agentic-rag-with-langgraph
 - Claude model IDs: https://platform.claude.com/docs/en/about-claude/models/overview ; pricing: https://platform.claude.com/docs/en/about-claude/pricing
+- gpt-oss-20b model card: https://huggingface.co/openai/gpt-oss-20b ; Llama 3.1 license: https://www.llama.com/llama3_1/license/
 - McNemar's test for paired classifier comparison: Dietterich, 1998, "Approximate Statistical Tests for Comparing Supervised Classification Learning Algorithms"

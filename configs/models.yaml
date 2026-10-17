@@ -8,10 +8,11 @@ vllm_llama8b:
   base_url: http://localhost:${VLLM_PORT}/v1   # your own port; laptop via tunnel, or inside a batch job
   model: meta-llama/Llama-3.1-8B-Instruct
   api_key: ${VLLM_API_KEY}
-claude_sonnet:
-  provider: anthropic
-  model: claude-sonnet-5-5
-  api_key: ${ANTHROPIC_API_KEY}
+vllm_gptoss20b:
+  provider: openai
+  base_url: http://localhost:${VLLM_GPTOSS_PORT}/v1   # your own gpt-oss port; laptop via tunnel, or inside a batch job
+  model: openai/gpt-oss-20b
+  api_key: ${VLLM_API_KEY}
 claude_haiku_judge:
   provider: anthropic
   model: claude-haiku-5-5
