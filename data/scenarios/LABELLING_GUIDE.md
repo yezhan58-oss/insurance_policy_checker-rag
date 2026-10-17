@@ -18,6 +18,9 @@ not stated (except the default assumptions below).
   police report, receipts). A missing document is only a problem if the scenario says it does not exist.
 - The plan tier (Premium / Business / First) is unknown. A label may depend on a limit only if that limit is the
   same on every plan (e.g. the S$1,000 laptop sub-limit); otherwise do not write the scenario.
+- **Exception: if whether a benefit applies at all depends on the plan** (e.g. MSIG Lite has no travel cancellation,
+  MSIG Standard has no credit card fraud cover), the scenario must state the plan ("I'm on the Standard plan").
+  Label by the stated plan. A scenario that leaves the plan out in such a case is `insufficient_info`.
 
 ## The four verdicts
 
