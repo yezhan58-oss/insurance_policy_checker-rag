@@ -32,6 +32,17 @@ def test_run_split_writes_rows_and_resumes(tmp_path):
     assert second == {"done": 1, "skipped": 2, "failed": 0}            # only the failed one is retried
 
 
+def test_run_split_records_non_transient_errors_as_wrong(tmp_path):
+    def broken(scenario, llm, store):
+        raise ValueError("model output hit the length limit")
+    out = tmp_path / "raw.jsonl"
+    counts = run_mod.run_split(SCENARIOS[:1], {"A4": broken}, None, None, "m", "dev", out, "abc", log=lambda *_: None)
+    assert counts == {"done": 1, "skipped": 0, "failed": 0}            # recorded, so a rerun does not loop on it
+    row = json.loads(out.read_text(encoding="utf-8"))
+    assert row["output"]["error"].startswith("exception: ValueError")
+    assert per_row([row], {}).correct.iloc[0] == 0
+
+
 def row(sid, approach, verdict, gold="covered", cited=("fwd:travel_delay",), error=None, calls=1, latency=1.0):
     return {"scenario_id": sid, "approach": approach, "category": "single_section", "gold_verdict": gold,
             "gold_sections": ["fwd:travel_delay", "fwd:definitions:trip"], "commit": "abc",

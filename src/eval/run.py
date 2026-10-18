@@ -15,16 +15,22 @@ import subprocess
 import sys
 from pathlib import Path
 
+import anthropic
+import openai
 import yaml
 
 from src import store
 from src.approaches import REGISTRY
 from src.llm import get_llm, load_model_config
-from src.schema import Scenario
+from src.schema import Scenario, VerdictOutput
 
 ROOT = Path(__file__).resolve().parents[2]
 SCEN_DIR = ROOT / "data" / "scenarios"
 RESULTS_DIR = ROOT / "results"
+# Server or network trouble: write no row, so a rerun retries. Any other exception is a failure of the approach
+# itself (it would repeat on every rerun at temperature 0) and is recorded as an error row, scored as wrong.
+TRANSIENT = (ConnectionError, TimeoutError, openai.APIConnectionError, openai.InternalServerError,
+             anthropic.APIConnectionError, anthropic.InternalServerError)
 
 
 def git_commit() -> str:
@@ -66,10 +72,13 @@ def run_split(scenarios: list[Scenario], approaches: dict, llm, store_module, mo
                     continue
                 try:
                     out = run(sc, llm, store_module)
-                except Exception as e:   # e.g. server unreachable: no row is written, so a rerun retries it
+                except TRANSIENT as e:
                     counts["failed"] += 1
-                    log(f"FAILED {sc.id} {aid}: {type(e).__name__}: {e}")
+                    log(f"FAILED (will retry on rerun) {sc.id} {aid}: {type(e).__name__}: {e}")
                     continue
+                except Exception as e:
+                    out = VerdictOutput(verdict="insufficient_info", cited_sections=[], explanation="",
+                                        error=f"exception: {type(e).__name__}: {str(e)[:300]}")
                 row = {"scenario_id": sc.id, "approach": aid, "model": model, "split": split, "policy": sc.policy,
                        "category": sc.category, "gold_verdict": sc.gold_verdict, "gold_sections": sc.gold_sections,
                        "output": out.model_dump(), "commit": commit,
