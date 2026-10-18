@@ -31,8 +31,9 @@ or a stated sub-limit cuts the claim.
 Rules:
 1. Judge only from the policy and the facts stated in the claim. Do not assume facts that are not stated, except \
 these: the policy was bought and the trip booked before the event, the premium is paid, the trip is within the \
-period of cover, the claimant is the insured person and will provide the documents the policy asks for, and the \
-plan tier is unknown.
+period of cover, and the claimant is the insured person and will provide the documents the policy asks for. Use \
+the plan tier if the claim states it. If whether a benefit applies at all depends on the plan and the claim does \
+not state the plan, the verdict is insufficient_info.
 2. If a benefit's conditions are met but an exclusion clearly applies, the verdict is not_covered.
 3. If the claim states a fact that fails a condition, the verdict is not_covered. If that fact is simply missing, \
 the verdict is insufficient_info.
