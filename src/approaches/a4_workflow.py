@@ -15,6 +15,7 @@ from typing import TypedDict
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import END, START, StateGraph
+from openai import LengthFinishReasonError
 from pydantic import BaseModel, ValidationError
 
 from src import tools
@@ -59,10 +60,10 @@ def _pick(llm, system: str, scenario: Scenario, options: list[Chunk], usage: dic
         listing = "\n\n".join(f"[{c.section_id}] {c.title}\n{c.text.split(chr(10), 1)[-1]}" for c in options)
     user = (f"Policy: {POLICY_NAMES.get(scenario.policy, scenario.policy)}\n\nClaim: {scenario.scenario}\n\n"
             f"Sections:\n\n{listing}")
-    msg = call_llm(llm, [SystemMessage(system), HumanMessage(user)], usage, response_format=PICK_FORMAT)
     try:
+        msg = call_llm(llm, [SystemMessage(system), HumanMessage(user)], usage, response_format=PICK_FORMAT)
         ids = Pick.model_validate_json(msg.content).section_ids
-    except (ValidationError, ValueError, TypeError):
+    except (ValidationError, ValueError, TypeError, LengthFinishReasonError):   # length: reply ran into max_tokens
         return None
     valid = {c.section_id for c in options}
     return [i for i in dict.fromkeys(ids) if i in valid]
