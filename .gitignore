@@ -21,3 +21,6 @@ Thumbs.db
 # Editors
 .vscode/
 .idea/
+
+# Dev-split runs are for tuning only (final test results are committed)
+results/dev/

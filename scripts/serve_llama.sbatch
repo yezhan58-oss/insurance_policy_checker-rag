@@ -18,6 +18,7 @@ set -a; source .env; set +a                 # exports VLLM_API_KEY (vLLM reads i
 PORT=${PORT:-$VLLM_PORT}
 export HF_HOME="$HOME/scratchDirectory/hf"
 export VLLM_USE_FLASHINFER_SAMPLER=0        # FlashInfer kernels JIT-compile and need nvcc, which compute nodes lack
+export VLLM_CACHE_ROOT="$HOME/scratchDirectory/vllm-cache" TRITON_CACHE_DIR="$HOME/scratchDirectory/triton-cache"   # home has a 100k file+folder limit
 echo "NODE=$(hostname) PORT=$PORT"
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 exec vllm serve /common/public/llm-models/meta-models/LLAMA3.1/Meta-Llama-3.1-8B-Instruct \

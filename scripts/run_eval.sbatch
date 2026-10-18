@@ -34,6 +34,7 @@ case $MODEL in
 esac
 export HF_HOME="$HOME/scratchDirectory/hf"
 export VLLM_USE_FLASHINFER_SAMPLER=0       # see scripts/serve_llama.sbatch
+export VLLM_CACHE_ROOT="$HOME/scratchDirectory/vllm-cache" TRITON_CACHE_DIR="$HOME/scratchDirectory/triton-cache"   # home has a 100k file+folder limit
 # Private index on the node's local disk: concurrent jobs must not rebuild one shared index, and Chroma's
 # SQLite is unreliable on the network home filesystem.
 export RAG_INDEX_DIR="${TMPDIR:-/tmp}/rag-index-$SLURM_JOB_ID"
