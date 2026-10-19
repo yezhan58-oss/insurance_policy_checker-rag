@@ -188,6 +188,11 @@ def join(a: str, b: str) -> str:
     return a + b if re.search(r"[A-Za-z]-$", a) else f"{a} {b}"
 
 
+def shown(path: Path) -> Path:
+    """Path relative to the repo when inside it (the index may live elsewhere, see RAG_INDEX_DIR)."""
+    return path.relative_to(ROOT) if path.is_relative_to(ROOT) else path
+
+
 def chunk_section(sec: Section) -> list[tuple[int, str]]:
     """[(page, body)]. A long benefit sharing a block with others (see FWD_GROUPS) is cut where the shared
     block starts, so that block yields identical chunks in every member and search can drop the copies.
@@ -803,9 +808,9 @@ def build(embed: bool, samples: int, seed: int) -> None:
         col = client.create_collection(COLLECTION, metadata={"hnsw:space": "cosine"})
         col.add(ids=[c["id"] for c in chunks], embeddings=vectors.tolist(),
                 documents=[c["text"] for c in chunks], metadatas=[c["meta"] for c in chunks])
-        print(f"Embedded with {EMBED_MODEL} (cpu) into Chroma at {CHROMA_DIR.relative_to(ROOT)} "
+        print(f"Embedded with {EMBED_MODEL} (cpu) into Chroma at {shown(CHROMA_DIR)} "
               f"(collection '{COLLECTION}', {col.count()} chunks)")
-    print(f"Wrote {SECTIONS_PATH.relative_to(ROOT)} and {DEFINITIONS_PATH.relative_to(ROOT)}")
+    print(f"Wrote {shown(SECTIONS_PATH)} and {shown(DEFINITIONS_PATH)}")
 
     rng = random.Random(seed)
     for policy in POLICIES:

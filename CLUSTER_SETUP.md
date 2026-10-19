@@ -154,6 +154,7 @@ Check with `squeue --me`; cancel with `scancel <jobid>`.
 | Clone: "destination path already exists" | `~/insurance-rag` was created first. `rm -rf ~/insurance-rag` (only if it holds nothing but `logs/`), then clone. |
 | Server log: `FlashInfer backend is not available` (gpt-oss) | Serve gpt-oss with `--attention-backend TRITON_ATTN` (the script does this). |
 | `CUDA out of memory` with `total capacity of 23.62 GiB` | You got a ~24 GB `block` slice; the model is too big for it. Use an A40 (48 GB). |
+| `Disk quota exceeded` although few GB are used | Home (and scratch) allow **100,000 files + folders**; the vLLM venv alone is ~88,500. Check with `getfattr -n ceph.dir.rentries ~`. Delete regenerable caches (`~/.cache/pip`, `~/.cache/vllm`); the scripts keep vLLM/Triton caches on scratch and the Chroma index on node-local disk. Use uv, not pip, so no pip cache builds up. |
 | `QOSMaxCpuPerJobLimit` on submit | More than 4 CPUs (or 32 GB RAM) requested; student jobs are capped there. |
 | Server log: `Could not find nvcc and default cuda_home='/usr/local/cuda' doesn't exist` | FlashInfer tried to compile. Make sure `VLLM_USE_FLASHINFER_SAMPLER=0` is exported (the scripts do this). |
 | Job pending for a long time | A40s busy (`sinfo -p student -o "%N %G %t"`). For the server, `sbatch --gres=gpu:l40s:1 ...` or `gpu:3090:1`. |

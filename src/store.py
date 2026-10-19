@@ -10,13 +10,16 @@ Whole sections are returned as a Chunk whose chunk_id == section_id and score is
 Chunk and section text starts with a breadcrumb line, e.g. "FWD Travel Insurance > General exclusions > ...".
 """
 import json
+import os
 from functools import lru_cache
 from pathlib import Path
 
 from src.schema import Chunk, SectionType
 
 ROOT = Path(__file__).resolve().parents[1]
-INDEX_DIR = ROOT / "data" / "index"          # git-ignored; rebuilt on every machine by src.ingest
+# git-ignored; rebuilt on every machine by src.ingest. Cluster jobs set RAG_INDEX_DIR to node-local disk so
+# concurrent jobs never share one index (and SQLite never sits on the network filesystem).
+INDEX_DIR = Path(os.environ.get("RAG_INDEX_DIR") or ROOT / "data" / "index")
 SECTIONS_PATH = INDEX_DIR / "sections.jsonl"  # one whole section per line (ingest output)
 DEFINITIONS_PATH = INDEX_DIR / "definitions.json"
 CHROMA_DIR = INDEX_DIR / "chroma"
