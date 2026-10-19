@@ -53,10 +53,7 @@ def cited_text(section_ids: list[str]) -> str:
 def prompt(row: dict) -> list:
     o = row["output"]
     return [SystemMessage(SYSTEM),
-            HumanMessage(f"Claim:
-{row['scenario']}
-
-Cited policy text:\n{cited_text(o['cited_sections'])}\n\n"
+            HumanMessage(f"Claim:\n{row['scenario']}\n\nCited policy text:\n{cited_text(o['cited_sections'])}\n\n"
                          f"Verdict: {o['verdict']}\nExplanation:\n{o['explanation']}")]
 
 
