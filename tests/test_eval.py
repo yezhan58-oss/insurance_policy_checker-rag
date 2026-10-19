@@ -1,5 +1,6 @@
 import json
 
+import numpy as np
 import pytest
 
 from src.eval import run as run_mod
@@ -58,6 +59,15 @@ def test_per_row_metrics():
     assert df.binary_correct.tolist() == [1, 0, 0]
     assert df.wrong_covered.iloc[1] == 1 and df.wrong_covered.isna().sum() == 2   # only gold not_covered counts
     assert df.clause_recall.tolist() == [0.5, 0.0, 0.5]
+
+
+def test_faithfulness_from_judge():
+    rows = [row("a", "A0", "covered"), row("b", "A0", "covered"), row("c", "A0", "covered", error="parse_error"),
+            row("d", "A0", "covered")]
+    df = per_row(rows, gold={}, judged={("a", "A0"): "yes", ("b", "A0"): "partly", ("c", "A0"): "yes"})
+    assert df.faith.iloc[:3].tolist() == ["yes", "partly", "no"] and df.faith.isna().iloc[3]   # error -> "no"
+    assert df.faithful.iloc[:3].tolist() == [1, 0, 0] and np.isnan(df.faithful.iloc[3])
+    assert per_row(rows, gold={}).faith.isna().all()                   # judge not run: no faithfulness at all
 
 
 def test_gold_comes_from_current_labels():
