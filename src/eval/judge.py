@@ -19,7 +19,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel
 
 from src import store
-from src.eval.run import RESULTS_DIR, done_keys
+from src.eval.run import RESULTS_DIR, done_keys, load_scenarios
 from src.llm import get_llm
 
 JUDGE_MODEL = "claude_haiku_judge"
@@ -30,6 +30,7 @@ BUDGET_STOP = 4.0                                   # brief section 2: stop and 
 
 SYSTEM = """You check whether an insurance claim explanation is supported by the policy text it cites.
 Judge only support, not whether the verdict is correct.
+Facts stated in the claim are given; judge only statements about what the policy says.
 - yes: every factual claim about the policy in the explanation is stated in the cited text.
 - partly: some claims are supported, but at least one is not in the cited text or misstates it.
 - no: the main claims are not supported by the cited text, or contradict it.
@@ -52,7 +53,10 @@ def cited_text(section_ids: list[str]) -> str:
 def prompt(row: dict) -> list:
     o = row["output"]
     return [SystemMessage(SYSTEM),
-            HumanMessage(f"Cited policy text:\n{cited_text(o['cited_sections'])}\n\n"
+            HumanMessage(f"Claim:
+{row['scenario']}
+
+Cited policy text:\n{cited_text(o['cited_sections'])}\n\n"
                          f"Verdict: {o['verdict']}\nExplanation:\n{o['explanation']}")]
 
 
@@ -115,6 +119,8 @@ def main() -> None:
 
     out_dir = RESULTS_DIR / args.split / args.model
     raw = [json.loads(line) for line in (out_dir / "raw.jsonl").read_text(encoding="utf-8").splitlines() if line]
+    claims = {sc.id: sc.scenario for sc in load_scenarios(args.split)}
+    raw = [{**r, "scenario": claims[r["scenario_id"]]} for r in raw]
     judged_path = out_dir / "judged.jsonl"
     if args.export:
         export_sample(raw, judged_path, args.export, out_dir / "hand_check.csv")

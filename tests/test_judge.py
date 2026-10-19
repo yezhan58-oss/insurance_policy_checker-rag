@@ -4,7 +4,7 @@ from src.eval import judge as judge_mod
 
 
 def row(sid, cited=("fwd:travel_delay",), error=None):
-    return {"scenario_id": sid, "approach": "A0",
+    return {"scenario_id": sid, "approach": "A0", "scenario": "claim",
             "output": {"verdict": "covered", "cited_sections": list(cited), "explanation": "x", "error": error}}
 
 
