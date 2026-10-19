@@ -10,6 +10,7 @@ settings, commit) to run_config.json in the same folder. The test split refuses 
 """
 import argparse
 import datetime as dt
+import hashlib
 import json
 import subprocess
 import sys
@@ -21,6 +22,7 @@ import yaml
 
 from src import store
 from src.approaches import REGISTRY
+from src.approaches._common import BASE_PROMPT
 from src.llm import get_llm, load_model_config
 from src.schema import Scenario, VerdictOutput
 
@@ -97,7 +99,8 @@ def record_config(out_dir: Path, model: str, approaches: list[str], split: str, 
     entry = {"started_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), "commit": commit,
              "split": split, "model": model, "model_config": model_cfg, "approaches": approaches,
              "approaches_config": yaml.safe_load((ROOT / "configs" / "approaches.yaml").read_text(encoding="utf-8")),
-             "run_config": run_cfg, "embed_model": store.EMBED_MODEL}
+             "run_config": run_cfg, "embed_model": store.EMBED_MODEL,
+             "base_prompt_sha256": hashlib.sha256(BASE_PROMPT.encode()).hexdigest()[:12], "base_prompt": BASE_PROMPT}
     path = out_dir / "run_config.json"
     history = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
     path.write_text(json.dumps(history + [entry], indent=1), encoding="utf-8")

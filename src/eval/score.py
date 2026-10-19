@@ -37,6 +37,7 @@ def per_row(rows: list[dict], gold: dict) -> pd.DataFrame:
         pred_pos = ok and o["verdict"] in POSITIVE
         cited, gs = set(o.get("cited_sections") or []), g["gold_sections"]
         out.append({"scenario_id": r["scenario_id"], "approach": r["approach"], "category": g["category"],
+                    "gold": g["gold_verdict"], "pred": o["verdict"] if ok else "error",
                     "correct": float(ok and o["verdict"] == g["gold_verdict"]),
                     "binary_correct": float(pred_pos == (g["gold_verdict"] in POSITIVE)),
                     "wrong_covered": float(pred_pos) if g["gold_verdict"] == "not_covered" else np.nan,
@@ -120,7 +121,12 @@ def score(rows: list[dict], gold: dict) -> tuple[dict, pd.DataFrame]:
     overall = {a: summarise(g) for a, g in df.groupby("approach")}
     by_cat = pd.DataFrame([{"approach": a, "category": c, **summarise(g)}
                            for (a, c), g in df.groupby(["approach", "category"])])
-    result = {"overall": overall, "tests": preregistered_tests(df, overall), "decision": decide(df, overall)}
+    by_gold = {a: {v: {"n": int(len(g[g.gold == v])), "right": int(g[g.gold == v].correct.sum()),
+                       "predicted": g[g.gold == v].pred.value_counts().to_dict()}
+                   for v in ("covered", "not_covered", "partially_covered", "insufficient_info")}
+               for a, g in df.groupby("approach")}
+    result = {"overall": overall, "by_gold_verdict": by_gold, "tests": preregistered_tests(df, overall),
+              "decision": decide(df, overall)}
     return result, by_cat
 
 
@@ -154,6 +160,12 @@ def main() -> None:
         print(f"McNemar {t['label']:18} {t['a']} vs {t['b']}: p={t['p']:.3f}, Holm p={t['p_holm']:.3f}"
               f"{' *' if t['significant'] else ''}  (only {t['a']} right {t['only_a_right']}, only {t['b']} right "
               f"{t['only_b_right']})")
+    print("\nRight per gold verdict (and what was predicted instead):")
+    for a, per in result["by_gold_verdict"].items():
+        print(f"{a:3} " + " | ".join(
+            f"{v} {s['right']}/{s['n']}" + (f" ({', '.join(f'{p} {k}' for p, k in s['predicted'].items() if p != v)})"
+                                            if s["right"] < s["n"] else "")
+            for v, s in per.items() if s["n"]))
     d = result["decision"]
     print(f"\nDecision rule: {d['winner']} ({d['reason']})"
           + ("" if args.split == "test" else "  [dev split: for tuning only, not the reported result]"))
