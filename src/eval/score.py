@@ -5,7 +5,8 @@ the pre-registered McNemar tests with Holm correction, and the decision rule for
 
 Reads results/<split>/<model>/raw.jsonl and the current gold labels in data/scenarios/<split>.jsonl; writes
 scores.json, scores.csv and by_category.csv next to raw.jsonl. Rows with an error (e.g. parse_error) count as
-wrong. Faithfulness comes from the LLM judge (src/eval/judge.py) and is not computed here.
+wrong. Faithfulness (share of "yes", plus the yes/partly/no split) is read from judged.jsonl when src/eval/judge.py
+has run; error rows and judge parse errors count as "no", rows not yet judged are left out.
 """
 import argparse
 import json
@@ -26,8 +27,9 @@ COSTS = ("latency_s", "model_calls", "prompt_tokens", "completion_tokens", "reas
 N_BOOT, SEED, ALPHA = 1000, 0, 0.05
 
 
-def per_row(rows: list[dict], gold: dict) -> pd.DataFrame:
-    """One record per (scenario, approach) with the per-scenario scores."""
+def per_row(rows: list[dict], gold: dict, judged: dict | None = None) -> pd.DataFrame:
+    """One record per (scenario, approach) with the per-scenario scores. judged: {(scenario_id, approach): label}."""
+    judged = judged or {}
     out = []
     for r in rows:
         g = gold.get(r["scenario_id"], {"gold_verdict": r["gold_verdict"], "gold_sections": r["gold_sections"],
@@ -36,13 +38,16 @@ def per_row(rows: list[dict], gold: dict) -> pd.DataFrame:
         ok = o.get("error") is None
         pred_pos = ok and o["verdict"] in POSITIVE
         cited, gs = set(o.get("cited_sections") or []), g["gold_sections"]
+        key = (r["scenario_id"], r["approach"])
+        faith = None if not judged else "no" if not ok else (judged[key] or "no") if key in judged else None
         out.append({"scenario_id": r["scenario_id"], "approach": r["approach"], "category": g["category"],
                     "gold": g["gold_verdict"], "pred": o["verdict"] if ok else "error",
                     "correct": float(ok and o["verdict"] == g["gold_verdict"]),
                     "binary_correct": float(pred_pos == (g["gold_verdict"] in POSITIVE)),
                     "wrong_covered": float(pred_pos) if g["gold_verdict"] == "not_covered" else np.nan,
                     "clause_recall": len(cited & set(gs)) / len(gs) if gs else np.nan,
-                    "error": o.get("error"),
+                    "error": o.get("error"), "faith": faith,
+                    "faithful": np.nan if faith is None else float(faith == "yes"),
                     **{c: float(o.get("usage", {}).get(c, 0)) for c in COSTS}})
     return pd.DataFrame(out)
 
@@ -60,10 +65,12 @@ def summarise(df: pd.DataFrame) -> dict:
     """Metrics (with CIs) and mean costs for one approach's rows."""
     rng = np.random.default_rng(SEED)
     cols = {"verdict_accuracy": "correct", "binary_accuracy": "binary_correct",
-            "wrong_covered_rate": "wrong_covered", "clause_recall": "clause_recall"}
+            "wrong_covered_rate": "wrong_covered", "clause_recall": "clause_recall", "faithfulness": "faithful"}
     res = {"n": int(len(df)), "errors": int(df["error"].notna().sum())}
     for m, c in cols.items():
         res[m], res[f"{m}_lo"], res[f"{m}_hi"] = mean_ci(df[c].to_numpy(), rng)
+    for label in ("yes", "partly", "no"):
+        res[f"faith_{label}"] = int((df["faith"] == label).sum())
     for c in COSTS:
         res[c] = float(df[c].mean())
     return res
@@ -116,8 +123,8 @@ def decide(df: pd.DataFrame, overall: dict) -> dict:
                                          f"{cheaper} is cheaper/faster", "test": test}
 
 
-def score(rows: list[dict], gold: dict) -> tuple[dict, pd.DataFrame]:
-    df = per_row(rows, gold)
+def score(rows: list[dict], gold: dict, judged: dict | None = None) -> tuple[dict, pd.DataFrame]:
+    df = per_row(rows, gold, judged)
     overall = {a: summarise(g) for a, g in df.groupby("approach")}
     by_cat = pd.DataFrame([{"approach": a, "category": c, **summarise(g)}
                            for (a, c), g in df.groupby(["approach", "category"])])
@@ -143,7 +150,10 @@ def main() -> None:
         rows = [json.loads(line) for line in f if line.strip()]
     gold = {s.id: {"gold_verdict": s.gold_verdict, "gold_sections": s.gold_sections, "category": s.category}
             for s in load_scenarios(args.split)}
-    result, by_cat = score(rows, gold)
+    judged_path = out_dir / "judged.jsonl"
+    judged = ({(j["scenario_id"], j["approach"]): j["faithfulness"]
+               for j in map(json.loads, judged_path.open(encoding="utf-8"))} if judged_path.exists() else None)
+    result, by_cat = score(rows, gold, judged)
     result.update(model=args.model, split=args.split, rows=len(rows), commits=sorted({r["commit"] for r in rows}))
     (out_dir / "scores.json").write_text(json.dumps(result, indent=1), encoding="utf-8")
     table = pd.DataFrame([{"approach": a, **s} for a, s in result["overall"].items()])
@@ -155,7 +165,9 @@ def main() -> None:
         print(f"{a:3} acc {s['verdict_accuracy']:.2f} [{s['verdict_accuracy_lo']:.2f}-{s['verdict_accuracy_hi']:.2f}]"
               f"  binary {s['binary_accuracy']:.2f}  wrong-covered {s['wrong_covered_rate']:.2f}"
               f"  clause recall {s['clause_recall']:.2f}  | {s['model_calls']:.1f} calls, {s['latency_s']:.1f}s,"
-              f" {s['prompt_tokens'] + s['completion_tokens']:.0f} tokens  (n={s['n']}, errors={s['errors']})")
+              f" {s['prompt_tokens'] + s['completion_tokens']:.0f} tokens  (n={s['n']}, errors={s['errors']})"
+              + (f"\n    faithfulness {s['faithfulness']:.2f} [{s['faithfulness_lo']:.2f}-{s['faithfulness_hi']:.2f}]"
+                 f" yes/partly/no {s['faith_yes']}/{s['faith_partly']}/{s['faith_no']}" if judged else ""))
     for t in result["tests"]:
         print(f"McNemar {t['label']:18} {t['a']} vs {t['b']}: p={t['p']:.3f}, Holm p={t['p_holm']:.3f}"
               f"{' *' if t['significant'] else ''}  (only {t['a']} right {t['only_a_right']}, only {t['b']} right "
