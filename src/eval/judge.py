@@ -25,6 +25,7 @@ from src.llm import get_llm
 JUDGE_MODEL = "claude_haiku_judge"
 PRICE_IN, PRICE_OUT = 0.10 / 1e6, 0.50 / 1e6       # US$ per token, Claude Haiku 5.5
 EST_OUT_TOKENS = 120                                # judged label + one or two sentences of reason
+NO_CITES = "No sections cited."
 BUDGET_STOP = 4.0                                   # brief section 2: stop and ask above US$4
 
 SYSTEM = """You check whether an insurance claim explanation is supported by the policy text it cites.
@@ -68,7 +69,7 @@ def estimate_cost(rows: list[dict]) -> float:
 
 def judge_row(row: dict, judge) -> dict:
     if not row["output"]["cited_sections"]:
-        return {"faithfulness": "no", "reason": "No sections cited."}
+        return {"faithfulness": "no", "reason": NO_CITES}
     for attempt in range(2):                        # brief section 7: retry a parse failure once
         try:
             out = judge.invoke(prompt(row))
@@ -79,8 +80,8 @@ def judge_row(row: dict, judge) -> dict:
     return {"faithfulness": None, "reason": "parse_error"}
 
 
-def run(rows: list[dict], judge, out_path: Path, log=print) -> int:
-    todo = to_judge(rows, done_keys(out_path))
+def run(rows: list[dict], judge, out_path: Path, limit: int | None = None, log=print) -> int:
+    todo = to_judge(rows, done_keys(out_path))[:limit]
     with out_path.open("a", encoding="utf-8") as f:
         for r in todo:
             j = judge_row(r, judge)
@@ -94,6 +95,7 @@ def run(rows: list[dict], judge, out_path: Path, log=print) -> int:
 def export_sample(raw: list[dict], judged_path: Path, n: int, out_csv: Path) -> None:
     import pandas as pd
     judged = {(j["scenario_id"], j["approach"]): j for j in map(json.loads, judged_path.open(encoding="utf-8"))}
+    judged = {k: j for k, j in judged.items() if j["reason"] != NO_CITES}   # auto-"no" rows need no human check
     keys = random.Random(0).sample(sorted(judged), min(n, len(judged)))
     by_key = {(r["scenario_id"], r["approach"]): r for r in raw}
     pd.DataFrame([{"scenario_id": k[0], "approach": k[1], "cited_sections": ";".join(by_key[k]["output"]["cited_sections"]),
@@ -107,6 +109,7 @@ def main() -> None:
     ap.add_argument("--model", required=True, help="the tested model whose results to judge")
     ap.add_argument("--split", required=True, choices=["dev", "test"])
     ap.add_argument("--yes", action="store_true", help="actually call the judge (default: print cost estimate)")
+    ap.add_argument("--limit", type=int, help="judge at most N rows (quick real-API check)")
     ap.add_argument("--export", type=int, metavar="N", help="write N random judgments to hand_check.csv")
     args = ap.parse_args()
 
@@ -118,7 +121,7 @@ def main() -> None:
         print(f"Wrote {out_dir / 'hand_check.csv'}")
         return
 
-    todo = to_judge(raw, done_keys(judged_path))
+    todo = to_judge(raw, done_keys(judged_path))[: args.limit]
     cost = estimate_cost(todo)
     print(f"{len(todo)} rows to judge, estimated cost US${cost:.3f}")
     if cost > BUDGET_STOP:
@@ -127,7 +130,7 @@ def main() -> None:
         print("Dry run. Re-run with --yes to call the judge.")
         return
     judge = get_llm(JUDGE_MODEL, max_tokens=300).with_structured_output(Judgement)
-    print(f"Judged {run(raw, judge, judged_path)} rows -> {judged_path}")
+    print(f"Judged {run(raw, judge, judged_path, args.limit)} rows -> {judged_path}")
 
 
 if __name__ == "__main__":
