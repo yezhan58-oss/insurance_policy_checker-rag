@@ -8,6 +8,7 @@ import time
 from functools import lru_cache
 from pathlib import Path
 
+import openai
 import yaml
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import ValidationError
@@ -98,7 +99,15 @@ def answer(llm, scenario: Scenario, policy_text: str | None, steps: list, usage:
     a parse_error (scored as wrong). `start` is the run's perf_counter start, for total latency."""
     messages = [SystemMessage(BASE_PROMPT), HumanMessage(user_message(scenario, policy_text))]
     for attempt in (1, 2):
-        msg = call_llm(llm, messages, usage, response_format=RESPONSE_FORMAT)
+        try:
+            msg = call_llm(llm, messages, usage, response_format=RESPONSE_FORMAT)
+        except openai.LengthFinishReasonError as e:   # reply hit max_tokens (e.g. looping output): unparseable
+            usage["model_calls"] += 1
+            tokens = getattr(e.completion, "usage", None)
+            usage["prompt_tokens"] += getattr(tokens, "prompt_tokens", 0) or 0
+            usage["completion_tokens"] += getattr(tokens, "completion_tokens", 0) or 0
+            steps.append({"step": "parse_failed", "attempt": attempt, "raw": f"length limit ({MAX_TOKENS} tokens)"})
+            continue
         try:
             parsed = Answer.model_validate_json(msg.content)
         except (ValidationError, ValueError, TypeError):
