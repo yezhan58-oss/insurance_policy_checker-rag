@@ -22,7 +22,10 @@ class FakeLLM:
 
     def invoke(self, messages):
         self.calls.append(messages)
-        return AIMessage(content=self.replies.pop(0),
+        reply = self.replies.pop(0)
+        if isinstance(reply, Exception):
+            raise reply
+        return AIMessage(content=reply,
                          usage_metadata={"input_tokens": 100, "output_tokens": 20, "total_tokens": 120,
                                          "output_token_details": {"reasoning": 5}})
 
@@ -74,6 +77,19 @@ def test_unparseable_answer_is_retried_once():
     assert out.verdict == "covered" and out.error is None
     assert out.usage["model_calls"] == 2
     assert [s["step"] for s in out.steps] == ["search", "parse_failed", "answer"]
+
+
+def test_length_limit_reply_is_retried_then_parse_error():
+    from types import SimpleNamespace
+
+    import openai
+    cut_off = openai.LengthFinishReasonError(
+        completion=SimpleNamespace(usage=SimpleNamespace(prompt_tokens=2000, completion_tokens=4096)))
+    out = REGISTRY["A0"](SCENARIO, FakeLLM(cut_off, GOOD), FakeStore())
+    assert out.verdict == "covered" and out.error is None
+    assert out.usage["model_calls"] == 2 and out.usage["completion_tokens"] == 4096 + 20
+    out = REGISTRY["B0"](SCENARIO, FakeLLM(cut_off, cut_off), FakeStore())
+    assert out.error == "parse_error"
 
 
 def test_two_bad_answers_record_parse_error():
