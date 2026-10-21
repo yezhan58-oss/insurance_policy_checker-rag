@@ -1,0 +1,285 @@
+﻿section_id,type,title,page
+fwd:about_your_policy,other,About your policy,3
+fwd:easy_to_read,other,Easy to read,3
+fwd:words_with_special_meaning,other,Words with special meaning,3
+fwd:who_can_buy_this_policy,condition,Who can buy this policy,3
+fwd:you_have_declared_that_all_of_the_following_are_true_at_the,condition,You have declared that all of the following are true at the point of purchasing this policy,3
+fwd:no_cover_for_travel_to_certain_countries,exclusion,No cover for travel to certain countries,4
+fwd:specified_countries_not_covered_under_your_policy,exclusion,Specified countries not covered under your policy,4
+fwd:your_policy,condition,Your policy,4
+fwd:benefit_limits:protecting_your_travel_plans,benefit,Benefit limits: Protecting your travel plans,5
+fwd:benefit_limits:protecting_your_stuff,benefit,Benefit limits: Protecting your stuff,6
+fwd:benefit_limits:protecting_you_and_your_health,benefit,Benefit limits: Protecting you and your health,7
+fwd:benefit_limits:optional_covers,benefit,Benefit limits: Optional covers,9
+fwd:what_youre_covered_for,other,What you're covered for,10
+fwd:protecting_your_travel_plans,other,Protecting your travel plans,10
+fwd:trip_cancellation_and_loss_of_deposit,benefit,Trip cancellation and loss of deposit,10
+fwd:trip_postponement,benefit,Trip postponement,10
+fwd:trip_cut_short,benefit,Trip cut short,10
+fwd:insolvency_protection,benefit,Insolvency protection,12
+fwd:trip_diversion,benefit,Trip diversion,12
+fwd:travel_delay,benefit,Travel delay,12
+fwd:missed_connections,benefit,Missed connections,12
+fwd:trip_disruption,benefit,Trip disruption,13
+fwd:terrorism_cover,benefit,Terrorism cover,14
+fwd:protecting_your_stuff,other,Protecting your stuff,14
+fwd:baggage_delay,benefit,Baggage delay,14
+fwd:theft_of_or_damage_to_baggage_or_personal_belongings,benefit,Theft of or damage to baggage or personal belongings,14
+fwd:loss_of_passport_travel_documents_and_theft_of_money,benefit,"Loss of passport, travel documents & theft of money",16
+fwd:fraudulent_personal_credit_card_usage,benefit,Fraudulent personal credit card usage,16
+fwd:protecting_you_and_your_health,other,Protecting you and your health,17
+fwd:emergency_medical_evacuation_and_repatriation,benefit,Emergency medical evacuation & repatriation,17
+fwd:personal_liability_while_on_your_trip,benefit,Personal liability while on your trip,17
+fwd:personal_accident,benefit,Personal accident,18
+fwd:medical_expenses_incurred_overseas,benefit,Medical expenses incurred overseas,19
+fwd:daily_hospital_cash_while_overseas,benefit,Daily hospital cash while overseas,19
+fwd:automatic_policy_extension,benefit,Automatic policy extension,19
+fwd:emergency_phone_charges,benefit,Emergency phone charges,19
+fwd:hospitalisation_visit,benefit,Hospitalisation visit,19
+fwd:child_companion,benefit,Child companion,19
+fwd:compassionate_travel,benefit,Compassionate travel,19
+fwd:chinese_medicine_practitioner_physiotherapist_and_chiropractor,benefit,"Chinese medicine practitioner, physiotherapist, and chiropractor expenses",20
+fwd:medical_expenses_incurred_in_singapore,benefit,Medical expenses incurred in Singapore,20
+fwd:daily_hospital_cash_while_in_singapore,benefit,Daily hospital cash while in Singapore,21
+fwd:optional_covers,other,Optional covers,22
+fwd:optional:you_need_to_pay_extra,benefit,You need to pay extra,22
+fwd:optional:pre_existing_medical_conditions,benefit,Pre-existing medical conditions,22
+fwd:optional:cancel_for_any_reason,benefit,Cancel for any reason,27
+fwd:optional:car_rental_excess,benefit,Car rental excess,28
+fwd:optional:pet_care,benefit,Pet care,28
+fwd:optional:sports_equipment_protector,benefit,Sports equipment protector,28
+fwd:optional:home_contents,benefit,Home contents,30
+fwd:general_exclusions,exclusion,General exclusions,31
+fwd:general_exclusions:travel_while_medically_unfit,exclusion,Travel while medically unfit,31
+fwd:general_exclusions:unlawful_acts,exclusion,Unlawful acts,31
+fwd:general_exclusions:suicide_or_self_inflicted_act,exclusion,Suicide or self-inflicted act,31
+fwd:general_exclusions:failing_to_protect_property_and_self,exclusion,Failing to protect property and self,31
+fwd:general_exclusions:events_that_happen_before_you_book_or_take_up_cover,exclusion,Events that happen before you book or take up cover,31
+fwd:general_exclusions:epidemic_or_pandemic,exclusion,Epidemic or pandemic,31
+fwd:general_exclusions:pre_existing_medical_conditions,exclusion,Pre-existing medical conditions,31
+fwd:general_exclusions:mental_illness,exclusion,Mental illness,31
+fwd:general_exclusions:acts_of_customs_or_other_officials,exclusion,Acts of customs or other officials,31
+fwd:general_exclusions:wear_and_tear_or_damage_from_cleaning_or_repair,exclusion,Wear and tear or damage from cleaning or repair,31
+fwd:general_exclusions:incidental_charges_that_we_have_not_specified,exclusion,Incidental charges that we have not specified,31
+fwd:general_exclusions:professional_or_paid_sporting_activities,exclusion,Professional or paid sporting activities,31
+fwd:general_exclusions:speed_contest_or_racing,exclusion,Speed contest or racing,31
+fwd:general_exclusions:high_altitude_hiking_or_trekking,exclusion,High altitude hiking or trekking,32
+fwd:general_exclusions:war_riot_or_revolution,exclusion,"War, riot, or revolution",32
+fwd:general_exclusions:military_or_military_related_services_or_training,exclusion,Military or military-related services or training,32
+fwd:general_exclusions:claims_covered_by_other_insurance_or_service_providers,exclusion,Claims covered by other insurance or service providers,32
+fwd:general_exclusions:stis_or_hiv,exclusion,STIs or HIV,32
+fwd:general_exclusions:pregnancy_childbirth_or_related_complications,exclusion,"Pregnancy, childbirth, or related complications",32
+fwd:general_exclusions:alcohol_or_substance_abuse,exclusion,Alcohol or substance abuse,32
+fwd:general_exclusions:consequential_or_indirect_loss,exclusion,Consequential or indirect loss,32
+fwd:making_a_claim,other,Making a claim,33
+fwd:how_to_claim,condition,How to claim,33
+fwd:with_the_fwd_sg_app_you_can,condition,With the FWD SG app you can,33
+fwd:your_responsibilities,condition,Your responsibilities,35
+fwd:tell_us_within_30_days,condition,Tell us within 30 days,35
+fwd:filling_in_your_claim_form,condition,Filling in your claim form,35
+fwd:cooperate_with_us,condition,Cooperate with us,35
+fwd:if_you_receive_payment_from_other_sources,condition,If you receive payment from other sources,35
+fwd:costs_of_preparing_your_claim,condition,Costs of preparing your claim,35
+fwd:you_must_act_honestly_and_truthfully,condition,You must act honestly and truthfully,35
+fwd:how_we_deal_with_fraud,condition,How we deal with fraud,35
+fwd:how_we_pay_property_claims,condition,How we pay property claims,36
+fwd:we_only_pay_reasonable_and_customary_costs,condition,We only pay reasonable and customary costs,36
+fwd:if_you_have_more_than_one_travel_policy_with_fwd,condition,If you have more than one travel policy with FWD,36
+fwd:starting_or_ending_your_policy,other,Starting or ending your policy,37
+fwd:when_your_policy_starts,condition,When your policy starts,37
+fwd:cover_before_your_trip_starts,condition,Cover before your trip starts,37
+fwd:cover_during_your_trip,condition,Cover during your trip,37
+fwd:cover_after_your_trip,condition,Cover after your trip,37
+fwd:this_policy_does_not_start_in_some_situations,condition,This policy does not start in some situations,37
+fwd:when_your_policy_ends,condition,When your policy ends,37
+fwd:your_right_to_cancel,condition,Your right to cancel,38
+fwd:cancelling_an_annual_trip_policy,condition,Cancelling an annual trip policy,38
+fwd:our_right_to_cancel,condition,Our right to cancel,38
+fwd:important_things_to_know,other,Important things to know,39
+fwd:the_information_you_give_us_needs_to_be_correct_and_complete,condition,The information you give us needs to be correct and complete,39
+fwd:this_is_a_singapore_insurance_contract,condition,This is a Singapore insurance contract,39
+fwd:no_rights_for_others_under_the_policy,condition,No rights for others under the policy,39
+fwd:legal_action_against_you,condition,Legal action against you,39
+fwd:policy_owners_protection_scheme,condition,Policy owners' protection scheme,40
+fwd:how_to_reach_us,other,How to reach us,41
+fwd:chat_with_faith_our_friendly_chatbot,other,"Chat with Faith, our friendly chatbot",41
+fwd:write_to_us,other,Write to us,41
+fwd:call_us,other,Call us,41
+fwd:how_to_resolve_a_concern_or_complaint,other,How to resolve a concern or complaint,41
+fwd:definitions:accident_or_accidental,definition,Accident or accidental,43
+fwd:definitions:children,definition,Child(ren),43
+fwd:definitions:endorsement,definition,Endorsement,43
+fwd:definitions:family_member,definition,Family member,43
+fwd:definitions:hospital,definition,Hospital,43
+fwd:definitions:initial_trip_deposit,definition,Initial trip deposit,43
+fwd:definitions:injury,definition,Injury,43
+fwd:definitions:interested_party,definition,Interested party,43
+fwd:definitions:jewellery,definition,Jewellery,43
+fwd:definitions:medically_necessary,definition,Medically necessary,44
+fwd:definitions:medical_practitioner,definition,Medical practitioner,44
+fwd:definitions:natural_disaster,definition,Natural disaster,44
+fwd:definitions:period_of_insurance,definition,Period of insurance,44
+fwd:definitions:policy,definition,Policy,44
+fwd:definitions:pre_existing_medical_condition,definition,Pre-existing medical condition,44
+fwd:definitions:rebooking_fees,definition,Rebooking fees,44
+fwd:definitions:scheduled_public_transport,definition,Scheduled public transport,44
+fwd:definitions:serious_public_event,definition,Serious public event,45
+fwd:definitions:terminal_illness,definition,Terminal illness,45
+fwd:definitions:travel_companion,definition,Travel companion,45
+fwd:definitions:travel_insurance_summary,definition,Travel insurance summary,45
+fwd:definitions:trip,definition,Trip,45
+fwd:definitions:we_us_and_our,definition,"We, us, and our",45
+fwd:definitions:you_and_your,definition,"You, and your",45
+msig:insurance_policy,other,Insurance policy,1
+msig:important_notice,other,Important notice,1
+msig:how_your_insurance_operates,other,How your insurance operates,1
+msig:our_promise_of_service,other,Our promise of service,1
+msig:important_conditions,condition,Important conditions,3
+msig:definitions:accident,definition,Accident,4
+msig:definitions:act_of_terrorism,definition,Act of terrorism,4
+msig:definitions:acute_onset_of_a_pre_existing_medical_condition,definition,Acute onset of a pre-existing medical condition,4
+msig:definitions:additional_travel_expenses,definition,Additional travel expenses,4
+msig:definitions:adult,definition,Adult,4
+msig:definitions:child_children,definition,"Child, children",4
+msig:definitions:covid_19,definition,COVID-19,4
+msig:definitions:dentist,definition,Dentist,4
+msig:definitions:doctor,definition,Doctor,4
+msig:definitions:entertainment_ticket,definition,Entertainment ticket,4
+msig:definitions:family_member,definition,Family member,5
+msig:definitions:home,definition,Home,5
+msig:definitions:hospital,definition,Hospital,5
+msig:definitions:illness,definition,Illness,5
+msig:definitions:immediate_family_member,definition,Immediate family member,5
+msig:definitions:injury,definition,Injury,5
+msig:definitions:insured_policyholder_you_your,definition,"Insured, policyholder, you, your",5
+msig:definitions:insured_person_insured_persons,definition,"Insured person, insured persons",5
+msig:definitions:inpatient,definition,Inpatient,5
+msig:definitions:jewellery,definition,Jewellery,5
+msig:definitions:journey_trip,definition,"Journey, trip",5
+msig:definitions:known_event,definition,Known event,5
+msig:definitions:laptop_computer,definition,Laptop computer,6
+msig:definitions:mobile_device,definition,Mobile device,6
+msig:definitions:natural_disaster,definition,Natural disaster,6
+msig:definitions:period_of_insurance,definition,Period of insurance,6
+msig:definitions:pre_existing_medical_condition,definition,Pre-existing medical condition,6
+msig:definitions:public_transport,definition,Public transport,6
+msig:definitions:region_of_travel,definition,Region of travel,6
+msig:definitions:schedule,definition,Schedule,6
+msig:definitions:serious_injury_serious_illness,definition,"Serious injury, serious illness",6
+msig:definitions:serious_medical_condition,definition,Serious medical condition,6
+msig:definitions:tcm_practitioner,definition,TCM practitioner,6
+msig:definitions:terminal_illness,definition,Terminal illness,7
+msig:definitions:travel_companion,definition,Travel companion,7
+msig:definitions:type_of_cover,definition,Type of cover,7
+msig:definitions:individual_cover,definition,Individual cover,7
+msig:definitions:adult_and_children_cover,definition,Adult and children cover,7
+msig:definitions:family_cover,definition,Family cover,7
+msig:definitions:family,definition,Family,7
+msig:definitions:group_cover,definition,Group cover,7
+msig:definitions:we_us_our_the_company,definition,"We, us, our, the company",8
+msig:the_benefits,other,The benefits,8
+msig:section_1,benefit,Section 1 - Accidental death and permanent total disability,8
+msig:section_2,benefit,Section 2 - Public transport double cover,9
+msig:section_3,benefit,Section 3 - Funeral expenses due to accidental death,9
+msig:section_4,benefit,Section 4 - Child education grant,9
+msig:section_5,benefit,Section 5 - Family assistance benefit,10
+msig:section_6,benefit,Section 6 - Overseas medical expenses,10
+msig:section_7,benefit,Section 7 - Emergency dental expenses,11
+msig:section_8,benefit,Section 8 - Medical expenses in singapore,11
+msig:section_9,benefit,Section 9 - Mobility aid reimbursement,12
+msig:section_10,benefit,Section 10 - Traditional chinese medicine expenses,12
+msig:section_11,benefit,Section 11 - Maternity medical expenses overseas,13
+msig:section_12,benefit,Section 12 - Overseas hospitalisation daily benefit,14
+msig:section_13,benefit,Section 13 - Overseas icu hospitalisation daily benefit,14
+msig:section_14,benefit,Section 14 - Hospitalisation daily benefit in singapore,15
+msig:terms_and_limits_which_apply_to_sections_15_to_19,condition,Terms and limits which apply to sections 15 to 19.,16
+msig:section_15,benefit,Section 15 - Medical and travel assistance services,16
+msig:section_16,benefit,Section 16 - Emergency medical evacuation and repatriation,17
+msig:section_17,benefit,Section 17 - Compassionate and hospital visit,18
+msig:section_18,benefit,Section 18 - Child guard,18
+msig:section_19,benefit,Section 19 - Emergency telephone charges,19
+msig:section_20,benefit,Section 20 - Insolvency of licensed travel operator,19
+msig:section_21,benefit,Section 21 - Travel cancellation,20
+msig:section_22,benefit,Section 22 - Travel postponement,21
+msig:section_23,benefit,Section 23 - Replacement of traveller,22
+msig:section_24,benefit,Section 24 - Replacement of employee (this applies to corporate policyholders only),22
+msig:section_25,benefit,Section 25 - Delayed departure,23
+msig:section_26,benefit,Section 26 - Flight diversion,24
+msig:section_27,benefit,Section 27 - Overbooked flight,25
+msig:section_28,benefit,Section 28 - Missed travel connection,25
+msig:section_29,benefit,Section 29 - Shortening the trip,26
+msig:section_30,benefit,Section 30 - Travel disruption,27
+msig:section_31,benefit,Section 31 - Automatic extension of cover,28
+msig:section_32,benefit,Section 32 - Delayed baggage,28
+msig:section_33,benefit,Section 33 - Baggage,29
+msig:section_34,benefit,Section 34 - Wedding clothing and accessories,30
+msig:section_35,benefit,Section 35 - Loss of travel documents,31
+msig:section_36,benefit,Section 36 - Personal money,31
+msig:section_37,benefit,Section 37 - Fraudulent use of credit card,31
+msig:section_38,benefit,Section 38 - Credit card outstanding balance,32
+msig:section_39,benefit,Section 39 - Personal liability,32
+msig:section_40,benefit,Section 40 - Legal expenses for wrongful arrest or detention,33
+msig:section_41,benefit,Section 41 - Adventurous activities cover,33
+msig:section_42,benefit,Section 42 - Golfer's cover,34
+msig:section_43,benefit,Section 43 - Unused entertainment ticket,35
+msig:section_44,benefit,Section 44 - Rental vehicle excess,35
+msig:section_45,benefit,Section 45 - Returning a rental vehicle,36
+msig:section_46,benefit,Section 46 - Home contents,37
+msig:section_47,benefit,Section 47 - Domestic pets care,37
+msig:section_48,benefit,Section 48 - Terrorism cover,38
+msig:section_49,benefit,Section 49 - Passive war,38
+msig:section_50,benefit,Section 50 - Hijack of public transport,39
+msig:section_51,benefit,Section 51 - Kidnap and hostage,39
+msig:section_52,benefit,Section 52 - Pre-ex critical care,40
+msig:overall_compensation_limit,condition,Overall compensation limit,41
+msig:exclusions_sections_32_33_34_35_36_37_42_46,exclusion,"Exclusions which apply to sections 32, 33, 34, 35, 36, 37, 42 and 46",41
+msig:exclusions_sections_21_22_25_26_27_28_29_30_50,exclusion,"Exclusions which apply to sections 21, 22, 25, 26, 27, 28, 29, 30 and 50",42
+msig:exclusions_sections_39_40,exclusion,Exclusions which apply to sections 39 and 40,42
+msig:general_exclusions,exclusion,General exclusions,43
+msig:general_exclusion_1,exclusion,General exclusion 1: Any known event,43
+msig:general_exclusion_2,exclusion,General exclusion 2: Any pre-existing medical condition unless covered under section 52 - ,43
+msig:general_exclusion_3,exclusion,"General exclusion 3: Human Immunodeficiency Virus (HIV), HIV related illnesses, or any ",43
+msig:general_exclusion_4,exclusion,"General exclusion 4: Childbirth, miscarriage, abortion, menopause or any pregnancy related ",43
+msig:general_exclusion_5,exclusion,"General exclusion 5: Suicide or attempted suicide, intentional self-inflicted injury or ",43
+msig:general_exclusion_6,exclusion,"General exclusion 6: Any mental illness, anxiety state or depression suffered by the ",43
+msig:general_exclusion_7,exclusion,General exclusion 7: The insured person taking part in the following activities unless ,43
+msig:general_exclusion_8,exclusion,"General exclusion 8: The insured person taking part in naval, military, air force, civil ",44
+msig:general_exclusion_9,exclusion,"General exclusion 9: Any deliberate, malicious, criminal or unlawful acts committed by you ",44
+msig:general_exclusion_10,exclusion,General exclusion 10: Any restrictions or regulations imposed by any government or local ,44
+msig:general_exclusion_11,exclusion,General exclusion 11: Any consequential loss not shown in the policy,44
+msig:general_exclusion_12,exclusion,General exclusion 12: We will also not pay for,44
+msig:general_exclusion_13,exclusion,General exclusion 13: War and terrorism exclusion,45
+msig:general_exclusion_14,exclusion,"General exclusion 14: Radioactive contamination, chemical, biological, biochemical and ",45
+msig:general_exclusion_15,exclusion,General exclusion 15: Political risks exclusion,45
+msig:general_exclusion_16,exclusion,General exclusion 16: Property Cyber and data exclusion,46
+msig:general_exclusion_17,exclusion,General exclusion 17: COVID-19 and pandemics exclusion,47
+msig:general_exclusion_18,exclusion,General exclusion 18: Sanction Limitation and Exclusion Clause,47
+msig:general_conditions,condition,General conditions,47
+msig:general_condition_1,condition,General condition 1: Precaution,47
+msig:general_condition_2,condition,General condition 2: Cancellation,47
+msig:general_condition_3,condition,General condition 3: Keeping to the conditions,48
+msig:general_condition_4,condition,General condition 4: Legal personal representative,48
+msig:general_condition_5,condition,General condition 5: Same cover,48
+msig:general_condition_6,condition,General condition 6: Claims from other insurance or sources,48
+msig:general_condition_7,condition,General condition 7: Governing law,49
+msig:general_condition_8,condition,General condition 8: Excluding rights under the Contracts (Rights of Third Parties) Act,49
+msig:general_condition_9,condition,General condition 9: Currency,49
+msig:claim_conditions,condition,Claim conditions,49
+msig:claim_condition_1,condition,Claim condition 1: Telling us about a claim,49
+msig:claim_condition_2,condition,Claim condition 2: Conduct of claim,49
+msig:claim_condition_3,condition,Claim condition 3: Disappearance,49
+msig:claim_condition_4,condition,Claim condition 4: Who we will pay,49
+msig:claim_condition_5,condition,Claim condition 5: Taking action in your name,50
+msig:claim_condition_6,condition,Claim condition 6: Our rights,50
+msig:claim_condition_7,condition,Claim condition 7: Reduction factor,50
+msig:claim_condition_8,condition,Claim condition 8: Arbitration,51
+msig:claim_condition_9,condition,Claim condition 9: Time limit for taking legal action,51
+msig:claim_condition_10,condition,Claim condition 10: False or exaggerated claims,51
+msig:premium_warranty,condition,Premium warranty,51
+msig:useful_procedures,other,Useful procedures,52
+msig:policy_owners_protection_scheme,other,Policy owners' protection scheme,52
+msig:traveleasy_benefits_summary,benefit,TravelEasy® Benefits Summary,53
+msig:traveleasy_pre_ex_benefits_summary,benefit,TravelEasy® Pre-Ex Benefits Summary,58
+msig:covid_19_cover,benefit,COVID-19 cover,62
+msig:covid_19_important_conditions,condition,Important conditions,62
+msig:sections_under_covid_19_cover,benefit,Sections under covid-19 cover,63
