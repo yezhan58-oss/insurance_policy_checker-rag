@@ -33,7 +33,8 @@ def test_too_few_relevant_rewrites_and_searches_again():
 
 
 def test_nothing_relevant_after_max_rewrites_answers_without_policy_text():
-    llm = FakeLLM('{"relevant": []}', REWRITE, '{"relevant": []}', REWRITE, '{"relevant": []}', GOOD)
+    llm = FakeLLM('{"relevant": []}', REWRITE, '{"relevant": []}', '{"query": "weather delay"}',
+                  '{"relevant": []}', GOOD)
     out = REGISTRY["A2"](SCENARIO, llm, FakeStore())
     assert steps_of(out).count("search") == 3 and steps_of(out).count("rewrite") == 2   # max_rewrites = 2
     assert NO_POLICY_TEXT in llm.calls[-1][1].content
@@ -46,3 +47,11 @@ def test_unusable_grade_keeps_every_hit():
     grade = out.steps[1]
     assert grade["step"] == "grade" and grade["fallback"] and len(grade["picked"]) == 5
     assert steps_of(out) == ["search", "grade", "decide", "answer"]
+
+
+def test_repeated_rewrite_stops_the_loop():
+    repeat = '{"query": "%s"}' % SCENARIO.scenario.upper()
+    llm, store = FakeLLM('{"relevant": []}', repeat, GOOD), FakeStore()
+    out = REGISTRY["A2"](SCENARIO, llm, store)
+    assert steps_of(out) == ["search", "grade", "rewrite", "decide", "answer"] and len(store.queries) == 1
+    assert out.steps[2]["repeated"] and out.usage["model_calls"] == 3

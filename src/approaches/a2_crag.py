@@ -5,6 +5,7 @@ is a closed corpus). A LangGraph graph with one loop:
     search   top_k chunks for the current query
     grade    the LLM grades each chunk relevant / irrelevant to the claim
     rewrite  fewer than min_relevant relevant chunks and rewrites left: the LLM rewrites the query, back to search
+             (unless it repeats an earlier query, which would return the same chunks: then decide)
     decide   the shared answer call (same base prompt as every setup) over the relevant chunks only
 
 Each node appends to `steps`; the decide step lists the section IDs the answer saw under "context"
@@ -107,8 +108,12 @@ def build_graph(llm, store):
             query, fallback = Rewrite.model_validate_json(msg.content).query.strip() or state["query"], False
         except (ValidationError, ValueError, TypeError, LengthFinishReasonError):   # unusable reply: same query
             query, fallback = state["query"], True
-        state["steps"].append({"step": "rewrite", "query": query, "fallback": fallback})
+        repeated = query.casefold() in {q.casefold() for q in tried}   # same query = same hits: stop looping
+        state["steps"].append({"step": "rewrite", "query": query, "fallback": fallback, "repeated": repeated})
         return {"query": query, "rewrites": state["rewrites"] + 1}
+
+    def after_rewrite(state: State) -> str:
+        return "decide" if state["steps"][-1]["repeated"] else "search"
 
     def decide(state: State) -> dict:
         chunks = state["relevant"]                  # may be empty: then the answer sees no policy text, like B0
@@ -122,7 +127,7 @@ def build_graph(llm, store):
     g.add_edge(START, "search")
     g.add_edge("search", "grade")
     g.add_conditional_edges("grade", route, {"rewrite": "rewrite", "decide": "decide"})
-    g.add_edge("rewrite", "search")
+    g.add_conditional_edges("rewrite", after_rewrite, {"search": "search", "decide": "decide"})
     g.add_edge("decide", END)
     return g.compile()
 

@@ -45,4 +45,4 @@ VLLM_PID=$!
 trap 'kill $VLLM_PID 2>/dev/null; rm -rf "$RAG_INDEX_DIR"' EXIT
 python -m src.ingest --samples 0           # index always matches the checked-out code (CPU, about a minute)
 until curl -sf -H "Authorization: Bearer $VLLM_API_KEY" http://127.0.0.1:$PORT/v1/models > /dev/null; do kill -0 $VLLM_PID 2>/dev/null || exit 1; sleep 10; done
-python -m src.eval.run --model $MODEL --split ${SPLIT:-test} ${APPROACHES:+--approaches $APPROACHES}
+python -m src.eval.run --model $MODEL --split ${SPLIT:-test} ${APPROACHES:+--approaches $APPROACHES} ${OUT:+--out $OUT}
