@@ -1,0 +1,40 @@
+{"id": "fwd-006", "policy": "fwd", "gold_verdict": "covered", "gold_sections": ["fwd:travel_delay"], "notes": ""}
+{"id": "fwd-013", "policy": "fwd", "gold_verdict": "covered", "gold_sections": ["fwd:missed_connections"], "notes": ""}
+{"id": "fwd-018", "policy": "fwd", "gold_verdict": "covered", "gold_sections": ["fwd:baggage_delay"], "notes": ""}
+{"id": "fwd-024", "policy": "fwd", "gold_verdict": "insufficient_info", "gold_sections": ["fwd:theft_of_or_damage_to_baggage_or_personal_belongings"], "notes": ""}
+{"id": "fwd-026", "policy": "fwd", "gold_verdict": "not_covered", "gold_sections": ["fwd:loss_of_passport_travel_documents_and_theft_of_money"], "notes": ""}
+{"id": "fwd-036", "policy": "fwd", "gold_verdict": "insufficient_info", "gold_sections": ["fwd:general_exclusions:pre_existing_medical_conditions"], "notes": ""}
+{"id": "fwd-043", "policy": "fwd", "gold_verdict": "insufficient_info", "gold_sections": ["fwd:medical_expenses_incurred_overseas"], "notes": ""}
+{"id": "fwd-044", "policy": "fwd", "gold_verdict": "not_covered", "gold_sections": ["fwd:medical_expenses_incurred_overseas"], "notes": ""}
+{"id": "fwd-048", "policy": "fwd", "gold_verdict": "not_covered", "gold_sections": ["fwd:hospitalisation_visit"], "notes": ""}
+{"id": "fwd-050", "policy": "fwd", "gold_verdict": "not_covered", "gold_sections": ["fwd:hospitalisation_visit"], "notes": ""}
+{"id": "fwd-051", "policy": "fwd", "gold_verdict": "insufficient_info", "gold_sections": ["fwd:personal_liability_while_on_your_trip"], "notes": ""}
+{"id": "fwd-052", "policy": "fwd", "gold_verdict": "insufficient_info", "gold_sections": ["fwd:personal_liability_while_on_your_trip", "fwd:definitions:accident_or_accidental"], "notes": ""}
+{"id": "fwd-054", "policy": "fwd", "gold_verdict": "covered", "gold_sections": ["fwd:personal_accident"], "notes": ""}
+{"id": "fwd-059", "policy": "fwd", "gold_verdict": "covered", "gold_sections": ["fwd:trip_cancellation_and_loss_of_deposit", "fwd:definitions:natural_disaster"], "notes": ""}
+{"id": "fwd-064", "policy": "fwd", "gold_verdict": "insufficient_info", "gold_sections": ["fwd:general_exclusions:epidemic_or_pandemic"], "notes": ""}
+{"id": "fwd-066", "policy": "fwd", "gold_verdict": "not_covered", "gold_sections": ["fwd:trip_postponement"], "notes": ""}
+{"id": "fwd-068", "policy": "fwd", "gold_verdict": "not_covered", "gold_sections": ["fwd:trip_cut_short"], "notes": ""}
+{"id": "fwd-070", "policy": "fwd", "gold_verdict": "not_covered", "gold_sections": ["fwd:trip_cut_short"], "notes": ""}
+{"id": "fwd-075", "policy": "fwd", "gold_verdict": "covered", "gold_sections": ["fwd:theft_of_or_damage_to_baggage_or_personal_belongings", "fwd:cover_during_your_trip"], "notes": ""}
+{"id": "fwd-076", "policy": "fwd", "gold_verdict": "covered", "gold_sections": ["fwd:travel_delay", "fwd:optional:pet_care"], "notes": ""}
+{"id": "fwd-077", "policy": "fwd", "gold_verdict": "covered", "gold_sections": ["fwd:theft_of_or_damage_to_baggage_or_personal_belongings", "fwd:optional:sports_equipment_protector"], "notes": ""}
+{"id": "fwd-079", "policy": "fwd", "gold_verdict": "covered", "gold_sections": ["fwd:medical_expenses_incurred_overseas", "fwd:optional:pre_existing_medical_conditions", "fwd:general_exclusions:pre_existing_medical_conditions", "fwd:definitions:pre_existing_medical_condition", "fwd:definitions:travel_insurance_summary"], "notes": ""}
+{"id": "fwd-080", "policy": "fwd", "gold_verdict": "covered", "gold_sections": ["fwd:medical_expenses_incurred_overseas"], "notes": ""}
+{"id": "fwd-083", "policy": "fwd", "gold_verdict": "covered", "gold_sections": ["fwd:trip_cancellation_and_loss_of_deposit", "fwd:definitions:serious_public_event"], "notes": ""}
+{"id": "fwd-086", "policy": "fwd", "gold_verdict": "partially_covered", "gold_sections": ["fwd:trip_postponement", "fwd:definitions:family_member", "fwd:definitions:rebooking_fees"], "notes": ""}
+{"id": "fwd-089", "policy": "fwd", "gold_verdict": "partially_covered", "gold_sections": ["fwd:travel_delay", "fwd:trip_disruption", "fwd:general_exclusions:incidental_charges_that_we_have_not_specified"], "notes": ""}
+{"id": "fwd-095", "policy": "fwd", "gold_verdict": "partially_covered", "gold_sections": ["fwd:medical_expenses_incurred_overseas", "fwd:hospitalisation_visit", "fwd:definitions:family_member"], "notes": ""}
+{"id": "fwd-097", "policy": "fwd", "gold_verdict": "insufficient_info", "gold_sections": ["fwd:travel_delay", "fwd:definitions:scheduled_public_transport"], "notes": ""}
+{"id": "msig-013", "policy": "msig", "gold_verdict": "insufficient_info", "gold_sections": ["msig:section_33", "msig:exclusions_sections_32_33_34_35_36_37_42_46"], "notes": ""}
+{"id": "msig-019", "policy": "msig", "gold_verdict": "not_covered", "gold_sections": ["msig:section_33", "msig:exclusions_sections_32_33_34_35_36_37_42_46"], "notes": ""}
+{"id": "msig-022", "policy": "msig", "gold_verdict": "partially_covered", "gold_sections": ["msig:section_36", "msig:traveleasy_benefits_summary"], "notes": ""}
+{"id": "msig-026", "policy": "msig", "gold_verdict": "not_covered", "gold_sections": ["msig:section_37"], "notes": ""}
+{"id": "msig-027", "policy": "msig", "gold_verdict": "covered", "gold_sections": ["msig:section_6"], "notes": ""}
+{"id": "msig-030", "policy": "msig", "gold_verdict": "covered", "gold_sections": ["msig:section_52", "msig:definitions:acute_onset_of_a_pre_existing_medical_condition"], "notes": ""}
+{"id": "msig-031", "policy": "msig", "gold_verdict": "not_covered", "gold_sections": ["msig:section_6", "msig:definitions:doctor"], "notes": ""}
+{"id": "msig-037", "policy": "msig", "gold_verdict": "not_covered", "gold_sections": ["msig:section_6", "msig:section_41", "msig:general_exclusion_7"], "notes": ""}
+{"id": "msig-039", "policy": "msig", "gold_verdict": "covered", "gold_sections": ["msig:section_11"], "notes": ""}
+{"id": "msig-041", "policy": "msig", "gold_verdict": "covered", "gold_sections": ["msig:section_17", "msig:definitions:immediate_family_member"], "notes": ""}
+{"id": "msig-042", "policy": "msig", "gold_verdict": "not_covered", "gold_sections": ["msig:section_17", "msig:definitions:immediate_family_member"], "notes": ""}
+{"id": "msig-046", "policy": "msig", "gold_verdict": "not_covered", "gold_sections": ["msig:section_21", "msig:general_exclusion_17"], "notes": ""}
