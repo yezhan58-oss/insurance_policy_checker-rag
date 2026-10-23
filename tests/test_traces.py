@@ -1,0 +1,53 @@
+import math
+
+import pytest
+
+from src.eval import traces
+
+TYPES = {"fwd:travel_delay": "benefit", "fwd:definitions:trip": "definition",
+         "fwd:general_exclusions:unlawful_acts": "exclusion", "fwd:missed_connections": "benefit"}
+GOLD = {"gold_verdict": "not_covered", "gold_sections": ["fwd:travel_delay", "fwd:general_exclusions:unlawful_acts"]}
+
+
+@pytest.fixture(autouse=True)
+def fake_types(monkeypatch):
+    monkeypatch.setattr(traces, "section_type", TYPES.get)
+
+
+def row(approach, steps, verdict="not_covered", error=None):
+    return {"scenario_id": "fwd-009", "approach": approach,
+            "output": {"verdict": verdict, "error": error, "steps": steps,
+                       "usage": {"model_calls": 3, "prompt_tokens": 900, "completion_tokens": 100, "latency_s": 4.0}}}
+
+
+A4_STEPS = [{"step": "benefits", "picked": ["fwd:travel_delay", "fwd:missed_connections"], "fallback": False},
+            {"step": "definitions", "fetched": ["fwd:definitions:trip"]},
+            {"step": "exclusions", "candidates": ["fwd:general_exclusions:unlawful_acts"], "picked": [],
+             "fallback": False},
+            {"step": "answer", "attempt": 1, "verdict": "covered", "cited_sections": ["fwd:travel_delay"]}]
+
+
+def test_wrong_answer_without_gold_exclusion_is_missing_evidence():
+    t = traces.trace_row(row("A4", A4_STEPS, verdict="covered"), GOLD)
+    assert t["failure"] == "missing_evidence" and t["missing"] == ["fwd:general_exclusions:unlawful_acts"]
+    assert t["evidence_recall"] == 0.5 and t["context_size"] == 3 and t["unneeded_share"] == pytest.approx(2 / 3)
+    assert t["tokens"] == 1000
+
+
+def test_steps_are_scored_against_gold_of_their_type():
+    s = {x["step"]: x for x in traces.step_rows(row("A4", A4_STEPS), GOLD)}
+    assert set(s) == {"benefits", "definitions", "exclusions"}                  # the answer step selects nothing
+    assert s["benefits"]["recall"] == 1 and s["benefits"]["precision"] == 0.5
+    assert s["definitions"]["over_pick"] == 1.0 and math.isnan(s["definitions"]["recall"])   # no gold definition
+    assert s["exclusions"]["recall"] == 0 and math.isnan(s["exclusions"]["precision"])
+
+
+def test_explicit_context_wins_and_search_hits_are_used_otherwise():
+    a2 = [{"step": "search", "hits": [{"section_id": "fwd:travel_delay"}, {"section_id": "fwd:missed_connections"}]},
+          {"step": "grade", "context": ["fwd:travel_delay", "fwd:general_exclusions:unlawful_acts"]}]
+    assert traces.trace_row(row("A2", a2), GOLD)["failure"] is None
+    assert traces.context_sections(a2) == set(GOLD["gold_sections"])
+    a0 = [{"step": "search", "hits": [{"section_id": "fwd:travel_delay"}, {"section_id": "fwd:travel_delay"}]}]
+    t = traces.trace_row(row("A0", a0, verdict="covered"), GOLD)
+    assert t["context_size"] == 1 and t["failure"] == "missing_evidence"
+    assert traces.trace_row(row("B0", [], error="parse_error"), GOLD)["failure"] == "error"
