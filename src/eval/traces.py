@@ -2,6 +2,11 @@
 sections, did the sections the verdict needs ever reach the model, and how much work did it take.
 
     python -m src.eval.traces --model vllm_gptoss20b --split dev
+    python -m src.eval.traces --split test --sample 20      # traces for the human hand-check (brief section 9)
+
+--sample N writes results/<split>/trace_sample.csv: N agentic traces (A2, A4) spread evenly over the models in
+configs/run.yaml, picked with a fixed seed. Member A checks the first half, Member B the second, filling in
+error_type (brief section 9) and a note for each.
 
 Reads results/<split>/<model>/raw.jsonl and the gold labels; writes traces.json and trace_steps.csv next to it.
 Everything is measured against gold_sections, so no extra labels are needed. Per approach:
@@ -122,13 +127,49 @@ def summarise(traces: list[dict], steps: list[dict]) -> dict:
     return out
 
 
+AGENTIC = ("A2", "A4")
+
+
+def sample_traces(split: str, n: int, seed: int = 0) -> Path:
+    import random
+
+    import yaml
+    from src.eval.run import ROOT
+    models = yaml.safe_load((ROOT / "configs" / "run.yaml").read_text(encoding="utf-8"))["models"]
+    claims = {s.id: s for s in load_scenarios(split)}
+    groups = [(m, a) for m in models for a in AGENTIC]
+    rng, picked = random.Random(seed), []
+    for m, a in groups:
+        rows = [r for r in map(json.loads, (RESULTS_DIR / split / m / "raw.jsonl").open(encoding="utf-8"))
+                if r["approach"] == a]
+        picked += [(m, r) for r in rng.sample(sorted(rows, key=lambda r: r["scenario_id"]), n // len(groups))]
+    rng.shuffle(picked)
+    path = RESULTS_DIR / split / "trace_sample.csv"
+    with path.open("w", encoding="utf-8-sig", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["n", "checker", "model", "approach", "scenario_id", "claim", "gold_verdict", "gold_sections",
+                    "predicted", "steps", "error_type", "note"])
+        for i, (m, r) in enumerate(picked, 1):
+            o, sc = r["output"], claims[r["scenario_id"]]
+            w.writerow([i, "A" if i <= len(picked) // 2 else "B", m, r["approach"], sc.id, sc.scenario,
+                        sc.gold_verdict, ";".join(sc.gold_sections), o["verdict"] if not o.get("error") else "error",
+                        json.dumps(o.get("steps") or [], ensure_ascii=False), "", ""])
+    return path
+
+
 def main() -> None:
     sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--model", required=True)
+    ap.add_argument("--model", help="required unless --sample")
     ap.add_argument("--split", required=True, choices=["dev", "test"])
     ap.add_argument("--dir", type=Path, help="results folder (default results/<split>/<model>)")
+    ap.add_argument("--sample", type=int, help="write N agentic traces for the hand-check instead")
     args = ap.parse_args()
+    if args.sample:
+        print(f"Wrote {sample_traces(args.split, args.sample)}")
+        return
+    if not args.model:
+        ap.error("--model is required unless --sample is given")
 
     out_dir = args.dir or RESULTS_DIR / args.split / args.model
     with (out_dir / "raw.jsonl").open(encoding="utf-8") as f:
