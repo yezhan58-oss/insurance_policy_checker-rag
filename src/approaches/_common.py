@@ -18,7 +18,7 @@ from src.schema import Answer, Chunk, Scenario, VerdictOutput
 ROOT = Path(__file__).resolve().parents[2]
 # SHA-256 of data/scenarios/LABELLING_GUIDE.md (LF line endings) that BASE_PROMPT's rules were last checked
 # against. tests/test_prompt_guide.py fails when the guide changes: re-check the rules below, then update this.
-GUIDE_SHA256 = "4d6c742b0dafe2b0246874a5fc6f82fead2e0f80a011a231c24307e41fd5d0ad"
+GUIDE_SHA256 = "a7ccec0ef48f19d3a8e66b9dde9770a510556d0ba43982840ff23cec740c4974"
 POLICY_NAMES = {"fwd": "FWD Travel Insurance", "msig": "MSIG TravelEasy Insurance"}
 MAX_TOKENS = 4096   # room for gpt-oss reasoning plus the JSON answer
 
