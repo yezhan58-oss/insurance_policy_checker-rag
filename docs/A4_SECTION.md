@@ -30,4 +30,4 @@ The lesson from both trials is the same: once A4 has fixed retrieval, Llama's re
 
 [Trace evaluation: per-step recall/precision for benefits and exclusions; wrong answers split into missing_evidence vs had_evidence; tokens, latency and context size against A0 and A2.]
 
-[Hand-checked traces: 5 A4 traces from the Llama test run (seed 42), error types.]
+[Hand-checked traces: A4 traces from the fixed-seed `traces.py --sample 20` set (test runs, both models; B checks rows 11–20), error types.]
