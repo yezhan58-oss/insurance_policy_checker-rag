@@ -13,7 +13,7 @@ A2 is a generic self-correcting retriever. A4 instead follows the order in which
 
 The two pick calls use JSON-schema structured output; IDs the model invents are dropped. If a pick reply is unusable, the node falls back to a fixed rule (the top benefit search hit; all candidate exclusions) and logs the fallback, so one bad call never stops a claim. Every node appends to `steps`, which drives both the demo's trace view and the trace evaluation. A4 makes at most 3 model calls per claim (2 picks and 1 answer), plus a retry if the answer fails to parse.
 
-A4 is the approach we built for this domain. Its design bet is that the main failure of simple RAG on policies is missing evidence: the deciding definition or exclusion sits far from the benefit text and is not similar to the claim wording, so one similarity search does not find it. On dev, A4 brought the needed sections into context far more often than simple RAG (evidence recall 0.95 on Llama, versus [0.62, check against A's A0 dev traces] for A0).
+A4 is the approach we built for this domain. Its design bet is that the main failure of simple RAG on policies is missing evidence: the deciding definition or exclusion sits far from the benefit text and is not similar to the claim wording, so one similarity search does not find it. On dev, A4 brought the needed sections into context far more often than simple RAG (evidence recall 0.95 on Llama, versus 0.62 for A0).
 
 ## Development on dev
 
