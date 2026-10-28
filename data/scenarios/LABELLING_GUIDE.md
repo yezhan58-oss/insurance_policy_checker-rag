@@ -21,6 +21,8 @@ not stated (except the default assumptions below).
 - **Exception: if whether a benefit applies at all depends on the plan** (e.g. MSIG Lite has no travel cancellation,
   MSIG Standard has no credit card fraud cover), the scenario must state the plan ("I'm on the Standard plan").
   Label by the stated plan. A scenario that leaves the plan out in such a case is `insufficient_info`.
+- If cover exists only under an optional add-on and the claim doesn't say whether it was bought, label
+  `insufficient_info`.
 
 ## The four verdicts
 
@@ -36,7 +38,8 @@ not stated (except the default assumptions below).
 1. **Exclusion beats benefit.** If a benefit's conditions are met but an exclusion clearly applies, the verdict is
    `not_covered`.
 2. **Missing fact vs failed condition.** If the scenario states a fact that fails a condition, it is
-   `not_covered`. If the fact is simply absent, it is `insufficient_info`.
+   `not_covered`. If the fact is simply absent, it is `insufficient_info`. A default assumption never overrides a fact the
+   claim states (e.g. bought the policy after departing).
 3. **A per-period payout is not partial.** "S$100 per 6 hours" being less than the traveller's real costs is
    still `covered`. Use `partially_covered` only when a named item, cost or amount in the claim is excluded or
    capped by a sub-limit.
