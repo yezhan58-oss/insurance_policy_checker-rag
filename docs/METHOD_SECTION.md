@@ -1,0 +1,159 @@
+# Report draft: Method, Evaluation design, Development (Member A)
+
+Draft for sections 4, 5 and 6 of the report outline. Every number comes from the repo (configs, `docs/PROMPT_TUNING.md`,
+`docs/A2_DEV.md`, `docs/A4_DEV.md`); rewrite in your own words before submitting (course AI policy). Placeholders are
+in [brackets]. Section 4.5 (A4) and 6.3 (A4 trial) are Member B's.
+
+## 4. Method
+
+### 4.1 Architecture
+
+[Figure: ingest (PDF → sections → chunks → embeddings) → one shared Chroma index → B0 / A0 / A2 / A4 → one shared
+answer call (base prompt, JSON schema) → evaluation (score, traces, judge) → report.]
+
+All four setups are plug-ins behind one interface: each receives a claim, the model client and the policy store, and
+returns the same structured output (verdict, cited section IDs, explanation, a step-by-step trace, and usage counts).
+The evaluation code never needs to know which setup produced an answer.
+
+### 4.2 A controlled comparison
+
+The setups differ only in how they find policy text. Everything else is shared: the same base prompt, the same
+embedding model (BAAI/bge-small-en-v1.5, run on CPU so results are identical on every machine), the same index, the same
+model per comparison, temperature 0, and the same final answer call. The base prompt states the four verdicts and five
+rules taken from the labelling guide (for example, an exclusion that clearly applies beats a benefit, and a stated
+fact that fails a condition gives not_covered while a missing fact gives insufficient_info), so the models are judged
+by the rules the human labellers used. A unit test fails if the labelling guide changes without the prompt being
+re-checked against it. The answer is forced into a JSON schema; an unparseable reply, or one cut off at the
+4,096-token limit, is retried once and otherwise recorded as a parse error, which counts as wrong.
+
+### 4.3 Baselines: B0 and A0
+
+**B0 (no retrieval)** gets the claim and no policy text, and answers from the model's general knowledge. It is the
+floor: any gain over B0 is due to retrieval. **A0 (simple RAG)** searches the claim's policy once with the claim text
+and answers from the top 5 chunks. It is the standard RAG baseline the agents must beat.
+
+### 4.4 A2: Corrective RAG
+
+A2 adapts Corrective RAG (Yan et al., 2024) to a closed policy corpus. It is a LangGraph graph with one loop:
+
+[Figure: START → search → grade → route → decide → END, with route → rewrite → search.]
+
+1. **Search** the policy for the current query (initially the claim text), top 5 chunks.
+2. **Grade:** the LLM sees the claim and the numbered chunks and returns the numbers of the relevant ones. Relevant
+   chunks are added to a pile that persists across searches.
+3. **Route:** if fewer than 2 chunks are relevant and fewer than 2 rewrites have been used, rewrite; otherwise decide.
+4. **Rewrite:** the LLM writes a new query in the policy's own wording (for example "baggage theft" rather than the
+   claimant's story), seeing every earlier query so it does not repeat one.
+5. **Decide:** the shared answer call over the relevant chunks only.
+
+Design decisions:
+
+- **One grading call per search** instead of one per chunk as in the paper, to keep latency acceptable for a user
+  waiting for an answer.
+- **Exclusions count as relevant.** The grading prompt says text that would stop the claim being paid is relevant.
+  A grader that kept only supporting text would filter out exclusions and push the model towards "covered", the
+  unsafe error.
+- **Grade against the claim, not the rewritten query,** so relevance always means relevance to what was asked.
+- **Numbered chunks** rather than long section IDs, which a small model copies unreliably.
+- **Fail safe:** an unusable grading reply keeps every chunk (the claim then behaves like A0); an unusable rewrite
+  keeps the old query; a rewrite that repeats an earlier query ends the loop, since it would return the same chunks.
+- **No fallback to ungraded chunks:** if nothing is graded relevant after both rewrites, the answer sees no policy text
+  rather than chunks already judged irrelevant.
+
+Differences from the paper: the paper's fine-tuned T5 evaluator is replaced by the LLM itself, and its web search
+for poor retrievals by a rewritten search of the same policy, since the answer must come from the policy wording.
+
+### 4.5 A4: Claims-workflow agent (Member B)
+
+[Member B: benefits → definitions → exclusions → decide.]
+
+### 4.6 Models and infrastructure
+
+We compare a small instruction model, Llama 3.1 8B Instruct, with a larger open reasoning model, gpt-oss-20b, both
+served with vLLM 0.31 on NVIDIA A40 (48 GB) GPUs of the SMU SCIS cluster through SLURM batch jobs. Both run free on
+university hardware, so cost is measured as model calls, tokens and seconds per claim rather than dollars. Seconds
+depend on cluster load, so latency is compared within one run, not across runs. Faithfulness is judged by Claude
+Haiku 5.5, from a different company than both tested models.
+
+## 5. Evaluation design
+
+### 5.1 Metrics
+
+| Metric | What it measures |
+|---|---|
+| Verdict accuracy (main) | verdict equals the gold verdict |
+| Binary accuracy | paid (covered or partially) vs not paid matches gold |
+| Wrong-covered rate (safety) | share of gold not_covered claims answered covered or partially_covered |
+| Clause recall | share of gold sections that the answer cites |
+| Faithfulness | LLM judge: is the explanation supported by the cited text (yes / partly / no); [N] judgments hand-checked |
+| Cost | mean model calls, tokens (including reasoning tokens) and seconds per claim |
+
+### 5.2 Statistics
+
+Every metric has a 95% bootstrap confidence interval (1,000 resamples, fixed seed). Setups are compared with exact
+McNemar tests on per-claim correctness, which suit paired classifiers on the same test set (Dietterich, 1998). Three
+comparisons were fixed in advance: best agent vs A0, A0 vs B0, and A2 vs A4, with Holm correction.
+
+### 5.3 Decision rule (fixed before the test run)
+
+The best setup is the one with the highest test accuracy whose wrong-covered rate is no worse than A0's. If McNemar does
+not separate the top two, the cheaper and faster one wins. The rule puts safety ahead of accuracy and prefers a
+simpler system unless the gain is real.
+
+### 5.4 Trace evaluation
+
+Following feedback that the agents' tool use should be evaluated, not only their verdicts, `src/eval/traces.py` scores
+each setup's recorded steps against the gold sections, with no extra labelling:
+
+- **Step correctness:** recall and precision of each step (for example A2's grader, A4's exclusion picker) against
+  the gold sections of that type.
+- **Evidence recall:** share of gold sections that reached the final answer's context.
+- **Failure split:** each wrong answer is classed as *missing evidence* (a gold section never reached the model: a
+  retrieval failure) or *had evidence* (all gold sections were present: a reasoning failure).
+- **Efficiency:** context size, share of context not needed, calls, tokens, seconds, parse retries.
+
+Twenty agent traces from the test run (5 each from A2 and A4 on both models, fixed seed) are also hand-checked by both
+members using the brief's error types.
+
+### 5.5 Data discipline
+
+All tuning used the 20 dev claims. The test set was frozen on [29 Oct] and scored once, from one commit ([hash]), by
+one person.
+
+## 6. Development and tuning
+
+All changes below were tested on dev only. For each trial the acceptance rule was written down before running: keep
+the change only if accuracy and wrong-covered rate are no worse on both models.
+
+### 6.1 Prompt tuning (Llama 3.1 8B, A0, dev)
+
+The first dev run showed Llama never answering insufficient_info (0/5) and rarely partially_covered (1/4). Three
+prompt changes were tried: a step-by-step checklist (accuracy 0.45 vs 0.50 for the original), the same checklist with
+a reasoning field placed before the verdict in the JSON schema (0.50, but insufficient_info was now predicted 12 times
+out of 20 and not_covered fell from 6/6 to 3/6), and narrower rules (0.40). The reasoning-first prompt was also
+unstable: run twice at temperature 0 it changed 5 of 20 verdicts, while the original prompt run twice changed none.
+We kept the original prompt. gpt-oss-20b already handled these verdicts with the same prompt (insufficient_info 3/5
+with A0 and 5/5 with A4), which points to a model limitation rather than a prompt problem.
+
+### 6.2 A2: rewrite threshold
+
+On dev, A2's grader raised the share of useful chunks from 0.20 to 0.72 on gpt-oss (0.18 to 0.37 on Llama) and never
+dropped a gold section the search had found. Rewriting was used on 11 of 20 claims by gpt-oss but found a new gold
+section in only 2, and 5 of its 17 rewrites repeated an earlier query, which led to the repeated-query stop. Lowering
+the threshold from 2 relevant chunks to 1 made gpt-oss about 2.7 times faster (9.9 vs 26.9 s per claim) but less
+accurate (0.60 vs 0.70) and less safe (wrong-covered 0.17 vs 0.00), so it failed the rule and the threshold stayed
+at 2. With 20 claims these gaps are within noise, so we report a trade-off, not a proven effect.
+
+### 6.3 A4: exclusion step (Member B)
+
+[Member B's paragraph from `docs/A4_DEV.md`.]
+
+### 6.4 Engineering fixes found by validation
+
+- A reply that ran into the token limit raised an exception and stopped runs; it is now retried and then scored as a
+  parse error like any other unusable reply.
+- Two batch jobs rebuilding the same index on the shared file system corrupted it; each job now builds its index on
+  the node's local disk.
+- The prompt's rules had drifted from the labelling guide; a test now ties the prompt to a hash of the guide.
+- Runs are resumable and record the commit and full prompt next to the results, and the test split refuses to run on
+  uncommitted code.
