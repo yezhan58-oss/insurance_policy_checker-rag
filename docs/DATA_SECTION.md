@@ -1,6 +1,5 @@
 # Report draft: Data and labelling (Member B)
 
-Placeholders in [brackets] are filled after the 15 disagreements are resolved with Member A.
 
 ## Policy documents
 
@@ -32,6 +31,6 @@ The test set is skewed towards FWD and single_section scenarios compared with ou
 
 ## Blind check
 
-To measure how reliable the gold labels are, Member A labelled 40 random test scenarios blind, without seeing the drafts or Member B's labels. Agreement was moderate: 25/40 on the four-way verdict (Cohen's kappa 0.46, 95% bootstrap CI 0.24 to 0.64) and 30/40 on the binary covered-or-not split (kappa 0.50, CI 0.21 to 0.75). The two labellers chose at least one common gold section in 39 of 40 cases, so the disagreements were about how to read the clause, not which clause applies. Most disagreements followed one pattern: in six cases the blind label was insufficient_info where a stated fact or a named exclusion decides the claim under the guide's tie-break rules. The 15 disagreements were resolved together against the policy text: [N] kept Member B's label, [N] took Member A's label, and [N] scenarios were [reworded / removed]. [Guide change, if any.] The test set was then frozen on [date].
+To measure how reliable the gold labels are, Member A labelled 40 random test scenarios blind, without seeing the drafts or Member B's labels. Agreement was moderate: 25/40 on the four-way verdict (Cohen's kappa 0.46, 95% bootstrap CI 0.24 to 0.64) and 30/40 on the binary covered-or-not split (kappa 0.50, CI 0.21 to 0.75). The two labellers chose at least one common gold section in 39 of 40 cases, so the disagreements were about how to read the clause, not which clause applies. Most disagreements followed one pattern: in six cases the blind label was insufficient_info where a stated fact or a named exclusion decides the claim under the guide's tie-break rules. The 15 disagreements were resolved together against the policy text: 14 kept Member B's label and none took Member A's; one scenario (fwd-066) was reworded to state a fact both labellers needed (the summons came two weeks before the trip) and kept as covered. Two rules were added to the guide: a claim whose cover exists only under an optional add-on is insufficient_info unless the claim says the add-on was bought, and a default assumption never overrides a fact the claim states. The test set was then frozen on 28 Oct.
 
 Report wording: "Scenarios were drafted by an LLM from specific policy clauses and verified by a human; a second member labelled a 40-scenario subset blind (Cohen's kappa = 0.46 four-way, 0.50 binary)."
