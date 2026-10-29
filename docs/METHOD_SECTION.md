@@ -65,7 +65,28 @@ for poor retrievals by a rewritten search of the same policy, since the answer m
 
 ### 4.5 A4: Claims-workflow agent (Member B)
 
-[Member B: benefits → definitions → exclusions → decide.]
+A2 is a generic self-correcting retriever. A4 instead follows the order in which a claims assessor reads a policy:
+find the benefit, check what its key terms mean, check what is excluded, then decide. It is a fixed LangGraph graph of
+four nodes, run in the same order for every claim, with no loops:
+
+1. **Benefits.** The model sees the claim and the titles of every benefit section in the policy (in effect its table
+   of contents) and picks at most 3. We list titles rather than search because embedding search alone missed the
+   obvious section on dev, e.g. FWD's overseas medical expenses for plain medical claims.
+2. **Definitions.** Defined terms in the claim or the chosen benefit text are matched against the policy's definitions
+   index (built at ingest), and up to 6 definitions are fetched. No model call.
+3. **Exclusions.** All exclusions that apply to the chosen benefits are gathered: general exclusions plus
+   section-specific ones (MSIG groups exclusions by benefit number, e.g. "exclusions for sections 32 to 37"). The
+   model keeps those that could affect the claim given the stated facts.
+4. **Decide.** The shared answer call, with the same base prompt as every other setup, over everything gathered.
+
+The two pick calls use JSON-schema structured output; section IDs the model invents are dropped. If a pick reply is
+unusable, the node falls back to a fixed rule (the top benefit search hit; all candidate exclusions) and logs it, so
+one bad call never stops a claim. Every node appends to `steps`, which drives the demo's trace view and the trace
+evaluation (5.4). A4 makes at most 3 model calls per claim (2 picks and 1 answer), plus a retry if the answer fails to
+parse.
+
+Its design bet is that simple RAG fails on policies mainly from missing evidence: the deciding definition or exclusion
+sits far from the benefit text and does not resemble the claim wording, so one similarity search misses it.
 
 ### 4.6 Models and infrastructure
 
@@ -146,7 +167,15 @@ at 2. With 20 claims these gaps are within noise, so we report a trade-off, not 
 
 ### 6.3 A4: exclusion step (Member B)
 
-[Member B's paragraph from `docs/A4_DEV.md`.]
+Traces showed A4 on Llama fixed retrieval (evidence recall 0.95 on dev, versus 0.62 for A0) but not accuracy: 10/20,
+the same as A0, and 9 of its 10 misses had all gold evidence in context. Llama also over-selected exclusions (13.2 per
+claim, precision 0.03; 93% of the 21.1 context sections not needed), so we tested whether the excess context caused
+the errors. A prompt asking only for exclusions whose conditions are met cut exclusions to 1.9 per claim with no loss
+of exclusion recall (1.00) and context to 9.9 sections, but accuracy did not improve (9/20 vs 10/20 on Llama; 0.75 vs
+0.80 on gpt-oss-20b; wrong-covered 0.00 throughout). It failed the rule on both models, and the original prompt was
+kept. An earlier checklist step (list the deciding facts before answering) gave 11/20 vs 10/20 but raised time per
+claim from about 10 s to 35 s, and was dropped for its cost. Both trials point the same way: once A4 has the evidence,
+Llama's remaining errors are reasoning failures that neither more structure nor less context fixed.
 
 ### 6.4 Engineering fixes found by validation
 
