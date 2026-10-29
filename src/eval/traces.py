@@ -14,6 +14,10 @@ Everything is measured against gold_sections, so no extra labels are needed. Per
 - evidence recall: share of gold sections that reached the answer's context (whether or not they were cited).
 - wrong answers split into missing_evidence (a gold section never reached the model: a retrieval failure),
   had_evidence (all gold sections were in context, still wrong: a reasoning failure) and error (no answer).
+- right answers split the same way: sound (every gold section reached the model) or right_without_evidence (right
+  verdict although a gold section never reached it: a lucky guess or prior knowledge, not a working process).
+  sound_rate = sound / all rows, a stricter accuracy that only credits right answers from a working process.
+  If judged.jsonl exists, grounded_rate also needs the judge to call the explanation faithful ("yes").
 - per step: recall of the gold sections of the step's type (e.g. A4's exclusions step vs gold exclusions),
   precision of what it selected, how often it selected something when gold has nothing of that type, fallbacks.
 - efficiency: model calls, tokens, latency, sections put in context, share of them not needed, parse retries.
@@ -67,7 +71,8 @@ def ratio(num: int, den: int) -> float:
     return num / den if den else float("nan")
 
 
-def trace_row(row: dict, gold: dict) -> dict:
+def trace_row(row: dict, gold: dict, faithfulness: str | None = None) -> dict:
+    """faithfulness: the judge's label for this row ("yes" / "partly" / "no"), or None if not judged."""
     o, g = row["output"], gold
     gs = set(g["gold_sections"])
     ctx = context_sections(o.get("steps") or [])
@@ -75,7 +80,10 @@ def trace_row(row: dict, gold: dict) -> dict:
     correct = o.get("error") is None and o["verdict"] == g["gold_verdict"]
     missing = gs - ctx
     failure = None if correct else "error" if o.get("error") else "missing_evidence" if missing else "had_evidence"
+    outcome = failure or ("right_without_evidence" if missing else "sound")
     return {"scenario_id": row["scenario_id"], "approach": row["approach"], "correct": correct, "failure": failure,
+            "outcome": outcome,
+            "grounded": None if faithfulness is None else outcome == "sound" and faithfulness == "yes",
             "evidence_recall": ratio(len(gs & ctx), len(gs)), "missing": sorted(missing),
             "context_size": len(ctx), "unneeded_share": ratio(len(ctx - gs), len(ctx)),
             "model_calls": usage.get("model_calls", 0),
@@ -119,12 +127,28 @@ def summarise(traces: list[dict], steps: list[dict]) -> dict:
                               "precision": nanmean(s["precision"] for s in ss),
                               "over_pick_rate": nanmean(s["over_pick"] for s in ss),
                               "fallback_rate": nanmean(s["fallback"] for s in ss)}
+        judged = [t for t in ts if t.get("grounded") is not None]
         out[a] = {"n": len(ts), "wrong": len(wrong),
                   **{f: sum(t["failure"] == f for t in wrong) for f in ("missing_evidence", "had_evidence", "error")},
+                  **{f: sum(t["outcome"] == f for t in ts) for f in ("sound", "right_without_evidence")},
+                  "sound_rate": ratio(sum(t["outcome"] == "sound" for t in ts), len(ts)),
+                  # only once every row is judged: a partial judge run is not a result
+                  "grounded_rate": (ratio(sum(t["grounded"] for t in judged), len(ts)) if len(judged) == len(ts)
+                                    else float("nan")),
                   **{m: nanmean(t[m] for t in ts) for m in ("evidence_recall", "context_size", "unneeded_share",
                                                             "model_calls", "tokens", "latency_s", "parse_retries")},
                   "steps": per_step}
     return out
+
+
+def load_judged(out_dir: Path) -> dict:
+    """{(scenario_id, approach): faithfulness} from judged.jsonl; empty if the judge has not run.
+    Judge parse errors count as "no", as in score.py."""
+    path = out_dir / "judged.jsonl"
+    if not path.exists():
+        return {}
+    return {(j["scenario_id"], j["approach"]): j["faithfulness"] or "no"
+            for j in map(json.loads, path.open(encoding="utf-8"))}
 
 
 AGENTIC = ("A2", "A4")
@@ -176,7 +200,8 @@ def main() -> None:
         rows = [json.loads(line) for line in f if line.strip()]
     gold = {s.id: {"gold_verdict": s.gold_verdict, "gold_sections": s.gold_sections}
             for s in load_scenarios(args.split)}
-    traces = [trace_row(r, gold[r["scenario_id"]]) for r in rows]
+    judged = load_judged(out_dir)
+    traces = [trace_row(r, gold[r["scenario_id"]], judged.get((r["scenario_id"], r["approach"]))) for r in rows]
     steps = [s for r in rows for s in step_rows(r, gold[r["scenario_id"]])]
     summary = summarise(traces, steps)
     (out_dir / "traces.json").write_text(json.dumps({"summary": summary, "rows": traces}, indent=1), encoding="utf-8")
@@ -189,7 +214,10 @@ def main() -> None:
     for a, s in summary.items():
         print(f"{a:3} evidence recall {s['evidence_recall']:.2f} | wrong {s['wrong']}/{s['n']}: missing evidence "
               f"{s['missing_evidence']}, had evidence {s['had_evidence']}, error {s['error']}"
-              f"\n    {s['model_calls']:.1f} calls, {s['tokens']:.0f} tokens, {s['latency_s']:.1f}s, "
+              f"\n    right {s['n'] - s['wrong']}: sound {s['sound']}, without evidence {s['right_without_evidence']}"
+              f" | sound rate {s['sound_rate']:.2f}"
+              + (f", grounded rate {s['grounded_rate']:.2f}" if s["grounded_rate"] == s["grounded_rate"] else "")
+              + f"\n    {s['model_calls']:.1f} calls, {s['tokens']:.0f} tokens, {s['latency_s']:.1f}s, "
               f"{s['context_size']:.1f} sections in context"
               + (f" ({s['unneeded_share']:.0%} not needed)" if s["context_size"] else "")
               + f", {s['parse_retries']:.2f} parse retries")

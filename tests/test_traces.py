@@ -51,3 +51,28 @@ def test_explicit_context_wins_and_search_hits_are_used_otherwise():
     t = traces.trace_row(row("A0", a0, verdict="covered"), GOLD)
     assert t["context_size"] == 1 and t["failure"] == "missing_evidence"
     assert traces.trace_row(row("B0", [], error="parse_error"), GOLD)["failure"] == "error"
+
+
+def test_right_answers_are_split_by_whether_the_evidence_reached_the_model():
+    full = [{"step": "search", "hits": [{"section_id": i} for i in GOLD["gold_sections"]]}]
+    part = [{"step": "search", "hits": [{"section_id": "fwd:travel_delay"}]}]
+    sound = traces.trace_row(row("A0", full), GOLD, faithfulness="yes")
+    lucky = traces.trace_row(row("A0", part), GOLD, faithfulness="yes")
+    assert sound["correct"] and sound["outcome"] == "sound" and sound["grounded"] is True
+    assert lucky["correct"] and lucky["failure"] is None and lucky["outcome"] == "right_without_evidence"
+    assert lucky["grounded"] is False                                   # faithful text, but no working process
+    assert traces.trace_row(row("A0", full), GOLD, faithfulness="partly")["grounded"] is False
+    assert traces.trace_row(row("A0", full), GOLD)["grounded"] is None  # not judged
+    assert traces.trace_row(row("B0", []), GOLD)["outcome"] == "right_without_evidence"   # B0 never sees policy text
+
+
+def test_summary_counts_process_outcomes_and_waits_for_a_full_judge_run():
+    full = [{"step": "search", "hits": [{"section_id": i} for i in GOLD["gold_sections"]]}]
+    part = [{"step": "search", "hits": [{"section_id": "fwd:travel_delay"}]}]
+    ts = [traces.trace_row(row("A0", full), GOLD, "yes"), traces.trace_row(row("A0", part), GOLD, "yes"),
+          traces.trace_row(row("A0", full, verdict="covered"), GOLD, "no")]
+    s = traces.summarise(ts, [])["A0"]
+    assert (s["sound"], s["right_without_evidence"], s["had_evidence"]) == (1, 1, 1)
+    assert s["sound_rate"] == pytest.approx(1 / 3) and s["grounded_rate"] == pytest.approx(1 / 3)
+    ts[2]["grounded"] = None                                            # one row not judged yet
+    assert math.isnan(traces.summarise(ts, [])["A0"]["grounded_rate"])
