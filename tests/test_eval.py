@@ -59,6 +59,9 @@ def test_per_row_metrics():
     assert df.binary_correct.tolist() == [1, 0, 0]
     assert df.wrong_covered.iloc[1] == 1 and df.wrong_covered.isna().sum() == 2   # only gold not_covered counts
     assert df.clause_recall.tolist() == [0.5, 0.0, 0.5]
+    # an error row is wrong in binary accuracy too, even when the gold verdict is on the "not paid" side
+    err = per_row([row("d", "A0", "insufficient_info", gold="not_covered", error="parse_error")], gold={})
+    assert err.binary_correct.iloc[0] == 0 and err.wrong_covered.iloc[0] == 0
 
 
 def test_faithfulness_from_judge():
