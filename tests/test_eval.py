@@ -107,3 +107,16 @@ def test_decision_excludes_approach_less_safe_than_a0():
     result, _ = score(rows, {})
     assert result["decision"]["winner"] == "A0"
     assert decide(per_row(rows, {}), {"A0": result["overall"]["A0"]})["reason"] == "only eligible approach"
+
+
+def test_exploratory_l0_is_scored_but_never_preregistered_or_the_winner():
+    rows = ([row(f"s{i}", "A0", "covered" if i < 6 else "not_covered") for i in range(10)] +
+            [row(f"s{i}", "A2", "covered" if i < 7 else "not_covered", calls=3) for i in range(10)] +
+            [row(f"s{i}", "L0", "covered") for i in range(10)])                # L0 is the most accurate
+    result, _ = score(rows, {})
+    assert result["overall"]["L0"]["verdict_accuracy"] == 1.0
+    assert all("L0" not in (t["a"], t["b"]) for t in result["tests"])      # outside the Holm family
+    assert [t["label"] for t in result["exploratory_tests"]] == ["exploratory: L0 vs A0",
+                                                                 "exploratory: L0 vs best agent"]
+    assert result["exploratory_tests"][1]["b"] == "A2"
+    assert result["decision"]["winner"] != "L0"

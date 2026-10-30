@@ -22,6 +22,8 @@ from src.eval.run import RESULTS_DIR, load_scenarios
 
 POSITIVE = {"covered", "partially_covered"}
 AGENTS = ("A2", "A3", "A4")                       # agentic approaches eligible as "best agent"
+# Added after the comparisons were pre-registered: scored and shown, but never in the Holm family or the decision rule
+EXPLORATORY = ("L0",)
 METRICS = ("verdict_accuracy", "binary_accuracy", "wrong_covered_rate", "clause_recall")
 COSTS = ("latency_s", "model_calls", "prompt_tokens", "completion_tokens", "reasoning_tokens")
 N_BOOT, SEED, ALPHA = 1000, 0, 0.05
@@ -103,12 +105,23 @@ def preregistered_tests(df: pd.DataFrame, overall: dict) -> list[dict]:
     return tests
 
 
+def exploratory_tests(df: pd.DataFrame, overall: dict) -> list[dict]:
+    """L0 vs A0 and vs the best agent: McNemar p-values, not corrected and not part of the pre-registered family."""
+    have = set(overall)
+    agents = [a for a in AGENTS if a in have]
+    best = max(agents, key=lambda a: overall[a]["verdict_accuracy"]) if agents else None
+    return [dict(mcnemar_p(df, x, b), label=f"exploratory: {x} vs {label}")
+            for x in EXPLORATORY if x in have
+            for b, label in (("A0", "A0"), (best, "best agent")) if b in have]
+
+
 def decide(df: pd.DataFrame, overall: dict) -> dict:
     """Brief section 9: highest verdict accuracy whose wrong_covered_rate is no worse than A0's; if McNemar does
-    not separate the top two, the cheaper and faster one wins (fewer mean model calls, then lower latency)."""
+    not separate the top two, the cheaper and faster one wins (fewer mean model calls, then lower latency).
+    Exploratory setups (L0) are never candidates."""
     a0_wc = overall.get("A0", {}).get("wrong_covered_rate")
-    eligible = [a for a, s in overall.items()
-                if a0_wc is None or np.isnan(a0_wc) or not s["wrong_covered_rate"] > a0_wc]
+    eligible = [a for a, s in overall.items() if a not in EXPLORATORY
+                and (a0_wc is None or np.isnan(a0_wc) or not s["wrong_covered_rate"] > a0_wc)]
     ranked = sorted(eligible, key=lambda a: -overall[a]["verdict_accuracy"])
     if not ranked:
         return {"winner": None, "reason": "no approach is eligible"}
@@ -133,7 +146,7 @@ def score(rows: list[dict], gold: dict, judged: dict | None = None) -> tuple[dic
                    for v in ("covered", "not_covered", "partially_covered", "insufficient_info")}
                for a, g in df.groupby("approach")}
     result = {"overall": overall, "by_gold_verdict": by_gold, "tests": preregistered_tests(df, overall),
-              "decision": decide(df, overall)}
+              "exploratory_tests": exploratory_tests(df, overall), "decision": decide(df, overall)}
     return result, by_cat
 
 
@@ -172,6 +185,9 @@ def main() -> None:
         print(f"McNemar {t['label']:18} {t['a']} vs {t['b']}: p={t['p']:.3f}, Holm p={t['p_holm']:.3f}"
               f"{' *' if t['significant'] else ''}  (only {t['a']} right {t['only_a_right']}, only {t['b']} right "
               f"{t['only_b_right']})")
+    for t in result["exploratory_tests"]:
+        print(f"McNemar {t['label']}: p={t['p']:.3f} (not corrected; only {t['a']} right {t['only_a_right']}, "
+              f"only {t['b']} right {t['only_b_right']})")
     print("\nRight per gold verdict (and what was predicted instead):")
     for a, per in result["by_gold_verdict"].items():
         print(f"{a:3} " + " | ".join(

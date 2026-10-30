@@ -96,11 +96,17 @@ def write_markdown(df: pd.DataFrame, data: dict, split: str, path) -> None:
             lines.append(f"- McNemar {t['label']}: {t['a']} vs {t['b']}, p = {t['p']:.3f}, Holm p = {t['p_holm']:.3f}"
                          f"{' (significant)' if t['significant'] else ''}; only {t['a']} right {t['only_a_right']}, "
                          f"only {t['b']} right {t['only_b_right']}")
+        for t in d["result"]["exploratory_tests"]:
+            lines.append(f"- McNemar {t['label']}: p = {t['p']:.3f} (not corrected, not pre-registered); "
+                         f"only {t['a']} right {t['only_a_right']}, only {t['b']} right {t['only_b_right']}")
         dec = d["result"]["decision"]
         lines.append(f"- Decision rule: **{dec['winner']}** ({dec['reason']})")
     lines += ["", "_Sound rate: share of all claims answered right with every gold section in the model's context. "
               "Grounded rate: sound and the judge found the explanation faithful (shown once every row is judged). "
               "Right answers without the evidence are not counted by either._"]
+    if (df.approach == "L0").any():
+        lines += ["", "_L0 (whole policy in the prompt, no retrieval) is exploratory: added after pre-registration, "
+                  "so it is outside the Holm-corrected tests and the decision rule._"]
     if split != "test":
         lines += ["", "_Dev split: for tuning only, not the reported result._"]
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")

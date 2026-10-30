@@ -41,6 +41,12 @@ class FakeStore:
                       score=0.7) for i in range(k)]
 
 
+class WholePolicyStore(FakeStore):
+    def list_sections(self, policy, type=None):
+        return [Chunk(chunk_id=i, section_id=i, policy=policy, title=i, type="benefit", page=1, text=f"FWD > {i}\ntext")
+                for i in ("fwd:travel_delay", "fwd:definitions:trip", "fwd:general_exclusions:war")]
+
+
 SCENARIO = Scenario(id="smoke-1", policy="fwd", category="single_section", gold_verdict="covered",
                     scenario="My flight was delayed 7 hours by a typhoon. Can I claim?")
 
@@ -97,3 +103,14 @@ def test_two_bad_answers_record_parse_error():
     out = REGISTRY["B0"](SCENARIO, llm, FakeStore())
     assert out.error == "parse_error" and out.cited_sections == []
     assert out.usage["model_calls"] == 2
+
+
+def test_l0_puts_the_whole_policy_in_one_call_without_search():
+    llm, store = FakeLLM(GOOD), WholePolicyStore()
+    out = REGISTRY["L0"](SCENARIO, llm, store)
+    system, user = llm.calls[0]
+    assert system.content == BASE_PROMPT and store.queries == []          # same prompt, no retrieval
+    assert all(f"[Section ID: {i}]" in user.content for i in out.steps[0]["context"])
+    assert out.steps[0] == {"step": "long_context",
+                            "context": ["fwd:travel_delay", "fwd:definitions:trip", "fwd:general_exclusions:war"]}
+    assert out.usage["model_calls"] == 1 and out.error is None

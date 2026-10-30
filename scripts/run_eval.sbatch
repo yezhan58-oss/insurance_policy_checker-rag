@@ -5,6 +5,8 @@
 #   MODEL=vllm_llama8b sbatch scripts/run_eval.sbatch                     (Member A, test split)
 #   MODEL=vllm_gptoss20b sbatch scripts/run_eval.sbatch
 #   MODEL=vllm_gptoss20b BATCH_PORT=8482 SPLIT=dev APPROACHES=A4 sbatch scripts/run_eval.sbatch   (Member B, dev)
+#   MODEL=vllm_llama8b APPROACHES=L0 MAX_LEN=131072 sbatch scripts/run_eval.sbatch   (exploratory long-context L0:
+#   the whole policy is about 52k tokens; run it after the core run of that model has finished, same results folder)
 #SBATCH --job-name=run-eval
 #SBATCH --qos=studentqos
 #SBATCH --partition=student
@@ -40,7 +42,7 @@ export VLLM_CACHE_ROOT="$HOME/scratchDirectory/vllm-cache" TRITON_CACHE_DIR="$HO
 export RAG_INDEX_DIR="${TMPDIR:-/tmp}/rag-index-$SLURM_JOB_ID"
 echo "MODEL=$MODEL NODE=$(hostname) PORT=$PORT"
 vllm serve $WEIGHTS --served-model-name $NAME --host 127.0.0.1 --port $PORT \
-  --max-model-len 16384 --seed 0 $EXTRA > logs/vllm_$SLURM_JOB_ID.log 2>&1 &
+  --max-model-len ${MAX_LEN:-16384} --seed 0 $EXTRA > logs/vllm_$SLURM_JOB_ID.log 2>&1 &
 VLLM_PID=$!
 trap 'kill $VLLM_PID 2>/dev/null; rm -rf "$RAG_INDEX_DIR"' EXIT
 python -m src.ingest --samples 0           # index always matches the checked-out code (CPU, about a minute)

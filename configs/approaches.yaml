@@ -10,6 +10,9 @@ A4:
   fallback_k: 8         # search depth used only if the benefit pick reply is unusable
   max_benefits: 3
   max_definitions: 6
+# Exploratory, added 30 Oct after pre-registration (not in run.yaml's list, so the core runs never include it):
+# the whole policy in the prompt, no retrieval. Needs MAX_LEN=131072 in scripts/run_eval.sbatch.
+L0: {}
 # Optional, only if M2 is met on time
 A1:
   top_k: 15
