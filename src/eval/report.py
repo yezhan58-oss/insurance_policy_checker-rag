@@ -69,7 +69,9 @@ def leaderboard(data: dict) -> pd.DataFrame:
                         "latency_s": s["latency_s"], "missing_evidence": t["missing_evidence"],
                         "had_evidence": t["had_evidence"], "error_rows": t["error"],
                         "sound": t["sound"], "right_without_evidence": t["right_without_evidence"],
-                        "sound_rate": t["sound_rate"], "grounded_rate": t["grounded_rate"]})
+                        "sound_rate": t["sound_rate"], "grounded_rate": t["grounded_rate"],
+                        "citation_valid_rate": t["citation_valid_rate"],
+                        "citation_in_context_rate": t["citation_in_context_rate"]})
     df = pd.DataFrame(out)
     df["order"] = df.approach.map({a: i for i, a in enumerate(APPROACHES)})
     return df.sort_values(["model", "order"]).drop(columns="order")
@@ -82,13 +84,13 @@ def fmt(x) -> str:
 def write_markdown(df: pd.DataFrame, data: dict, split: str, path) -> None:
     lines = [f"# Leaderboard ({split} split)", "",
              "| Model | Approach | Accuracy [95% CI] | Binary acc. | Wrong-covered | Clause recall | Faithfulness "
-             "| Evidence recall | Sound rate | Grounded rate | Calls | Tokens | Seconds |",
-             "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+             "| Evidence recall | Sound rate | Grounded rate | Cites in context | Calls | Tokens | Seconds |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for r in df.itertuples():
         lines.append(f"| {r.model} | {r.approach} | {r.accuracy:.2f} [{r.acc_lo:.2f}–{r.acc_hi:.2f}] | "
                      f"{fmt(r.binary_accuracy)} | {fmt(r.wrong_covered_rate)} | {fmt(r.clause_recall)} | "
                      f"{fmt(r.faithfulness)} | {fmt(r.evidence_recall)} | {fmt(r.sound_rate)} | "
-                     f"{fmt(r.grounded_rate)} | {r.model_calls:.1f} | {r.tokens:.0f} | "
+                     f"{fmt(r.grounded_rate)} | {fmt(r.citation_in_context_rate)} | {r.model_calls:.1f} | {r.tokens:.0f} | "
                      f"{r.latency_s:.1f} |")
     for model, d in data.items():
         lines += ["", f"## {SHORT.get(model, model)} (commits {', '.join(d['commits'])})", ""]
@@ -98,6 +100,8 @@ def write_markdown(df: pd.DataFrame, data: dict, split: str, path) -> None:
                          f"only {t['b']} right {t['only_b_right']}")
         dec = d["result"]["decision"]
         lines.append(f"- Decision rule: **{dec['winner']}** ({dec['reason']})")
+    lines += ["", "_Cites in context: share of cited section IDs that exist in the policy and were in the model's "
+              "context (checked in code, no judge)._"]
     lines += ["", "_Sound rate: share of all claims answered right with every gold section in the model's context. "
               "Grounded rate: sound and the judge found the explanation faithful (shown once every row is judged). "
               "Right answers without the evidence are not counted by either._"]

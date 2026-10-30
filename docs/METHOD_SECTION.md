@@ -96,6 +96,18 @@ university hardware, so cost is measured as model calls, tokens and seconds per 
 depend on cluster load, so latency is compared within one run, not across runs. Faithfulness is judged by Claude
 Haiku 5.5, from a different company than both tested models.
 
+Decoding is greedy (temperature 0, fixed seed). vLLM can still return slightly different answers to identical
+requests; on dev, the kept prompt run twice with Llama and A0 gave identical verdicts (6.1), but a rerun of the test
+set could move a few claims. Calls are made one at a time, without batching, so seconds per claim are measured the same way for every
+setup. Llama runs in 16-bit precision, while gpt-oss-20b is released with 4-bit (MXFP4) expert weights, so the model
+comparison also spans a difference in precision.
+
+**Contamination.** The test claims were written for this project and have never been public, so no model can have
+seen them. The policy versions used (FWD, April 2024; MSIG, September 2025) are newer than Llama 3.1's training cutoff
+(December 2023); gpt-oss-20b's cutoff (June 2024) falls after the FWD version, so it may have seen that wording, though
+insurers also reuse wording across versions. B0, which sees no policy text, measures what each model brings from
+training.
+
 ## 5. Evaluation design
 
 ### 5.1 Metrics
@@ -131,6 +143,10 @@ each setup's recorded steps against the gold sections, with no extra labelling:
 - **Evidence recall:** share of gold sections that reached the final answer's context.
 - **Failure split:** each wrong answer is classed as *missing evidence* (a gold section never reached the model: a
   retrieval failure) or *had evidence* (all gold sections were present: a reasoning failure).
+- **Citation checks (in code, before any judge):** every cited section ID is checked against the policy and against
+  what the model was shown. An ID that does not exist in the claim's policy is *invalid* (made up); one that exists
+  but never reached the model is *unseen* (cited from memory or a guess). We report the share of cited IDs that exist
+  and the share that were in context. Unlike faithfulness, these need no judge and cost nothing.
 - **Process vs outcome:** a right verdict can come from a broken process, so right answers are split the same way:
   *sound* (every gold section reached the model) or *right without evidence* (a lucky guess or prior knowledge). The
   **sound rate** (sound answers / all claims) is a stricter accuracy that credits only right answers from a working
@@ -144,8 +160,16 @@ members using the brief's error types.
 
 ### 5.5 Data discipline
 
-All tuning used the 20 dev claims. The test set was frozen on [29 Oct] and scored once, from one commit ([hash]), by
+All tuning used the 20 dev claims. The test set was frozen on 28 Oct and scored once, from one commit ([hash]), by
 one person.
+
+### 5.6 Retrieval-only analysis
+
+To see whether a single search can find what a claim needs, `src/eval/retrieval.py` searches each test claim's policy
+with the claim text and measures how many gold sections are found, with no model call: the embedding search all setups
+use (dense, exactly A0's search at k = 5), BM25 keyword search over the same chunks, and a hybrid of the two (reciprocal
+rank fusion). Recall is also split by the type of gold section, because claims name the benefit they fall under but
+rarely the defined terms or exclusions that decide them. This is analysis only: no setup uses BM25 or the hybrid.
 
 ## 6. Development and tuning
 

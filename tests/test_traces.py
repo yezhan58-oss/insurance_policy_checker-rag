@@ -79,3 +79,20 @@ def test_summary_counts_process_outcomes_and_waits_for_a_full_judge_run():
     assert traces.summarise(ts, [])["A0"]["grounded_rate"] == pytest.approx(1 / 4)
     ts[2]["grounded"] = None                                            # one row not judged yet
     assert math.isnan(traces.summarise(ts, [])["A0"]["grounded_rate"])
+
+
+def test_citations_are_checked_against_the_policy_and_the_context():
+    full = [{"step": "search", "hits": [{"section_id": "fwd:travel_delay"}]}]
+    r = row("A0", full)
+    r["output"]["cited_sections"] = ["fwd:travel_delay",                     # real and in context
+                                     "fwd:general_exclusions:unlawful_acts",  # real, never shown to the model
+                                     "fwd:made_up_section",                   # does not exist
+                                     "msig:section_25", "fwd:travel_delay"]   # other policy; repeat counted once
+    t = traces.trace_row(r, GOLD)
+    assert (t["cited"], t["cited_invalid"], t["cited_unseen"]) == (4, 2, 1)
+    none = row("B0", [])
+    none["output"]["cited_sections"] = []
+    s = traces.summarise([t, traces.trace_row(none, GOLD)], [])
+    assert s["A0"]["citation_valid_rate"] == 0.5 and s["A0"]["citation_in_context_rate"] == 0.25
+    assert s["A0"]["rows_bad_cite"] == 1 and s["B0"]["rows_no_cite"] == 1
+    assert math.isnan(s["B0"]["citation_valid_rate"])                      # nothing cited: no rate
