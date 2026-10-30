@@ -132,6 +132,7 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
 
 ## G. Checks to run when the test results land (before writing any number)
 
+- Before every cluster run, `git log -1 --oneline` on the cluster must show main at b80d7c3 or later.
 - Every row in `results/test/<model>/raw.jsonl` has the same commit, without "-dirty", and 124 claims × each setup.
 - A0's evidence recall on test (traces) equals dense k = 5 gold recall in R1 (0.66). If not, find out why before use.
 - No setup has an unusual number of errors (parse errors, length limits); if one does, report it.
