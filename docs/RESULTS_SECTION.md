@@ -61,6 +61,8 @@ whether the extra cost buys a significant gain (7.3). This answers the second ha
 [Figure: `process_outcomes.png`: every answer as sound / right without evidence / wrong with evidence / wrong without
 evidence / error.]
 
+- Citations: [x]% of cited IDs exist in the policy and [x]% were in the model's context (per setup); [n] answers cite
+  a section they never saw. B0 cites [x] IDs, [x]% of them invalid. [One sentence on which setups make up citations.]
 - Process vs outcome: sound rate [values] vs verdict accuracy [values]; right without evidence [counts per setup].
   Grounded rate (sound and judged faithful): [values]. [One sentence on whether the accuracy ranking survives when
   only sound answers count.]
@@ -81,7 +83,17 @@ struggles (expected: tricky, insufficient_info). Note cells with few claims.]
 
 [Haiku judge results per setup × model; agreement with the 30 human checks.]
 
-### 7.10 Dev vs test
+### 7.10 Retrieval only: can one search find the evidence? (5.6)
+
+[Table: `results/test/retrieval/retrieval.md`.]
+
+- Gold recall at k = 5: dense [x], BM25 [x], hybrid [x]; dense matches A0's evidence recall ([x]), as expected.
+- By section type: benefits [x], definitions [x], exclusions [x]. [One sentence: if definitions and exclusions are
+  rarely found by searching with the claim, that is the gap A4 closes by looking them up by structure.]
+- [One sentence: would hybrid search have helped A0, and does it matter given that most agent errors were reasoning
+  failures (7.7)?]
+
+### 7.11 Dev vs test
 
 Dev (20 claims) suggested [gpt-oss A4 best, 0.80]. Test [confirms / does not confirm] this. [One sentence on why
 dev numbers were not used for any reported claim.]

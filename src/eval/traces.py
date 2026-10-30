@@ -18,6 +18,9 @@ Everything is measured against gold_sections, so no extra labels are needed. Per
   verdict although a gold section never reached it: a lucky guess or prior knowledge, not a working process).
   sound_rate = sound / all rows, a stricter accuracy that only credits right answers from a working process.
   If judged.jsonl exists, grounded_rate also needs the judge to call the explanation faithful ("yes").
+- citations, checked in code before any judge: each cited section ID either does not exist in the claim's policy
+  (invalid: a made-up or wrong-policy ID), exists but never reached the model (unseen: cited from memory or a guess),
+  or was in its context. citation_valid_rate and citation_in_context_rate are shares of all cited IDs.
 - per step: recall of the gold sections of the step's type (e.g. A4's exclusions step vs gold exclusions),
   precision of what it selected, how often it selected something when gold has nothing of that type, fallbacks.
 - efficiency: model calls, tokens, latency, sections put in context, share of them not needed, parse retries.
@@ -81,11 +84,16 @@ def trace_row(row: dict, gold: dict, faithfulness: str | None = None) -> dict:
     missing = gs - ctx
     failure = None if correct else "error" if o.get("error") else "missing_evidence" if missing else "had_evidence"
     outcome = failure or ("right_without_evidence" if missing else "sound")
+    policy = row.get("policy") or row["scenario_id"].split("-")[0]
+    cited = list(dict.fromkeys(o.get("cited_sections") or []))
+    valid = [c for c in cited if c.startswith(f"{policy}:") and section_type(c) is not None]
     return {"scenario_id": row["scenario_id"], "approach": row["approach"], "correct": correct, "failure": failure,
             "outcome": outcome,
             # error rows are never judged (judge.py skips them) but are never grounded either, as in score.py
             "grounded": False if outcome == "error" else None if faithfulness is None
                         else outcome == "sound" and faithfulness == "yes",
+            "cited": len(cited), "cited_invalid": len(cited) - len(valid),
+            "cited_unseen": sum(c not in ctx for c in valid),
             "evidence_recall": ratio(len(gs & ctx), len(gs)), "missing": sorted(missing),
             "context_size": len(ctx), "unneeded_share": ratio(len(ctx - gs), len(ctx)),
             "model_calls": usage.get("model_calls", 0),
@@ -137,10 +145,21 @@ def summarise(traces: list[dict], steps: list[dict]) -> dict:
                   # only once every row is judged: a partial judge run is not a result
                   "grounded_rate": (ratio(sum(t["grounded"] for t in judged), len(ts)) if len(judged) == len(ts)
                                     else float("nan")),
+                  **citation_summary(ts),
                   **{m: nanmean(t[m] for t in ts) for m in ("evidence_recall", "context_size", "unneeded_share",
                                                             "model_calls", "tokens", "latency_s", "parse_retries")},
                   "steps": per_step}
     return out
+
+
+def citation_summary(ts: list[dict]) -> dict:
+    """Pooled over every cited ID of one approach; rows_bad_cite counts answers with at least one invalid or
+    unseen citation, rows_no_cite answers (not errors) that cite nothing."""
+    cited, invalid, unseen = (sum(t[k] for t in ts) for k in ("cited", "cited_invalid", "cited_unseen"))
+    return {"citation_valid_rate": ratio(cited - invalid, cited),
+            "citation_in_context_rate": ratio(cited - invalid - unseen, cited),
+            "rows_bad_cite": sum(t["cited_invalid"] + t["cited_unseen"] > 0 for t in ts),
+            "rows_no_cite": sum(t["cited"] == 0 and t["outcome"] != "error" for t in ts)}
 
 
 def load_judged(out_dir: Path) -> dict:
@@ -219,6 +238,8 @@ def main() -> None:
               f"\n    right {s['n'] - s['wrong']}: sound {s['sound']}, without evidence {s['right_without_evidence']}"
               f" | sound rate {s['sound_rate']:.2f}"
               + (f", grounded rate {s['grounded_rate']:.2f}" if s["grounded_rate"] == s["grounded_rate"] else "")
+              + f"\n    citations: {s['citation_valid_rate']:.2f} exist in the policy, {s['citation_in_context_rate']:.2f}"
+              f" were in context | answers with a bad citation {s['rows_bad_cite']}, citing nothing {s['rows_no_cite']}"
               + f"\n    {s['model_calls']:.1f} calls, {s['tokens']:.0f} tokens, {s['latency_s']:.1f}s, "
               f"{s['context_size']:.1f} sections in context"
               + (f" ({s['unneeded_share']:.0%} not needed)" if s["context_size"] else "")
