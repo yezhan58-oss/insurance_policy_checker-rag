@@ -100,10 +100,11 @@ def write_markdown(df: pd.DataFrame, data: dict, split: str, path) -> None:
                          f"only {t['b']} right {t['only_b_right']}")
         dec = d["result"]["decision"]
         lines.append(f"- Decision rule: **{dec['winner']}** ({dec['reason']})")
+    lines += ["", "_Cites in context: share of cited section IDs that exist in the policy and were in the model's "
+              "context (checked in code, no judge)._"]
     lines += ["", "_Sound rate: share of all claims answered right with every gold section in the model's context. "
               "Grounded rate: sound and the judge found the explanation faithful (shown once every row is judged). "
-              "Right answers without the evidence are not counted by either. Cites in context: share of cited section IDs "
-              "that exist in the policy and were in the model's context (checked in code, no judge)._"]
+              "Right answers without the evidence are not counted by either._"]
     if split != "test":
         lines += ["", "_Dev split: for tuning only, not the reported result._"]
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
