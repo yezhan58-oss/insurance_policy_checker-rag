@@ -43,7 +43,7 @@ def per_row(rows: list[dict], gold: dict, judged: dict | None = None) -> pd.Data
         out.append({"scenario_id": r["scenario_id"], "approach": r["approach"], "category": g["category"],
                     "gold": g["gold_verdict"], "pred": o["verdict"] if ok else "error",
                     "correct": float(ok and o["verdict"] == g["gold_verdict"]),
-                    "binary_correct": float(pred_pos == (g["gold_verdict"] in POSITIVE)),
+                    "binary_correct": float(ok and pred_pos == (g["gold_verdict"] in POSITIVE)),   # error = wrong
                     "wrong_covered": float(pred_pos) if g["gold_verdict"] == "not_covered" else np.nan,
                     "clause_recall": len(cited & set(gs)) / len(gs) if gs else np.nan,
                     "error": o.get("error"), "faith": faith,
