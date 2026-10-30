@@ -83,7 +83,9 @@ def trace_row(row: dict, gold: dict, faithfulness: str | None = None) -> dict:
     outcome = failure or ("right_without_evidence" if missing else "sound")
     return {"scenario_id": row["scenario_id"], "approach": row["approach"], "correct": correct, "failure": failure,
             "outcome": outcome,
-            "grounded": None if faithfulness is None else outcome == "sound" and faithfulness == "yes",
+            # error rows are never judged (judge.py skips them) but are never grounded either, as in score.py
+            "grounded": False if outcome == "error" else None if faithfulness is None
+                        else outcome == "sound" and faithfulness == "yes",
             "evidence_recall": ratio(len(gs & ctx), len(gs)), "missing": sorted(missing),
             "context_size": len(ctx), "unneeded_share": ratio(len(ctx - gs), len(ctx)),
             "model_calls": usage.get("model_calls", 0),

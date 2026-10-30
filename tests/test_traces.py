@@ -64,6 +64,7 @@ def test_right_answers_are_split_by_whether_the_evidence_reached_the_model():
     assert traces.trace_row(row("A0", full), GOLD, faithfulness="partly")["grounded"] is False
     assert traces.trace_row(row("A0", full), GOLD)["grounded"] is None  # not judged
     assert traces.trace_row(row("B0", []), GOLD)["outcome"] == "right_without_evidence"   # B0 never sees policy text
+    assert traces.trace_row(row("A0", full, error="parse_error"), GOLD)["grounded"] is False   # judge skips errors
 
 
 def test_summary_counts_process_outcomes_and_waits_for_a_full_judge_run():
@@ -74,5 +75,7 @@ def test_summary_counts_process_outcomes_and_waits_for_a_full_judge_run():
     s = traces.summarise(ts, [])["A0"]
     assert (s["sound"], s["right_without_evidence"], s["had_evidence"]) == (1, 1, 1)
     assert s["sound_rate"] == pytest.approx(1 / 3) and s["grounded_rate"] == pytest.approx(1 / 3)
+    ts.append(traces.trace_row(row("A0", full, error="parse_error"), GOLD))   # unjudged error row: still complete
+    assert traces.summarise(ts, [])["A0"]["grounded_rate"] == pytest.approx(1 / 4)
     ts[2]["grounded"] = None                                            # one row not judged yet
     assert math.isnan(traces.summarise(ts, [])["A0"]["grounded_rate"])
