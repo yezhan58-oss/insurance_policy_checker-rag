@@ -12,9 +12,11 @@ MARKERS = ["o", "s", "^", "D"]
 INK, MUTED, GRID, EMPTY = "#0b0b0b", "#52514e", "#e4e3df", "#f3f2ef"
 BLUES = ["#eef5fd", "#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95"]     # light -> dark
 FAIL_COLORS = {"missing_evidence": "#6250d6", "had_evidence": "#e87ba4"}
+RIGHT_COLORS = {"sound": "#008300", "right_without_evidence": "#5fb563"}   # validated with FAIL_COLORS as one set
 METRICS = [("accuracy", "Accuracy", True), ("binary_accuracy", "Binary\naccuracy", True),
            ("wrong_covered_rate", "Wrong-\ncovered", False), ("clause_recall", "Clause\nrecall", True),
-           ("evidence_recall", "Evidence\nrecall", True), ("faithfulness", "Faithful-\nness", True),
+           ("evidence_recall", "Evidence\nrecall", True), ("sound_rate", "Sound\nrate", True),
+           ("faithfulness", "Faithful-\nness", True),
            ("latency_s", "Seconds\nper claim", False), ("tokens", "Tokens\nper claim", False)]
 
 
@@ -164,6 +166,48 @@ def failures(df: pd.DataFrame, path) -> None:
     ax.set_xlabel("Wrong answers", color=MUTED, fontsize=9)
     fig.legend(frameon=False, fontsize=8, ncol=3, loc="upper center")
     fig.tight_layout(rect=(0, 0, 1, 1 - 0.55 / height))
+    fig.savefig(path)
+    plt.close(fig)
+
+
+def process_outcomes(df: pd.DataFrame, path) -> None:
+    """Every answer by outcome and process, so a right verdict from a broken process is not credited as success:
+    right with the evidence (sound), right without it (hatched), wrong with / without it, and errors."""
+    rows = list(df.itertuples())
+    height = 0.42 * len(rows) + 1.6
+    fig, ax = plt.subplots(figsize=(7.2, height), dpi=200)
+    style(ax)
+    ax.grid(axis="y", visible=False)
+    ax.grid(axis="x", color=GRID, linewidth=0.8)
+    names = [f"{r.approach}  {r.model}" for r in rows]
+    parts = [("sound", "Right, evidence reached the model"), ("right_without_evidence", "Right without the evidence"),
+             ("had_evidence", "Wrong, had the evidence"), ("missing_evidence", "Wrong, evidence never reached it"),
+             ("error_rows", "No answer (error)")]
+    colors = {**RIGHT_COLORS, **FAIL_COLORS}
+    left = [0] * len(rows)
+    for col, label in parts:
+        vals = [getattr(r, col) for r in rows]
+        style_kw = (dict(color="white", hatch="////", edgecolor=MUTED, linewidth=0.6) if col == "error_rows" else
+                    dict(color=colors[col], hatch="////" if col == "right_without_evidence" else None,
+                         edgecolor="white", linewidth=0.6 if col == "right_without_evidence" else 0))
+        ax.barh(names, vals, left=left, label=label, height=0.66, **style_kw)
+        for y, (l, v) in enumerate(zip(left, vals)):
+            if v and col != "error_rows":
+                ax.text(l + v / 2, y, str(int(v)), ha="center", va="center", fontsize=8,
+                        color="white" if col in ("sound", "missing_evidence") else INK,
+                        bbox=None if col != "right_without_evidence" else
+                        dict(boxstyle="round,pad=0.15", fc="white", ec="none", alpha=0.85))
+        left = [a + b for a, b in zip(left, vals)]
+    for y, r in enumerate(rows):
+        ax.text(left[y] + 0.4, y, f"sound {r.sound_rate:.0%}", va="center", fontsize=7.5, color=MUTED)
+    for y in range(1, len(rows)):
+        if rows[y].model != rows[y - 1].model:
+            ax.axhline(y - 0.5, color=MUTED, lw=0.8)
+    ax.invert_yaxis()
+    ax.set_xlim(0, max(left) * 1.18)
+    ax.set_xlabel("Claims", color=MUTED, fontsize=9)
+    fig.legend(frameon=False, fontsize=7.5, ncol=3, loc="upper center")
+    fig.tight_layout(rect=(0, 0, 1, 1 - 0.6 / height))
     fig.savefig(path)
     plt.close(fig)
 

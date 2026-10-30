@@ -58,6 +58,12 @@ whether the extra cost buys a significant gain (7.3). This answers the second ha
 
 [Figure: `failures.png`.]
 
+[Figure: `process_outcomes.png`: every answer as sound / right without evidence / wrong with evidence / wrong without
+evidence / error.]
+
+- Process vs outcome: sound rate [values] vs verdict accuracy [values]; right without evidence [counts per setup].
+  Grounded rate (sound and judged faithful): [values]. [One sentence on whether the accuracy ranking survives when
+  only sound answers count.]
 - Evidence recall: [values per setup × model]; B0 is 0 by design.
 - Wrong answers split into missing evidence (retrieval failure) vs had evidence (reasoning failure): [counts].
 - Step quality: A2 grader precision [x] vs search [x]; A4 exclusion step recall [x]. [One sentence on which step

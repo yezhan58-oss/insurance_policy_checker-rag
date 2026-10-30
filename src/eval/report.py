@@ -12,6 +12,8 @@ never shows stale numbers. Writes to results/<split>/report/:
     accuracy_vs_tokens.png    the same against mean tokens per claim
     accuracy_by_category.png  heatmap of accuracy per scenario category, per model
     failures.png              wrong answers split into missing evidence / had evidence / error (from traces)
+    process_outcomes.png      every answer by outcome and process: right from a working process (sound), right
+                              without the evidence, wrong with / without the evidence, error (from traces)
     error_types.png           human error types per approach x model (only if error_types.csv exists)
 """
 import argparse
@@ -41,7 +43,8 @@ def load_model(split: str, model: str):
     judged = ({(j["scenario_id"], j["approach"]): j["faithfulness"]
                for j in map(json.loads, judged_path.open(encoding="utf-8"))} if judged_path.exists() else None)
     result, by_cat = score(rows, gold, judged)
-    tr = [traces.trace_row(r, gold[r["scenario_id"]]) for r in rows]
+    faith = traces.load_judged(d)
+    tr = [traces.trace_row(r, gold[r["scenario_id"]], faith.get((r["scenario_id"], r["approach"]))) for r in rows]
     trace_summary = traces.summarise(tr, [s for r in rows for s in traces.step_rows(r, gold[r["scenario_id"]])])
     errors_path = d / "error_types.csv"
     error_types = pd.read_csv(errors_path) if errors_path.exists() else None
@@ -64,7 +67,9 @@ def leaderboard(data: dict) -> pd.DataFrame:
                         "evidence_recall": t["evidence_recall"],
                         "model_calls": s["model_calls"], "tokens": s["prompt_tokens"] + s["completion_tokens"],
                         "latency_s": s["latency_s"], "missing_evidence": t["missing_evidence"],
-                        "had_evidence": t["had_evidence"], "error_rows": t["error"]})
+                        "had_evidence": t["had_evidence"], "error_rows": t["error"],
+                        "sound": t["sound"], "right_without_evidence": t["right_without_evidence"],
+                        "sound_rate": t["sound_rate"], "grounded_rate": t["grounded_rate"]})
     df = pd.DataFrame(out)
     df["order"] = df.approach.map({a: i for i, a in enumerate(APPROACHES)})
     return df.sort_values(["model", "order"]).drop(columns="order")
@@ -77,12 +82,13 @@ def fmt(x) -> str:
 def write_markdown(df: pd.DataFrame, data: dict, split: str, path) -> None:
     lines = [f"# Leaderboard ({split} split)", "",
              "| Model | Approach | Accuracy [95% CI] | Binary acc. | Wrong-covered | Clause recall | Faithfulness "
-             "| Evidence recall | Calls | Tokens | Seconds |",
-             "|---|---|---|---|---|---|---|---|---|---|---|"]
+             "| Evidence recall | Sound rate | Grounded rate | Calls | Tokens | Seconds |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for r in df.itertuples():
         lines.append(f"| {r.model} | {r.approach} | {r.accuracy:.2f} [{r.acc_lo:.2f}–{r.acc_hi:.2f}] | "
                      f"{fmt(r.binary_accuracy)} | {fmt(r.wrong_covered_rate)} | {fmt(r.clause_recall)} | "
-                     f"{fmt(r.faithfulness)} | {fmt(r.evidence_recall)} | {r.model_calls:.1f} | {r.tokens:.0f} | "
+                     f"{fmt(r.faithfulness)} | {fmt(r.evidence_recall)} | {fmt(r.sound_rate)} | "
+                     f"{fmt(r.grounded_rate)} | {r.model_calls:.1f} | {r.tokens:.0f} | "
                      f"{r.latency_s:.1f} |")
     for model, d in data.items():
         lines += ["", f"## {SHORT.get(model, model)} (commits {', '.join(d['commits'])})", ""]
@@ -92,6 +98,9 @@ def write_markdown(df: pd.DataFrame, data: dict, split: str, path) -> None:
                          f"only {t['b']} right {t['only_b_right']}")
         dec = d["result"]["decision"]
         lines.append(f"- Decision rule: **{dec['winner']}** ({dec['reason']})")
+    lines += ["", "_Sound rate: share of all claims answered right with every gold section in the model's context. "
+              "Grounded rate: sound and the judge found the explanation faithful (shown once every row is judged). "
+              "Right answers without the evidence are not counted by either._"]
     if split != "test":
         lines += ["", "_Dev split: for tuning only, not the reported result._"]
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -117,6 +126,7 @@ def main() -> None:
     charts.frontier(df, "tokens", "Mean tokens per claim (prompt + completion)", out / "accuracy_vs_tokens.png")
     charts.category_heat({SHORT.get(m, m): d["by_cat"] for m, d in data.items()}, out / "accuracy_by_category.png")
     charts.failures(df, out / "failures.png")
+    charts.process_outcomes(df, out / "process_outcomes.png")
     et = [d["error_types"].assign(model=SHORT.get(m, m)) for m, d in data.items() if d["error_types"] is not None]
     if et:
         counts = pd.concat(et).groupby(["approach", "model", "error_type"]).size().unstack(fill_value=0).reset_index()
