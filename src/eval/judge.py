@@ -3,6 +3,7 @@
     python -m src.eval.judge --model vllm_llama8b --split dev              # estimate cost only, no API calls
     python -m src.eval.judge --model vllm_llama8b --split dev --yes        # run the Claude Haiku judge
     python -m src.eval.judge --model vllm_llama8b --split dev --export 30  # 30 random judgments for hand-checks
+    python -m src.eval.judge --model vllm_llama8b --split dev --agreement  # judge vs human on the filled hand_check.csv
 
 Reads results/<split>/<model>/raw.jsonl and writes judged.jsonl next to it: one row per (scenario, approach) with
 faithfulness yes / partly / no and the judge's reason. Resumable: rows already judged are skipped. Rows with an
@@ -104,6 +105,19 @@ def export_sample(raw: list[dict], judged_path: Path, n: int, out_csv: Path) -> 
                    "judge_reason": judged[k]["reason"], "human": ""} for k in keys]).to_csv(out_csv, index=False)
 
 
+def agreement(csv_path: Path) -> dict:
+    """Judge vs human on the hand-checked rows: % agreement, Cohen's kappa (yes/partly/no), mean explanation length per judge label."""
+    import pandas as pd
+    from src.eval.agreement import cohen_kappa
+    df = pd.read_csv(csv_path, keep_default_na=False)
+    df = df[df["human"].str.strip() != ""]
+    judge, human = list(df["judge"]), list(df["human"].str.strip().str.lower())
+    return {"n": len(df), "agreement": sum(j == h for j, h in zip(judge, human)) / len(df),
+            "kappa": cohen_kappa(judge, human),
+            "mean_words_by_judge_label": df.assign(words=df["explanation"].str.split().str.len())
+                                           .groupby("judge")["words"].mean().round(1).to_dict()}
+
+
 def main() -> None:
     sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -112,9 +126,13 @@ def main() -> None:
     ap.add_argument("--yes", action="store_true", help="actually call the judge (default: print cost estimate)")
     ap.add_argument("--limit", type=int, help="judge at most N rows (quick real-API check)")
     ap.add_argument("--export", type=int, metavar="N", help="write N random judgments to hand_check.csv")
+    ap.add_argument("--agreement", action="store_true", help="judge vs human agreement on the filled hand_check.csv")
     args = ap.parse_args()
 
     out_dir = RESULTS_DIR / args.split / args.model
+    if args.agreement:
+        print(json.dumps(agreement(out_dir / "hand_check.csv"), indent=2))
+        return
     raw = [json.loads(line) for line in (out_dir / "raw.jsonl").read_text(encoding="utf-8").splitlines() if line]
     claims = {sc.id: sc.scenario for sc in load_scenarios(args.split)}
     raw = [{**r, "scenario": claims[r["scenario_id"]]} for r in raw]

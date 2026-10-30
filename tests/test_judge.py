@@ -35,3 +35,12 @@ def test_estimate_cost_ignores_uncited_rows(monkeypatch):
     monkeypatch.setattr(judge_mod, "cited_text", lambda ids: "a" * 4000)
     assert judge_mod.estimate_cost([row("s1", cited=())]) == 0
     assert 0 < judge_mod.estimate_cost([row("s0")]) < 0.001
+
+
+def test_agreement(tmp_path):
+    from src.eval.judge import agreement
+    csv = tmp_path / "hand_check.csv"
+    csv.write_text("judge,human,explanation\nyes,yes,a b c\nno,no,a\npartly,yes,a b\nyes,,skip me\n", encoding="utf-8")
+    r = agreement(csv)
+    assert r["n"] == 3 and abs(r["agreement"] - 2 / 3) < 1e-9
+    assert r["mean_words_by_judge_label"] == {"no": 1.0, "partly": 2.0, "yes": 3.0}
