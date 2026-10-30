@@ -134,8 +134,9 @@ each setup's recorded steps against the gold sections, with no extra labelling:
 - **Process vs outcome:** a right verdict can come from a broken process, so right answers are split the same way:
   *sound* (every gold section reached the model) or *right without evidence* (a lucky guess or prior knowledge). The
   **sound rate** (sound answers / all claims) is a stricter accuracy that credits only right answers from a working
-  process; the **grounded rate** further requires the judge to rate the explanation faithful. Every B0 answer is right
-  without evidence by design, which makes B0 the reference for how often a verdict is right by chance or prior knowledge.
+  process; the **grounded rate** further requires the judge to rate the explanation faithful. B0 never sees policy text,
+  so every right B0 answer is right without evidence by design, which makes B0 the reference for how often a verdict is
+  right by chance or prior knowledge.
 - **Efficiency:** context size, share of context not needed, calls, tokens, seconds, parse retries.
 
 Twenty agent traces from the test run (5 each from A2 and A4 on both models, fixed seed) are also hand-checked by both
