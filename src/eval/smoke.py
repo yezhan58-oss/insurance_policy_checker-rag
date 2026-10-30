@@ -9,6 +9,8 @@ import json
 import sys
 from pathlib import Path
 
+import yaml
+
 from src import store
 from src.approaches import REGISTRY
 from src.llm import get_llm
@@ -21,7 +23,9 @@ def main() -> None:
     sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--model", default="vllm_llama8b")
-    ap.add_argument("--approaches", default=",".join(sorted(REGISTRY)))
+    core = yaml.safe_load((SMOKE_PATH.parents[2] / "configs" / "run.yaml").read_text(encoding="utf-8"))["approaches"]
+    ap.add_argument("--approaches", default=",".join(a for a in core if a in REGISTRY),
+                    help="default: run.yaml's list (L0 needs a long-context server)")
     ap.add_argument("--show", action="store_true", help="also print each explanation")
     args = ap.parse_args()
 

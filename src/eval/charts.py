@@ -6,8 +6,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import pandas as pd  # noqa: E402
 
-APPROACHES = ["B0", "A0", "A2", "A4"]
-COLORS = {"B0": "#2a78d6", "A0": "#eb6834", "A2": "#1baf7a", "A4": "#eda100"}
+APPROACHES = ["B0", "L0", "A0", "A2", "A4"]   # L0 (exploratory long-context baseline) only if it was run
+COLORS = {"B0": "#2a78d6", "A0": "#eb6834", "A2": "#1baf7a", "A4": "#eda100", "L0": "#4a3aa7"}
 MARKERS = ["o", "s", "^", "D"]
 INK, MUTED, GRID, EMPTY = "#0b0b0b", "#52514e", "#e4e3df", "#f3f2ef"
 BLUES = ["#eef5fd", "#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95"]     # light -> dark
@@ -92,7 +92,13 @@ def frontier(df: pd.DataFrame, x: str, xlabel: str, path) -> None:
             ax.annotate(f"{r.approach} {r.accuracy:.2f}", (getattr(r, x), r.accuracy),
                         xytext=(0, 11 if n % 2 == 0 else -18), textcoords="offset points", ha="center",
                         fontsize=7.5, color=INK, fontweight="bold")
-    ax.set_xlim(0, df[x].max() * 1.35)
+    lo, hi = df[x].min(), df[x].max()
+    if lo > 0 and hi / lo > 8:          # e.g. L0's whole-policy prompts: a linear axis would squash the rest together
+        ax.set_xscale("log")
+        ax.set_xlim(lo / 1.6, hi * 2.2)
+        xlabel += " (log scale)"
+    else:
+        ax.set_xlim(0, hi * 1.35)
     ax.set_ylim(0, 1)
     ax.set_xlabel(xlabel, color=MUTED, fontsize=9)
     ax.set_ylabel("Verdict accuracy (faint lines: 95% CI)", color=MUTED, fontsize=9)

@@ -32,6 +32,16 @@ re-checked against it. The answer is forced into a JSON schema; an unparseable r
 floor: any gain over B0 is due to retrieval. **A0 (simple RAG)** searches the claim's policy once with the claim text
 and answers from the top 5 chunks. It is the standard RAG baseline the agents must beat.
 
+**L0 (long context, exploratory)** puts the whole policy into the prompt (every section in document order, each with
+its section ID: about 35k tokens for FWD and 52k for MSIG) with the same base prompt and answer call, and no
+retrieval. It tests the simpler alternative to RAG for a small, fixed corpus: can the model simply read everything?
+L0 was added on 30 Oct, after the comparisons were pre-registered, so it is reported as exploratory: its McNemar tests
+against A0 and the best agent are uncorrected and outside the Holm family, and it can never be chosen by the decision
+rule. It runs on a server with a longer context window (131k tokens instead of 16k); everything else is unchanged.
+Because the whole policy is always in context, every right L0 answer counts as *sound* (5.4), so its process check is
+the grounded rate (the judge). vLLM reuses the cached policy prefix across claims, so L0's seconds per claim understate
+the cost of a cold start; its token counts show the full cost.
+
 ### 4.4 A2: Corrective RAG
 
 A2 adapts Corrective RAG (Yan et al., 2024) to a closed policy corpus. It is a LangGraph graph with one loop:
