@@ -103,8 +103,26 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   where fine-tuning helps; with a verdict that can be checked automatically, reinforcement fine-tuning with a
   verifiable reward (e.g. GRPO) fits the task. 156 labelled claims are too few, and using them would consume the
   test set, so this is future work.
-- **Long context vs retrieval (L0, after the run).** Whether reading the whole policy beats retrieving the right
-  parts, and at what token cost: answers "is RAG needed at all for two policies?".
+- **Long context vs retrieval (L0, test run done).** Answers "is RAG needed at all for two policies?": only with a
+  strong model, and at a large token cost. Exploratory throughout (see B), never in the decision rule.
+  - Accuracy: gpt-oss L0 0.76, the highest of any setup, but not separated from A4 (0.71; McNemar p = 0.45,
+    uncorrected); 0.81 (94/116) if its 8 cut-off answers are left out. Llama L0 0.32, the lowest: it answered
+    insufficient_info on 39 of 46 covered claims.
+  - Why gpt-oss L0 scores high: evidence recall 1.00 (A0 0.66, A4 0.84; 0 wrong answers with missing evidence vs
+    26 for A0 and 18 for A4). The gain is on covered claims (38/46 vs A0 31, A4 24) and needs_definition claims (0.80
+    vs 0.60 for both): confirming cover needs the definitions and exclusions that one search misses (R1). A4 is best
+    on not_covered (49/53) and needs_exclusion (0.92), leaning to denial; L0 is weakest on insufficient_info (3/11)
+    and tricky claims (0.50), filling missing facts with assumptions.
+  - **Token cost:** one prompt with the whole policy (about 28k tokens FWD, 45k MSIG). Mean tokens per claim: L0
+    34,246 (Llama) and 40,842 (gpt-oss) vs A4 about 6,500 and A0 about 2,600–3,200, so about 6× A4 and 12–13× A0.
+    Almost all of it is input; gpt-oss is higher because about 1 claim in 10 needed a retry, which resends the policy.
+  - Latency stays close (gpt-oss 18.0 s vs A4 15.2 s): one call instead of A4's three in sequence, and vLLM reused
+    97–98% of input tokens from its prefix cache on the L0 runs (every claim on a policy starts with the same text).
+  - Cost implications: on a paid per-token API L0 costs about 6× A4 per claim, less with prompt caching since the
+    policy prefix repeats. Cost grows with document size, not question size: each extra policy makes every claim
+    dearer, and beyond about 3 policies the prompt no longer fits the 131k context; RAG cost stays roughly flat.
+  - One-line takeaway: about 5 points over A4 (not significant) for about 6× the tokens; the limit on accuracy is
+    missing evidence, which supports A4's structure-based lookups.
 - **Deployment and privacy.** The tested models run on university hardware, so a claim answered by the system never
   leaves it. The judge is the only external API: it sees the claim, the explanation and the cited policy text,
   acceptable because our claims are synthetic; a real deployment would judge in-house.
