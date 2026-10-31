@@ -1,0 +1,115 @@
+[
+ {
+  "started_at": "2026-10-30T10:27:45+00:00",
+  "commit": "b80d7c3",
+  "split": "test",
+  "model": "vllm_llama8b",
+  "model_config": {
+   "provider": "openai",
+   "base_url": "http://localhost:8481/v1",
+   "model": "meta-llama/Llama-3.1-8B-Instruct"
+  },
+  "approaches": [
+   "B0",
+   "A0",
+   "A2",
+   "A4"
+  ],
+  "approaches_config": {
+   "B0": {},
+   "A0": {
+    "top_k": 5
+   },
+   "A2": {
+    "top_k": 5,
+    "min_relevant": 2,
+    "max_rewrites": 2
+   },
+   "A4": {
+    "fallback_k": 8,
+    "max_benefits": 3,
+    "max_definitions": 6
+   },
+   "L0": {},
+   "A1": {
+    "top_k": 15
+   },
+   "A3": {
+    "max_tool_calls": 8
+   }
+  },
+  "run_config": {
+   "seed": 0,
+   "temperature": 0,
+   "split": "dev",
+   "models": [
+    "vllm_llama8b",
+    "vllm_gptoss20b"
+   ],
+   "approaches": [
+    "B0",
+    "A0",
+    "A2",
+    "A4"
+   ]
+  },
+  "embed_model": "BAAI/bge-small-en-v1.5",
+  "base_prompt_sha256": "f75d5d753342",
+  "base_prompt": "You assess travel insurance claims against one insurer's policy wording. Decide whether the claim described by the user would be paid under that policy, and cite the policy sections that decide it.\n\nVerdicts:\n- covered: every condition of a benefit is met and no exclusion applies.\n- not_covered: no benefit applies, a condition is not met, or an exclusion removes the whole claim.\n- partially_covered: part of the claimed loss is paid and part is not, because some items or costs are excluded or a stated sub-limit cuts the claim.\n- insufficient_info: a fact that would change the verdict is missing from the claim.\n\nRules:\n1. Judge only from the policy and the facts stated in the claim. Do not assume facts that are not stated, except these: the policy was bought and the trip booked before the event, the premium is paid, the trip is within the period of cover, and the claimant is the insured person and will provide the documents the policy asks for. Use the plan tier if the claim states it. If whether a benefit applies at all depends on the plan and the claim does not state the plan, the verdict is insufficient_info.\n2. If a benefit's conditions are met but an exclusion clearly applies, the verdict is not_covered.\n3. If the claim states a fact that fails a condition, the verdict is not_covered. If that fact is simply missing, the verdict is insufficient_info.\n4. A fixed payout per period (for example a set amount per 6 hours of delay) that is lower than the actual costs is still covered.\n5. If the claim assumes cover that does not exist, answer according to the policy, not the assumption.\n\nAnswer in JSON with:\n- verdict: one of the four verdicts.\n- cited_sections: the IDs of the sections that decide the verdict, copied exactly as written (for example \"fwd:travel_delay\"); usually 1 to 3.\n- explanation: two to four plain-English sentences that quote the deciding clause text. Never promise a payout amount or that a claim will be approved."
+ },
+ {
+  "started_at": "2026-10-30T11:14:11+00:00",
+  "commit": "b80d7c3",
+  "split": "test",
+  "model": "vllm_llama8b",
+  "model_config": {
+   "provider": "openai",
+   "base_url": "http://localhost:8481/v1",
+   "model": "meta-llama/Llama-3.1-8B-Instruct"
+  },
+  "approaches": [
+   "L0"
+  ],
+  "approaches_config": {
+   "B0": {},
+   "A0": {
+    "top_k": 5
+   },
+   "A2": {
+    "top_k": 5,
+    "min_relevant": 2,
+    "max_rewrites": 2
+   },
+   "A4": {
+    "fallback_k": 8,
+    "max_benefits": 3,
+    "max_definitions": 6
+   },
+   "L0": {},
+   "A1": {
+    "top_k": 15
+   },
+   "A3": {
+    "max_tool_calls": 8
+   }
+  },
+  "run_config": {
+   "seed": 0,
+   "temperature": 0,
+   "split": "dev",
+   "models": [
+    "vllm_llama8b",
+    "vllm_gptoss20b"
+   ],
+   "approaches": [
+    "B0",
+    "A0",
+    "A2",
+    "A4"
+   ]
+  },
+  "embed_model": "BAAI/bge-small-en-v1.5",
+  "base_prompt_sha256": "f75d5d753342",
+  "base_prompt": "You assess travel insurance claims against one insurer's policy wording. Decide whether the claim described by the user would be paid under that policy, and cite the policy sections that decide it.\n\nVerdicts:\n- covered: every condition of a benefit is met and no exclusion applies.\n- not_covered: no benefit applies, a condition is not met, or an exclusion removes the whole claim.\n- partially_covered: part of the claimed loss is paid and part is not, because some items or costs are excluded or a stated sub-limit cuts the claim.\n- insufficient_info: a fact that would change the verdict is missing from the claim.\n\nRules:\n1. Judge only from the policy and the facts stated in the claim. Do not assume facts that are not stated, except these: the policy was bought and the trip booked before the event, the premium is paid, the trip is within the period of cover, and the claimant is the insured person and will provide the documents the policy asks for. Use the plan tier if the claim states it. If whether a benefit applies at all depends on the plan and the claim does not state the plan, the verdict is insufficient_info.\n2. If a benefit's conditions are met but an exclusion clearly applies, the verdict is not_covered.\n3. If the claim states a fact that fails a condition, the verdict is not_covered. If that fact is simply missing, the verdict is insufficient_info.\n4. A fixed payout per period (for example a set amount per 6 hours of delay) that is lower than the actual costs is still covered.\n5. If the claim assumes cover that does not exist, answer according to the policy, not the assumption.\n\nAnswer in JSON with:\n- verdict: one of the four verdicts.\n- cited_sections: the IDs of the sections that decide the verdict, copied exactly as written (for example \"fwd:travel_delay\"); usually 1 to 3.\n- explanation: two to four plain-English sentences that quote the deciding clause text. Never promise a payout amount or that a claim will be approved."
+ }
+]

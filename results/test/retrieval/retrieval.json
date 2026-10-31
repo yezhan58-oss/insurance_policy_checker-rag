@@ -1,0 +1,164 @@
+{
+ "dense": {
+  "5": {
+   "recall": 0.6626344086021506,
+   "all_found": 0.532258064516129,
+   "by_type": {
+    "benefit": {
+     "found": 96,
+     "n": 127,
+     "recall": 0.7559055118110236
+    },
+    "definition": {
+     "found": 0,
+     "n": 24,
+     "recall": 0.0
+    },
+    "exclusion": {
+     "found": 7,
+     "n": 27,
+     "recall": 0.25925925925925924
+    },
+    "condition": {
+     "found": 0,
+     "n": 1,
+     "recall": 0.0
+    }
+   }
+  },
+  "10": {
+   "recall": 0.7486559139784946,
+   "all_found": 0.6048387096774194,
+   "by_type": {
+    "benefit": {
+     "found": 107,
+     "n": 127,
+     "recall": 0.84251968503937
+    },
+    "definition": {
+     "found": 1,
+     "n": 24,
+     "recall": 0.041666666666666664
+    },
+    "exclusion": {
+     "found": 11,
+     "n": 27,
+     "recall": 0.4074074074074074
+    },
+    "condition": {
+     "found": 0,
+     "n": 1,
+     "recall": 0.0
+    }
+   }
+  }
+ },
+ "bm25": {
+  "5": {
+   "recall": 0.5873655913978494,
+   "all_found": 0.4838709677419355,
+   "by_type": {
+    "benefit": {
+     "found": 74,
+     "n": 127,
+     "recall": 0.5826771653543307
+    },
+    "definition": {
+     "found": 9,
+     "n": 24,
+     "recall": 0.375
+    },
+    "exclusion": {
+     "found": 11,
+     "n": 27,
+     "recall": 0.4074074074074074
+    },
+    "condition": {
+     "found": 1,
+     "n": 1,
+     "recall": 1.0
+    }
+   }
+  },
+  "10": {
+   "recall": 0.6948924731182796,
+   "all_found": 0.5806451612903226,
+   "by_type": {
+    "benefit": {
+     "found": 89,
+     "n": 127,
+     "recall": 0.7007874015748031
+    },
+    "definition": {
+     "found": 9,
+     "n": 24,
+     "recall": 0.375
+    },
+    "exclusion": {
+     "found": 18,
+     "n": 27,
+     "recall": 0.6666666666666666
+    },
+    "condition": {
+     "found": 1,
+     "n": 1,
+     "recall": 1.0
+    }
+   }
+  }
+ },
+ "hybrid": {
+  "5": {
+   "recall": 0.6384408602150538,
+   "all_found": 0.5,
+   "by_type": {
+    "benefit": {
+     "found": 91,
+     "n": 127,
+     "recall": 0.7165354330708661
+    },
+    "definition": {
+     "found": 0,
+     "n": 24,
+     "recall": 0.0
+    },
+    "exclusion": {
+     "found": 8,
+     "n": 27,
+     "recall": 0.2962962962962963
+    },
+    "condition": {
+     "found": 0,
+     "n": 1,
+     "recall": 0.0
+    }
+   }
+  },
+  "10": {
+   "recall": 0.760752688172043,
+   "all_found": 0.6451612903225806,
+   "by_type": {
+    "benefit": {
+     "found": 105,
+     "n": 127,
+     "recall": 0.8267716535433071
+    },
+    "definition": {
+     "found": 4,
+     "n": 24,
+     "recall": 0.16666666666666666
+    },
+    "exclusion": {
+     "found": 16,
+     "n": 27,
+     "recall": 0.5925925925925926
+    },
+    "condition": {
+     "found": 1,
+     "n": 1,
+     "recall": 1.0
+    }
+   }
+  }
+ }
+}
