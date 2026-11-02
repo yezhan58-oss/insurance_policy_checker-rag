@@ -21,7 +21,7 @@ from src.schema import Scenario, VerdictOutput  # noqa: E402
 
 WINNER = "A0"            # decision rule on test (results/test/report/leaderboard.md), both models
 BASELINE = "A4"          # agent shown side by side: fewer wrong "covered" answers on test
-MODELS = ["vllm_llama8b", "vllm_gptoss20b"]
+MODELS = ["vllm_gptoss20b", "vllm_llama8b"]   # gpt-oss first: only it has cached demo answers
 CACHE = ROOT / "app" / "demo_cache.json"
 DISCLAIMER = ("This is a student research demo, not insurance or legal advice. Only the insurer can decide a claim; "
               "always read your full policy wording.")
