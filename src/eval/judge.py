@@ -105,17 +105,36 @@ def export_sample(raw: list[dict], judged_path: Path, n: int, out_csv: Path) -> 
                    "judge_reason": judged[k]["reason"], "human": ""} for k in keys]).to_csv(out_csv, index=False)
 
 
-def agreement(csv_path: Path) -> dict:
-    """Judge vs human on the hand-checked rows: % agreement, Cohen's kappa (yes/partly/no), mean explanation length per judge label."""
+LABELS = {"yes", "partly", "no"}
+
+
+def agreement(csv_path: Path, raw: list[dict] | None = None, judged_path: Path | None = None) -> dict:
+    """Judge vs human on the hand-checked rows: % agreement, Cohen's kappa (yes/partly/no), mean explanation length
+    per judge label (over all judged rows when raw and judged_path are given, else over the hand-checked rows)."""
     import pandas as pd
     from src.eval.agreement import cohen_kappa
     df = pd.read_csv(csv_path, keep_default_na=False)
-    df = df[df["human"].str.strip() != ""]
-    judge, human = list(df["judge"]), list(df["human"].str.strip().str.lower())
+    df = df.assign(human=df["human"].str.strip().str.lower())
+    df = df[df["human"] != ""]
+    if df.empty:
+        sys.exit(f"No human labels in {csv_path}: fill the 'human' column (yes / partly / no) first.")
+    bad = df[~df["human"].isin(LABELS)]
+    if not bad.empty:
+        sys.exit(f"Human labels must be yes / partly / no; got {sorted(set(bad['human']))} "
+                 f"(rows {', '.join(str(i + 2) for i in bad.index)} of {csv_path.name}).")
+    judge, human = list(df["judge"]), list(df["human"])
+    if raw is not None and judged_path is not None:
+        expl = {(r["scenario_id"], r["approach"]): r["output"]["explanation"] for r in raw}
+        rows = [j for j in map(json.loads, judged_path.open(encoding="utf-8"))
+                if j["faithfulness"] in LABELS and j["reason"] != NO_CITES]
+        words = pd.DataFrame([{"judge": j["faithfulness"],
+                               "words": len(expl[j["scenario_id"], j["approach"]].split())} for j in rows])
+    else:
+        words = df.assign(words=df["explanation"].str.split().str.len())
     return {"n": len(df), "agreement": sum(j == h for j, h in zip(judge, human)) / len(df),
             "kappa": cohen_kappa(judge, human),
-            "mean_words_by_judge_label": df.assign(words=df["explanation"].str.split().str.len())
-                                           .groupby("judge")["words"].mean().round(1).to_dict()}
+            "mean_words_by_judge_label": words.groupby("judge")["words"].mean().round(1).to_dict(),
+            "mean_words_over": "all judged rows" if raw is not None else "hand-checked rows"}
 
 
 def main() -> None:
@@ -130,10 +149,10 @@ def main() -> None:
     args = ap.parse_args()
 
     out_dir = RESULTS_DIR / args.split / args.model
-    if args.agreement:
-        print(json.dumps(agreement(out_dir / "hand_check.csv"), indent=2))
-        return
     raw = [json.loads(line) for line in (out_dir / "raw.jsonl").read_text(encoding="utf-8").splitlines() if line]
+    if args.agreement:
+        print(json.dumps(agreement(out_dir / "hand_check.csv", raw, out_dir / "judged.jsonl"), indent=2))
+        return
     claims = {sc.id: sc.scenario for sc in load_scenarios(args.split)}
     raw = [{**r, "scenario": claims[r["scenario_id"]]} for r in raw]
     judged_path = out_dir / "judged.jsonl"
