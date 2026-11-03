@@ -55,7 +55,9 @@ rule for the demo and show A4 as a toggle.
 - **Gold labels.** Blind agreement between the two labellers was moderate (kappa 0.46 four-way). Disagreements were
   resolved against the policy text, but the verdict boundaries (especially insufficient_info vs not_covered) remain
   open to reading. Some of A4's "over-cautious" errors could be fair readings.
-- **Power.** With 124 claims, the 95% CIs are about 16 points wide, so McNemar needs a large gap to separate two setups [check: minimum detectable gap]. The 2 to 5 point gains
+- **Power.** With 124 claims, an exact McNemar test at alpha 0.05 has 80% power only for a gap of about 14 points (Llama) to 16 points
+  (gpt-oss) between A4 and A0, given how often the two disagreed (26% and 34% of claims). Holm correction raises that
+  further. The 2 to 5 point gains
   we saw may be real but are too small to detect.
 - **Scope.** Two policies from two Singapore insurers, one embedding model, and two open models of 8B and 20B
   parameters. The results may not hold for larger models, other policy styles or real claims written by customers.
