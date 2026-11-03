@@ -14,7 +14,8 @@ never shows stale numbers. Writes to results/<split>/report/:
     failures.png              wrong answers split into missing evidence / had evidence / error (from traces)
     process_outcomes.png      every answer by outcome and process: right from a working process (sound), right
                               without the evidence, wrong with / without the evidence, error (from traces)
-    error_types.png           human error types per approach x model (only if error_types.csv exists)
+    error_types.png           human error types per approach x model (only if error_types.csv exists), with the
+                              human "other" label split by rule (split_other); the counts are also in leaderboard.md
 """
 import argparse
 import json
@@ -29,6 +30,35 @@ from src.eval.run import RESULTS_DIR, ROOT, load_scenarios
 from src.eval.score import score
 
 SHORT = {"vllm_llama8b": "Llama 8B", "vllm_gptoss20b": "gpt-oss-20b"}
+
+
+def split_other(error_types: pd.DataFrame, rows: list[dict], tr: list[dict]) -> pd.DataFrame:
+    """Split the human "other" label by rule. Added after the error review (agreed 3 Nov), so it is not one of the 7
+    types fixed before labelling; every other human label is kept as it is.
+    over_cautious_insufficient_info: answered insufficient_info, gold is another verdict, every gold section in context.
+    all_or_nothing_partial: gold partially_covered, answered covered or not_covered."""
+    out = {(r["scenario_id"], r["approach"]): r for r in rows}
+    failure = {(t["scenario_id"], t["approach"]): t["failure"] for t in tr}
+
+    def rule(e) -> str:
+        if e.error_type != "other":
+            return e.error_type
+        r = out[(e.scenario_id, e.approach)]
+        pred, gold = r["output"].get("verdict"), r["gold_verdict"]
+        if pred == "insufficient_info" and gold != pred and failure[(e.scenario_id, e.approach)] == "had_evidence":
+            return "over_cautious_insufficient_info"
+        if gold == "partially_covered" and pred in ("covered", "not_covered"):
+            return "all_or_nothing_partial"
+        return "other"
+
+    return error_types.assign(error_type=[rule(e) for e in error_types.itertuples()])
+
+
+def error_counts(data: dict) -> pd.DataFrame | None:
+    et = [d["error_types"].assign(model=SHORT.get(m, m)) for m, d in data.items() if d["error_types"] is not None]
+    if not et:
+        return None
+    return pd.concat(et).groupby(["approach", "model", "error_type"]).size().unstack(fill_value=0).reset_index()
 
 
 def load_model(split: str, model: str):
@@ -47,7 +77,8 @@ def load_model(split: str, model: str):
     tr = [traces.trace_row(r, gold[r["scenario_id"]], faith.get((r["scenario_id"], r["approach"]))) for r in rows]
     trace_summary = traces.summarise(tr, [s for r in rows for s in traces.step_rows(r, gold[r["scenario_id"]])])
     errors_path = d / "error_types.csv"
-    error_types = pd.read_csv(errors_path) if errors_path.exists() else None
+    error_types = (split_other(pd.read_csv(errors_path, keep_default_na=False), rows, tr)
+                   if errors_path.exists() else None)
     return {"result": result, "by_cat": by_cat, "traces": trace_summary, "error_types": error_types,
             "commits": sorted({r["commit"] for r in rows})}
 
@@ -108,6 +139,20 @@ def write_markdown(df: pd.DataFrame, data: dict, split: str, path) -> None:
     lines += ["", "_Sound rate: share of all claims answered right with every gold section in the model's context. "
               "Grounded rate: sound and the judge found the explanation faithful (shown once every row is judged). "
               "Right answers without the evidence are not counted by either._"]
+    counts = error_counts(data)
+    if counts is not None:
+        types = sorted([c for c in counts.columns if c not in ("approach", "model")], key=lambda c: -counts[c].sum())
+        lines += ["", "## Error types (human labels on wrong answers; \"other\" split by rule)", "",
+                  "| Model | Approach | Wrong | " + " | ".join(t.replace("_", " ") for t in types) + " |",
+                  "|---|---|---|" + "---|" * len(types)]
+        for r in counts.sort_values(["model", "approach"]).itertuples(index=False):
+            r = r._asdict()
+            lines.append(f"| {r['model']} | {r['approach']} | {sum(r[t] for t in types)} | "
+                         + " | ".join(str(r[t]) for t in types) + " |")
+        lines += ["", "_Over-cautious insufficient info: answered insufficient_info with every gold section in context, "
+                  "gold another verdict. All-or-nothing partial: gold partially_covered, answered covered or "
+                  "not_covered. Both split from the human \"other\" label by rule after the error review; the other "
+                  "types are the human labels._"]
     if (df.approach == "L0").any():
         lines += ["", "_L0 (whole policy in the prompt, no retrieval) is exploratory: added after pre-registration, "
                   "so it is outside the Holm-corrected tests and the decision rule._"]
@@ -137,9 +182,8 @@ def main() -> None:
     charts.category_heat({SHORT.get(m, m): d["by_cat"] for m, d in data.items()}, out / "accuracy_by_category.png")
     charts.failures(df, out / "failures.png")
     charts.process_outcomes(df, out / "process_outcomes.png")
-    et = [d["error_types"].assign(model=SHORT.get(m, m)) for m, d in data.items() if d["error_types"] is not None]
-    if et:
-        counts = pd.concat(et).groupby(["approach", "model", "error_type"]).size().unstack(fill_value=0).reset_index()
+    counts = error_counts(data)
+    if counts is not None:
         charts.error_types(counts, out / "error_types.png")
     print((out / "leaderboard.md").read_text(encoding="utf-8"))
     print(f"Charts and tables in {out}")
