@@ -54,11 +54,12 @@ any reported number.
 test claims for the winner (A0 on gpt-oss-20b; 95% CI 61 to 77%). It is a reading aid that points to the deciding
 clauses, not a claims decision.
 
-**Speed over safety.** Choosing A0 trades safety for speed. On gpt-oss-20b, A0 said covered on 9 of the 53 test
+**A gap in the decision rule.** A0 won on the tie-break (cheaper and faster when McNemar does not separate the top two), and the tie-break never re-checks safety. Afterwards, A4 is clearly safer on gpt-oss-20b. On gpt-oss-20b, A0 said covered on 9 of the 53 test
 claims whose gold verdict is not_covered (wrong_covered_rate 0.17); A4 did so on 1 (0.02). On those claims, 9 were
 wrongly called covered by A0 only and 1 by A4 only (exact paired test p = 0.021; exploratory, not pre-registered, not
-Holm-corrected). On Llama the gap is smaller and not significant (7 vs 4, p = 0.45). The pre-registered decision rule
-only requires the winner to be no less safe than A0, so it never asks this question when A0 itself wins. `guard`
+Holm-corrected). On Llama the gap is smaller and not significant (7 vs 4, p = 0.45). The pre-registered rule only
+requires the winner to be no less safe than A0, so it never asks this question when A0 itself wins; a real deployment
+would add a safety check to the tie-break. `guard`
 does not help here: it removes invented citations, not wrong "covered" verdicts that cite a real clause. The hedged
 headline and the clause text are the app's only defence against this error, which is the costliest one for a user.
 The A4 toggle lets a user get a second opinion for about 2.6 times the latency (15.2 s vs 5.8 s on test).
