@@ -72,9 +72,18 @@ evidence / error.]
   only sound answers count.]
 - Evidence recall: [values per setup × model]; B0 is 0 by design.
 - Wrong answers split into missing evidence (retrieval failure) vs had evidence (reasoning failure): [counts].
-- Step quality: A2 grader precision [x] vs search [x]; A4 exclusion step recall [x]. [One sentence on which step
-  limits each agent.]
-- Hand-check of 20 traces (10 per member): [error-type counts]; [one example trace in two sentences].
+- Step quality: A2 grader precision [x] vs search [x]; A4 step recall (Llama / gpt-oss): benefits 0.94 / 0.88,
+  exclusions 0.90 / 0.81, definitions 0.62 / 0.58. Llama's exclusion step keeps about 10 sections per claim (precision
+  0.04) while gpt-oss keeps 1 (precision 0.25). [One sentence on A2.] A4 is limited by the definitions step, which
+  matches defined terms by name and misses a term the claim implies but does not use (fwd-059: it fetched
+  "natural disaster", not "serious public event"). Once the evidence is in, A4's errors are mostly reasoning: on Llama
+  37 of its 48 wrong answers had every gold section in context.
+- Hand-check of 20 traces (10 per member): rows 11 to 20 (Member B, 7 A4 and 3 A2): 3 right verdicts (2 of them citing the wrong section or
+  for the wrong reason), 2
+  wrong_section_retrieved, 1 missed_exclusion, 4 other (2 over-cautious insufficient_info, 1 pre-existing-condition
+  eligibility question, 1 "cover not stated" read as not covered). Example: Llama A4 on fwd-080 had the medical
+  benefit and the definition of accident in context, yet asked whether a diving injury was accidental and answered
+  insufficient_info. [Rows 1 to 10, Member A.]
 
 ### 7.8 By category
 
@@ -85,7 +94,28 @@ struggles (expected: tricky, insufficient_info). Note cells with few claims.]
 
 ### 7.9 Faithfulness (Member B)
 
-[Haiku judge results per setup × model; agreement with the 30 human checks.]
+Share of explanations the Haiku judge rated fully supported by the cited text ("yes"; the rest are "partly" or "no"):
+
+| Setup | Llama 8B | gpt-oss-20b |
+|---|---|---|
+| B0 | 0.00 | 0.00 |
+| L0 | 0.31 | 0.42 |
+| A0 | 0.38 | 0.63 |
+| A2 | 0.41 | 0.60 |
+| A4 | 0.29 | 0.68 |
+
+B0 cites nothing it was shown, so every B0 row is "no" by construction. On gpt-oss, A4 writes the most faithful
+explanations (84 of 124 "yes", 3 "no"). On Llama it writes the least faithful of the retrieval setups (36 "yes", 38
+"no"), although it has the best evidence recall (0.91). The 8B model gets the right sections from A4's workflow (a
+context of about 18 sections against A0's 4) but often fails to quote them accurately. gpt-oss reads the same kind of
+context without that loss. Faithfulness is not part of the decision rule; it feeds the grounded rate in 7.7.
+
+**Judge vs human.** Member B checked 30 random judgments per model (fixed seed) against the policy text. Agreement
+was 77% on Llama (Cohen's kappa 0.64) and 80% on gpt-oss (kappa 0.52). In 11 of the 13 disagreements the judge was
+stricter than the human, mostly "partly" where the human said "yes" because an explanation left out a condition
+without misstating it. Read the faithfulness numbers as a lower bound. The judge checks the explanation against the
+cited text only, not against the verdict. In the 60 hand-checks one right answer (Llama A4, msig-051) had an
+explanation that contradicts its own partially_covered verdict; the judge cannot catch this pattern.
 
 ### 7.10 Retrieval only: can one search find the evidence? (5.6)
 
