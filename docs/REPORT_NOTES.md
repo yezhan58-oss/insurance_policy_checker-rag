@@ -77,6 +77,13 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
 - **Process-vs-outcome metrics added 29 Oct** (sound rate, grounded rate, `process_outcomes.png`) [5.4 done]: added
   after a course slide stressed that a right answer can come from a broken process; scoring only, before any test run.
 - **Citation checks in code added 30 Oct** [5.4 done, 7.7 placeholder].
+- **Error-type split added 3 Nov, after the error review** [7.7 / error analysis]: the 7 human types fixed before
+  labelling are kept; only the human "other" label is split by rule in `report.py` (`split_other`), agreed with
+  Member B: over-cautious insufficient_info (answered insufficient_info, gold another verdict, every gold section in
+  context) and all-or-nothing partial (gold partially_covered, answered covered or not_covered). A4 "other" becomes:
+  Llama 10 over-cautious, 12 all-or-nothing, 10 other (of 32); gpt-oss 12, 1, 2 (of 15; 2 of its 14
+  insufficient_info answers lacked a gold section, so they stay "other"). Say in the report that the split was added
+  after the review.
 
 ## C. Considered and not done (say so briefly, with the reason)
 

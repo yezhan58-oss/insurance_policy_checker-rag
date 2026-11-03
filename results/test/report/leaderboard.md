@@ -35,4 +35,15 @@ _Cites in context: share of cited section IDs that exist in the policy and were 
 
 _Sound rate: share of all claims answered right with every gold section in the model's context. Grounded rate: sound and the judge found the explanation faithful (shown once every row is judged). Right answers without the evidence are not counted by either._
 
+## Error types (human labels on wrong answers; "other" split by rule)
+
+| Model | Approach | Wrong | wrong section retrieved | over cautious insufficient info | all or nothing partial | other | missed exclusion | accepted false assumption | misread definition |
+|---|---|---|---|---|---|---|---|---|---|
+| Llama 8B | A0 | 54 | 22 | 2 | 8 | 10 | 6 | 6 | 0 |
+| Llama 8B | A4 | 48 | 7 | 10 | 12 | 10 | 3 | 5 | 1 |
+| gpt-oss-20b | A0 | 38 | 19 | 7 | 2 | 0 | 8 | 2 | 0 |
+| gpt-oss-20b | A4 | 36 | 15 | 12 | 1 | 2 | 2 | 1 | 3 |
+
+_Over-cautious insufficient info: answered insufficient_info with every gold section in context, gold another verdict. All-or-nothing partial: gold partially_covered, answered covered or not_covered. Both split from the human "other" label by rule after the error review; the other types are the human labels._
+
 _L0 (whole policy in the prompt, no retrieval) is exploratory: added after pre-registration, so it is outside the Holm-corrected tests and the decision rule._
