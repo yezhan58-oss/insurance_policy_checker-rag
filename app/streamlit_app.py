@@ -19,9 +19,9 @@ from src.approaches import REGISTRY  # noqa: E402
 from src.approaches._common import POLICY_NAMES  # noqa: E402
 from src.schema import Scenario, VerdictOutput  # noqa: E402
 
-WINNER = "A4"            # shortcut: placeholder until score.py's decision rule picks the winner on test (M3)
-BASELINE = "A0"
-MODELS = ["vllm_llama8b", "vllm_gptoss20b"]
+WINNER = "A0"            # decision rule on test (results/test/report/leaderboard.md), both models
+BASELINE = "A4"          # agent shown side by side: fewer wrong "covered" answers on test
+MODELS = ["vllm_gptoss20b", "vllm_llama8b"]   # gpt-oss first: only it has cached demo answers
 CACHE = ROOT / "app" / "demo_cache.json"
 DISCLAIMER = ("This is a student research demo, not insurance or legal advice. Only the insurer can decide a claim; "
               "always read your full policy wording.")
@@ -86,7 +86,7 @@ st.caption(DISCLAIMER)
 with st.sidebar:
     policy = st.selectbox("Policy", list(POLICY_NAMES), format_func=POLICY_NAMES.get)
     model = st.selectbox("Model", MODELS)
-    compare = st.toggle(f"Compare with simple RAG ({BASELINE})")
+    compare = st.toggle(f"Compare with the claims-workflow agent ({BASELINE})")
 question = st.text_area("Describe what happened",
                         placeholder="My flight to Tokyo was delayed 7 hours because of a typhoon. Can I claim?")
 if st.button("Check", type="primary", disabled=not question.strip()):
@@ -100,6 +100,6 @@ if st.button("Check", type="primary", disabled=not question.strip()):
             except Exception as e:   # server down or tunnel closed: say so instead of a stack trace
                 st.error(f"Could not reach {model} ({type(e).__name__}). Open the SSH tunnel, or ask a cached question.")
                 continue
-            show(out, "Answer" if aid == WINNER else f"Simple RAG ({aid})")
+            show(out, "Answer" if aid == WINNER else f"Claims-workflow agent ({aid})")
 st.divider()
 st.caption(DISCLAIMER)
