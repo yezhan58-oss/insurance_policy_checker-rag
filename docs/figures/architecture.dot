@@ -1,4 +1,5 @@
 // Render: dot -Tpng -Gdpi=200 architecture.dot -o architecture.png
+// Variants: architecture_16x9.dot (slides) and architecture_3x4.dot (docs); padded to exact ratio with ImageMagick: magick X.png -gravity center -extent WxH X.png
 digraph G {
   rankdir=LR; nodesep=0.12; ranksep=0.5; compound=true;
   node [shape=box, style="rounded,filled", fillcolor="#f2f2f2", fontname="Helvetica", fontsize=11];
