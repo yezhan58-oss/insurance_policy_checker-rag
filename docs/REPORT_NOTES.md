@@ -208,7 +208,8 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
    (leaderboard, charts) and `python -m src.eval.traces --split test --sample 20` (hand-check sheet).
 2. (Done 4 Nov.) Fill every [placeholder] in RESULTS from `results/test/report/leaderboard.md`, the charts, `scores.json`,
    `traces.json`, `results/test/retrieval/retrieval.md` and the judge hand-checks.
-3. Merge DATA, METHOD, RESULTS, DEMO into one document with the section numbers above; add every item in R and B–E to its
+3. (First merged draft 4 Nov: `docs/REPORT.md`, about 4,600 words before contributions, 4 figures, 5 tables;
+   both members still edit their own parts in their own words.) Merge DATA, METHOD, RESULTS, DEMO into one document with the section numbers above; add every item in R and B–E to its
    section; write Introduction, Discussion (D) and Conclusion.
 4. Keep the pre-registered story first (decision rule, Holm-corrected tests); exploratory items (L0, retrieval-only,
    citation checks) are labelled as such.
