@@ -33,7 +33,7 @@ floor: any gain over B0 is due to retrieval. **A0 (simple RAG)** searches the cl
 and answers from the top 5 chunks. It is the standard RAG baseline the agents must beat.
 
 **L0 (long context, exploratory)** puts the whole policy into the prompt (every section in document order, each with
-its section ID: about 35k tokens for FWD and 52k for MSIG) with the same base prompt and answer call, and no
+its section ID: about 28k tokens for FWD and 45k for MSIG (measured on test)) with the same base prompt and answer call, and no
 retrieval. It tests the simpler alternative to RAG for a small, fixed corpus: can the model simply read everything?
 L0 was added on 30 Oct, after the comparisons were pre-registered, so it is reported as exploratory: its McNemar tests
 against A0 and the best agent are uncorrected and outside the Holm family, and it can never be chosen by the decision

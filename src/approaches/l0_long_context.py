@@ -5,7 +5,7 @@ Topic 8 of the course: long-context prompting can beat RAG on a small, static co
 retrieval. Exploratory: added on 30 Oct after the comparisons were pre-registered, so src/eval/score.py reports it
 next to the core setups but never lets it decide the winner.
 
-Needs a server with a longer context than the core runs: about 35k tokens for FWD and 52k for MSIG
+Needs a server with a longer context than the core runs: about 28k tokens for FWD and 45k for MSIG (measured on test)
 (MAX_LEN=131072 in scripts/run_eval.sbatch).
 """
 import time

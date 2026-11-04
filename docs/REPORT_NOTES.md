@@ -73,7 +73,7 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   them, and changing the prompt because of test claims would be tuning on test. The guide-hash test was updated.
 - **Test set frozen 28 Oct** (merge of PR #26); later commits touched only the disagreement CSV's wording ("agreed").
 - **L0 long-context baseline added 30 Oct as exploratory** [4.3 done, 7.6 placeholder]: after pre-registration, so
-  outside the Holm family and the decision rule; prompts about 33k (FWD) and 50k (MSIG) tokens, server context 131k.
+  outside the Holm family and the decision rule; prompts about 28k (FWD) and 45k (MSIG) tokens (measured on test), server context 131k.
 - **Process-vs-outcome metrics added 29 Oct** (sound rate, grounded rate, `process_outcomes.png`) [5.4 done]: added
   after a course slide stressed that a right answer can come from a broken process; scoring only, before any test run.
 - **Citation checks in code added 30 Oct** [5.4 done, 7.7 placeholder].
@@ -84,6 +84,15 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   Llama 10 over-cautious, 12 all-or-nothing, 10 other (of 32); gpt-oss 12, 1, 2 (of 15; 2 of its 14
   insufficient_info answers lacked a gold section, so they stay "other"). Say in the report that the split was added
   after the review.
+- **How the decision rule played out** [7.1 or 5.3, one sentence]: a setup with a higher wrong-covered rate than A0
+  is not eligible. This removed A2 on Llama (0.17 vs A0's 0.13; it was second on accuracy, 0.60) and B0 on gpt-oss
+  (0.23 vs 0.17), so on both models the top two eligible setups were A4 and A0.
+- **Discussion checked 4 Nov** (PR #53, Member B; fixes by Member A): every number re-derived from the results.
+  Minimum detectable gap confirmed (80% power at about 14 points on Llama, 16 on gpt-oss; A0/A4 disagree on 26% and
+  34% of claims). Fixed: L0 prompt sizes are about 28k (FWD) and 45k (MSIG) tokens, measured on test, not 35k / 52k
+  (also fixed in METHOD, RESULTS 7.6 and the L0 docstring); A2's gap on gpt-oss is no longer blamed on its grader
+  (the grader works, the rewrites rarely help, see F); "clearly safer" softened (exploratory p = 0.021); the
+  hybrid-search future-work item replaced, since R1 shows hybrid search does not find definitions.
 
 ## C. Considered and not done (say so briefly, with the reason)
 

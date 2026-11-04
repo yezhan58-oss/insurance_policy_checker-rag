@@ -55,8 +55,8 @@ For each model, compare the winner to A0: +[x] accuracy for [x]× the seconds an
 whether the extra cost buys a significant gain (7.3). This answers the second half of the research question.
 
 **Exploratory: long context (L0).** L0 accuracy [x] (Llama) / [x] (gpt-oss) at [x]× A0's tokens; McNemar vs A0
-p = [x], vs the best agent p = [x] (uncorrected, not pre-registered). By policy: FWD (≈35k tokens) [x] vs MSIG
-(≈52k) [x]. [One sentence: does reading everything beat retrieving the right parts on this corpus, and at what cost?]
+p = [x], vs the best agent p = [x] (uncorrected, not pre-registered). By policy: FWD (≈28k tokens) [x] vs MSIG
+(≈45k) [x]. [One sentence: does reading everything beat retrieving the right parts on this corpus, and at what cost?]
 
 ### 7.7 Why answers were wrong (trace evaluation)
 
