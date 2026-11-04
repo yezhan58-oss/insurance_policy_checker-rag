@@ -47,7 +47,7 @@ against 30 human labels per model (77% and 80% agreement, kappa 0.64 and 0.52).
 - Liu, N. F., et al. (2024). Lost in the middle: How language models use long contexts. TACL 12.
   https://arxiv.org/abs/2307.03172
 - Yan, S.-Q., Gu, J.-C., Zhu, Y., & Ling, Z.-H. (2024). Corrective retrieval augmented generation.
-  https://arxiv.org/abs/2401.15884
+  arXiv:2401.15884. https://arxiv.org/abs/2401.15884
 - Yao, S., et al. (2023). ReAct: Synergizing reasoning and acting in language models. ICLR 2023.
   https://arxiv.org/abs/2210.03629
 - Zheng, L., et al. (2023). Judging LLM-as-a-judge with MT-Bench and Chatbot Arena. NeurIPS 2023 Datasets and
