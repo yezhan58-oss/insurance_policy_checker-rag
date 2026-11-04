@@ -98,6 +98,17 @@ parse.
 Its design bet is that simple RAG fails on policies mainly from missing evidence: the deciding definition or exclusion
 sits far from the benefit text and does not resemble the claim wording, so one similarity search misses it.
 
+### 4.5b A3: ReAct tool agent (exploratory, added 4 Nov)
+
+A3 lets the model choose its own lookups (ReAct; Yao et al., 2023). At each step it writes a short thought and one
+action: search the policy with a query of its choice, get the definition of a term, get the exclusions of a benefit
+section, or answer. It has the same tools as A4, so it can reach the same evidence; the difference is that A4 runs
+them in a fixed order and A3 decides for itself. The prompt lists the tools but not an order, because whether a free
+agent thinks of definitions and exclusions on its own is what A3 tests. An unknown term returns the list of defined
+terms, so the agent can correct itself. After at most 8 lookups, or an unusable reply, the agent stops, and the
+shared answer call decides over every section it looked at. Actions are written as JSON rather than native tool
+calls, so both models run A3 the same way. A3 was added after the test results, so it is exploratory, like L0.
+
 ### 4.6 Models and infrastructure
 
 We compare a small instruction model, Llama 3.1 8B Instruct, with a larger open reasoning model, gpt-oss-20b, both

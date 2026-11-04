@@ -157,6 +157,20 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
 - **Limitations.** One labeller per claim outside the 40 blind-checked ones (kappa 0.46); 124 test claims detect only
   fairly large differences (about 14 points on Llama, 16 on gpt-oss, at 80% power); two travel policies from one market; seconds depend on cluster
   load; temperature 0 is still not perfectly repeatable on vLLM; no robustness test; L0 is exploratory.
+- **Extra work for the last week, agreed 4 Nov** (all exploratory: tuned on dev only, never in the Holm family or the
+  decision rule, which stays A0 on both models): (1) safe mode, A0 with an A4 check whenever A0 says covered
+  (numbers: Member A; demo: Member B); (2) A3, a ReAct tool agent (Member A); (3) A0 plus structure lookups, the
+  definitions and exclusions linked to the benefits A0 found, no extra model call (Member A); (4) A2 on gpt-oss with
+  a larger reply limit (Member A); (5) A4's definitions step picks from the list of defined terms (Member B). Order:
+  1, 2, 3, then 4 and 5 if time allows.
+- **A3 ReAct agent added 4 Nov as exploratory** [4.2, 7]: built after the test results, so `score.py` lists it in
+  EXPLORATORY and drops it from AGENTS (the pre-registered "best agent" stays A2 or A4; results unchanged). Tools =
+  A4's (search, get_definition, get_exclusions), so both can reach the same evidence; the prompt lists the tools but
+  no order to use them in, since whether the agent thinks of definitions and exclusions itself is the question.
+  Actions are JSON in plain text, not native tool calls: same on both models, no server change (gpt-oss's server
+  has no tool-call parser). At most 8 lookups; unusable reply or the limit → answer with what it has; the answer is
+  the shared answer call over every section it looked at. Run with MAX_LEN=131072 (the conversation grows each step;
+  estimated 15k–30k tokens per claim vs A4's 6.5k).
 
 ## E. Engineering fixes to add to 6.4 (found by validation before the test run)
 
@@ -196,6 +210,10 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   hand-checks, error types and demo on the winner (A0, A4 behind a toggle; 16 cached gpt-oss answers, none for
   Llama) on main. Left: Member A's trace rows 1–10, then section H.
 - [x] Commit `results/test/retrieval/` (on the laptop) together with the test results (branch `a/test-results`).
+- [ ] A3 (ReAct): dev check on both models (does it run, how many lookups, does it use definitions and exclusions),
+      then one test run per model from main, judge (print the cost first), report rebuilt. [4.2, 7, 9]
+- [ ] Safe mode numbers in `report.py` from the existing A0 and A4 answers (simulation in D); demo toggle (Member B).
+- [ ] A0 plus structure lookups; A2 gpt-oss rerun with a larger reply limit (if time).
 
 ## G. Checks to run when the test results land (before writing any number)
 

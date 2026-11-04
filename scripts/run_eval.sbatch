@@ -7,6 +7,8 @@
 #   MODEL=vllm_gptoss20b BATCH_PORT=8482 SPLIT=dev APPROACHES=A4 sbatch scripts/run_eval.sbatch   (Member B, dev)
 #   MODEL=vllm_llama8b APPROACHES=L0 MAX_LEN=131072 sbatch scripts/run_eval.sbatch   (exploratory long-context L0:
 #   the whole policy is about 28k (FWD) to 45k (MSIG) tokens; run it after the core run of that model has finished, same results folder)
+#   MODEL=vllm_gptoss20b APPROACHES=A3 MAX_LEN=131072 sbatch scripts/run_eval.sbatch   (exploratory ReAct agent: its
+#   conversation grows with every lookup, so it gets the long context too)
 #SBATCH --job-name=run-eval
 #SBATCH --qos=studentqos
 #SBATCH --partition=student

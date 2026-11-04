@@ -13,8 +13,11 @@ A4:
 # Exploratory, added 30 Oct after pre-registration (not in run.yaml's list, so the core runs never include it):
 # the whole policy in the prompt, no retrieval. Needs MAX_LEN=131072 in scripts/run_eval.sbatch.
 L0: {}
-# Optional, only if M2 is met on time
+# Exploratory, added 4 Nov after the test results: ReAct tool agent (src/approaches/a3_react.py). Its growing
+# conversation can pass the default 16k context, so run it with MAX_LEN=131072 like L0.
+A3:
+  top_k: 5              # chunks per search
+  max_tool_calls: 8     # lookups before the agent must answer
+# Optional, not built
 A1:
   top_k: 15
-A3:
-  max_tool_calls: 8

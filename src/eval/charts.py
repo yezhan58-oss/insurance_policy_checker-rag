@@ -6,8 +6,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import pandas as pd  # noqa: E402
 
-APPROACHES = ["B0", "L0", "A0", "A2", "A4"]   # L0 (exploratory long-context baseline) only if it was run
-COLORS = {"B0": "#2a78d6", "A0": "#eb6834", "A2": "#1baf7a", "A4": "#eda100", "L0": "#4a3aa7"}
+APPROACHES = ["B0", "L0", "A0", "A2", "A3", "A4"]   # exploratory L0 and A3 only if they were run
+# A3 (added 4 Nov) is outside the validated set; values are printed on every chart, so color is never the only cue
+COLORS = {"B0": "#2a78d6", "A0": "#eb6834", "A2": "#1baf7a", "A4": "#eda100", "L0": "#4a3aa7", "A3": "#c4327f"}
 MARKERS = ["o", "s", "^", "D"]
 INK, MUTED, GRID, EMPTY = "#0b0b0b", "#52514e", "#e4e3df", "#f3f2ef"
 BLUES = ["#eef5fd", "#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95"]     # light -> dark

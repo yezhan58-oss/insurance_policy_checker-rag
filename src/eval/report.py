@@ -156,6 +156,9 @@ def write_markdown(df: pd.DataFrame, data: dict, split: str, path) -> None:
     if (df.approach == "L0").any():
         lines += ["", "_L0 (whole policy in the prompt, no retrieval) is exploratory: added after pre-registration, "
                   "so it is outside the Holm-corrected tests and the decision rule._"]
+    if (df.approach == "A3").any():
+        lines += ["", "_A3 (ReAct tool agent) is exploratory: added after the test results, so it is outside the "
+                  "Holm-corrected tests and the decision rule._"]
     if split != "test":
         lines += ["", "_Dev split: for tuning only, not the reported result._"]
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")

@@ -12,6 +12,7 @@ a small Streamlit demo. Full design: `PROJECT_BRIEF.md`; report drafts: `docs/`.
 | A2 | Corrective RAG: grade chunks, rewrite the query up to 2 times |
 | A4 | Claims workflow: benefits, then definitions, then exclusions, then verdict |
 | L0 | Exploratory: the whole policy in the prompt (not in the decision rule) |
+| A3 | Exploratory: ReAct agent that chooses its own lookups (search, definition, exclusions); not in the decision rule |
 
 **Result (test, 124 claims):** A4 was the most accurate pre-registered setup (0.61 Llama, 0.71 gpt-oss) but not
 significantly better than A0 (0.56, 0.69), so the pre-registered rule picks the cheaper A0 on both models. Details:
@@ -67,11 +68,13 @@ MODEL=vllm_llama8b sbatch scripts/run_eval.sbatch
 MODEL=vllm_gptoss20b sbatch scripts/run_eval.sbatch
 MODEL=vllm_llama8b APPROACHES=L0 MAX_LEN=131072 sbatch scripts/run_eval.sbatch
 MODEL=vllm_gptoss20b APPROACHES=L0 MAX_LEN=131072 sbatch scripts/run_eval.sbatch
+MODEL=vllm_llama8b APPROACHES=A3 MAX_LEN=131072 sbatch scripts/run_eval.sbatch
+MODEL=vllm_gptoss20b APPROACHES=A3 MAX_LEN=131072 sbatch scripts/run_eval.sbatch
 ```
 
 Each job starts a private vLLM server, rebuilds the index, runs `python -m src.eval.run` and writes
 `results/test/<model>/raw.jsonl` (resumable: resubmit a cut-off job and it skips finished rows). Run the L0 jobs after
-the core run of the same model.
+the core run of the same model. L0 and A3 are exploratory (added after the comparisons were fixed).
 
 **Faithfulness judge (laptop, Claude Haiku 5.5, paid from a US$5 budget).** Without `--yes` it only prints the
 estimated cost; check it before running.
