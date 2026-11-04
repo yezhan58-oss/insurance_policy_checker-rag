@@ -73,6 +73,7 @@ rule for the demo and show A4 as a toggle.
 - Make A4's definitions step find terms the claim implies, not only terms it names (fwd-059: "serious public event").
 - Add a step that checks for a sub-limit or partial cover before the verdict, to reduce all-or-nothing answers.
 - Look up definitions and exclusions for A0 by policy structure rather than changing its search: most of A0's errors
-  are retrieval failures, but hybrid search does not fix them (no search method found the definitions, 7.10).
+  are retrieval failures, but hybrid search does not fix them (at k = 5 it finds none of the 24 definitions; BM25
+  finds 9 but loses benefits, 7.10).
 - Give reasoning models a larger reply limit in multi-call agents and log why a step failed (A2's rewrites on gpt-oss).
 - Pre-register a safety-aware tie-break.

@@ -92,7 +92,8 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   34% of claims). Fixed: L0 prompt sizes are about 28k (FWD) and 45k (MSIG) tokens, measured on test, not 35k / 52k
   (also fixed in METHOD, RESULTS 7.6 and the L0 docstring); A2's gap on gpt-oss is no longer blamed on its grader
   (the grader works, the rewrites rarely help, see F); "clearly safer" softened (exploratory p = 0.021); the
-  hybrid-search future-work item replaced, since R1 shows hybrid search does not find definitions.
+  hybrid-search future-work item replaced, since R1 shows hybrid search at k = 5 finds no definitions (BM25 finds 9 of
+  24 but loses benefits).
 
 ## C. Considered and not done (say so briefly, with the reason)
 
