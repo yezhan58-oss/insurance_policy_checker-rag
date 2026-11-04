@@ -28,7 +28,7 @@ not higher. On gpt-oss its explanations are also the most faithful (0.68) and it
 The gap between process and outcome comes from reasoning. On Llama, 37 of A4's 48 wrong answers had every gold section
 in context. A4's typical errors are over-cautious insufficient_info (10 on Llama, 12 on gpt-oss) and all-or-nothing
 answers to partially_covered claims (12 on Llama). A0's typical error is wrong_section_retrieved (22 and 19). A4
-removes most retrieval failures and moves the bottleneck to the model's reading of a large context (about 18 sections
+cuts wrong answers with missing evidence (31 → 11 on Llama, 26 → 18 on gpt-oss) and moves the bottleneck to the model's reading of a large context (about 18 sections
 against A0's 4). Llama 8B handles that context poorly: its A4 explanations are the least faithful of the retrieval
 setups (0.29).
 
@@ -36,14 +36,16 @@ setups (0.29).
 
 The model changed accuracy more than any retrieval strategy did. The most striking case is L0 (exploratory: the whole
 policy in the prompt). gpt-oss reached 0.76, the highest accuracy of any run, while Llama fell to 0.32. A model that
-can read 35k to 52k tokens reliably needs little retrieval on a corpus this small. A model that cannot read that much
-depends on retrieval to cut the context down. The CRAG-style loop also depends on the model: gpt-oss's grader and
-rewrites lowered accuracy by 7 points against A0 and took the most time of any setup.
+can read a 28k to 45k-token policy reliably needs little retrieval on a corpus this small, at about 6 times A4's
+tokens. A model that cannot read that much depends on retrieval to cut the context down. The CRAG-style loop rarely
+helped on either model: its rewrites added a needed section only 2 (Llama) and 5 (gpt-oss) times, so A2 had A0's
+evidence, and on gpt-oss 42 of 70 rewrite replies were unusable. A2 was 7 points below A0 on gpt-oss (not tested)
+and the slowest setup.
 
 ### 8.4 A gap in the decision rule: safety
 
 The rule checks safety only against A0, so when A0 wins on the tie-break, nothing checks whether a costlier setup is
-safer. Afterwards, A4 is clearly safer on gpt-oss: A0 said covered on 9 of the 53 not_covered claims, A4 on 1 (exact
+safer. Afterwards, A4 is safer on gpt-oss: A0 said covered on 9 of the 53 not_covered claims, A4 on 1 (exact
 paired p = 0.021; exploratory, not Holm-corrected). On Llama the gap is smaller and not significant (7 vs 4,
 p = 0.45). For an insurance user, a wrong "covered" is the costliest error, because they may spend money expecting a
 payout. A real deployment should add a safety check to the tie-break, for example by preferring the setup with the
@@ -70,5 +72,7 @@ rule for the demo and show A4 as a toggle.
 
 - Make A4's definitions step find terms the claim implies, not only terms it names (fwd-059: "serious public event").
 - Add a step that checks for a sub-limit or partial cover before the verdict, to reduce all-or-nothing answers.
-- Test hybrid search for A0, since most of its errors are retrieval failures.
+- Look up definitions and exclusions for A0 by policy structure rather than changing its search: most of A0's errors
+  are retrieval failures, but hybrid search does not fix them (no search method found the definitions, 7.10).
+- Give reasoning models a larger reply limit in multi-call agents and log why a step failed (A2's rewrites on gpt-oss).
 - Pre-register a safety-aware tie-break.
