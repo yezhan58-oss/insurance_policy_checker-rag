@@ -23,6 +23,8 @@ digraph G {
   llm   [label="LLM on vLLM (SMU cluster)\nLlama 3.1 8B | gpt-oss-20b"];
   out   [label="VerdictOutput\nverdict, cited sections,\nexplanation, steps, usage"];
   score [label="Scoring\naccuracy, wrong-covered, clause recall,\nbootstrap CI, McNemar (Holm),\ntrace metrics"];
+  gold  [label="Gold labels
+(verdict, sections)"];
   judge [label="Haiku 5.5 judge\nfaithfulness"];
   demo  [label="Streamlit demo\n(winner A0, A4 toggle)"];
 
@@ -33,5 +35,6 @@ digraph G {
   L0 -> llm [ltail=cluster_setups, dir=both, label="prompt / answer"];
   llm -> out;
   out -> score; out -> judge -> score;
+  gold -> score;
   score -> demo [label="decision rule"];
 }
