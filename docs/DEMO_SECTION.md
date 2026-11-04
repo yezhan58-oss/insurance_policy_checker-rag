@@ -54,7 +54,7 @@ any reported number.
 test claims for the winner (A0 on gpt-oss-20b; 95% CI 61 to 77%). It is a reading aid that points to the deciding
 clauses, not a claims decision.
 
-**A gap in the decision rule.** A0 won on the tie-break (cheaper and faster when McNemar does not separate the top two), and the tie-break never re-checks safety. Afterwards, A4 is clearly safer on gpt-oss-20b. On gpt-oss-20b, A0 said covered on 9 of the 53 test
+**A gap in the decision rule.** A0 won on the tie-break (cheaper and faster when McNemar does not separate the top two), and the tie-break never re-checks safety. Afterwards, A4 is safer on gpt-oss-20b (exploratory). On gpt-oss-20b, A0 said covered on 9 of the 53 test
 claims whose gold verdict is not_covered (wrong_covered_rate 0.17); A4 did so on 1 (0.02). On those claims, 9 were
 wrongly called covered by A0 only and 1 by A4 only (exact paired test p = 0.021; exploratory, not pre-registered, not
 Holm-corrected). On Llama the gap is smaller and not significant (7 vs 4, p = 0.45). The pre-registered rule only

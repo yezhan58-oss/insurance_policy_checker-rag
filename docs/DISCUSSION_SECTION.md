@@ -29,14 +29,14 @@ The gap between process and outcome comes from reasoning. On Llama, 37 of A4's 4
 in context. A4's typical errors are over-cautious insufficient_info (10 on Llama, 12 on gpt-oss) and all-or-nothing
 answers to partially_covered claims (12 on Llama). A0's typical error is wrong_section_retrieved (22 and 19). A4
 cuts wrong answers with missing evidence (31 → 11 on Llama, 26 → 18 on gpt-oss) and moves the bottleneck to the model's reading of a large context (about 18 sections
-against A0's 4). Llama 8B handles that context poorly: its A4 explanations are the least faithful of the retrieval
+on Llama and 7 on gpt-oss, against A0's 4). Llama 8B handles that context poorly: its A4 explanations are the least faithful of the retrieval
 setups (0.29).
 
 ### 8.3 The model matters more than the strategy
 
 The model changed accuracy more than any retrieval strategy did. The most striking case is L0 (exploratory: the whole
 policy in the prompt). gpt-oss reached 0.76, the highest accuracy of any run, while Llama fell to 0.32. A model that
-can read a 28k to 45k-token policy reliably needs little retrieval on a corpus this small, at about 6 times A4's
+can read a 28k to 45k-token policy reliably needs little retrieval on a corpus this small, at 5 to 6 times A4's
 tokens. A model that cannot read that much depends on retrieval to cut the context down. The CRAG-style loop rarely
 helped on either model: its rewrites added a needed section only 2 (Llama) and 5 (gpt-oss) times, so A2 had A0's
 evidence, and on gpt-oss 42 of 70 rewrite replies were unusable. A2 was 7 points below A0 on gpt-oss (not tested)
@@ -73,6 +73,7 @@ rule for the demo and show A4 as a toggle.
 - Make A4's definitions step find terms the claim implies, not only terms it names (fwd-059: "serious public event").
 - Add a step that checks for a sub-limit or partial cover before the verdict, to reduce all-or-nothing answers.
 - Look up definitions and exclusions for A0 by policy structure rather than changing its search: most of A0's errors
-  are retrieval failures, but hybrid search does not fix them (no search method found the definitions, 7.10).
+  are retrieval failures, but hybrid search does not fix them (at k = 5 it finds none of the 24 definitions; BM25
+  finds 9 but loses benefits, 7.10).
 - Give reasoning models a larger reply limit in multi-call agents and log why a step failed (A2's rewrites on gpt-oss).
 - Pre-register a safety-aware tie-break.
