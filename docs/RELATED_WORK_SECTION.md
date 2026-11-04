@@ -29,7 +29,8 @@ model's choices.
 when enough resources are available, while RAG costs far less. Models also use information in the middle of a long
 prompt less well than information at the start or end (Liu et al., 2024). Our exploratory L0 fits the first finding:
 with the whole policy (28k to 45k tokens) in the prompt, gpt-oss-20b had the best accuracy of any run (0.76) at
-5 to 6 times the tokens of A4, while Llama 3.1 8B fell to 0.32, mostly by answering insufficient_info (79 of 124 claims).
+about 6 times the tokens of A4 (41k vs 6.5k
+per claim), while Llama 3.1 8B fell to 0.32, mostly by answering insufficient_info (79 of 124 claims).
 We could not test the second finding, because where a clause sits and the claim category go together.
 
 **LLM as judge.** Strong LLMs can grade open-ended answers with agreement close to human raters, with known biases
