@@ -140,11 +140,17 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
     dearer, and beyond about 3 policies the prompt no longer fits the 131k context; RAG cost stays roughly flat.
   - One-line takeaway: about 5 points over A4 (not significant) for about 6× the tokens; the limit on accuracy is
     missing evidence, which supports A4's structure-based lookups.
+- **Found while filling RESULTS (4 Nov).** A0 gets over a third of its right answers without the evidence (27 of 70
+  Llama, 32 of 86 gpt-oss), so counting only sound answers widens A4's lead from 5 / 2 points to 19 / 18. No
+  answer cites a real section it never saw; bad citations are made-up IDs, almost all from Llama. Llama's B0 answers
+  not_covered to 89 of 124 claims, which is why it looks safe (0.06 wrong-covered). gpt-oss's A4 context is about 7
+  sections, not 18 (its exclusions step keeps about 1). By category, A4 gains most on needs_exclusion (+12 / +24
+  over A0) and nothing on single_section.
 - **Deployment and privacy.** The tested models run on university hardware, so a claim answered by the system never
   leaves it. The judge is the only external API: it sees the claim, the explanation and the cited policy text,
   acceptable because our claims are synthetic; a real deployment would judge in-house.
 - **Limitations.** One labeller per claim outside the 40 blind-checked ones (kappa 0.46); 124 test claims detect only
-  fairly large differences (about 10 points or more); two travel policies from one market; seconds depend on cluster
+  fairly large differences (about 14 points on Llama, 16 on gpt-oss, at 80% power); two travel policies from one market; seconds depend on cluster
   load; temperature 0 is still not perfectly repeatable on vLLM; no robustness test; L0 is exploratory.
 
 ## E. Engineering fixes to add to 6.4 (found by validation before the test run)
@@ -200,7 +206,7 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
 1. For each model (`vllm_llama8b`, `vllm_gptoss20b`): `python -m src.eval.score --model <model> --split test` and
    `python -m src.eval.traces --model <model> --split test`; then `python -m src.eval.report --split test`
    (leaderboard, charts) and `python -m src.eval.traces --split test --sample 20` (hand-check sheet).
-2. Fill every [placeholder] in RESULTS from `results/test/report/leaderboard.md`, the charts, `scores.json`,
+2. (Done 4 Nov.) Fill every [placeholder] in RESULTS from `results/test/report/leaderboard.md`, the charts, `scores.json`,
    `traces.json`, `results/test/retrieval/retrieval.md` and the judge hand-checks.
 3. Merge DATA, METHOD, RESULTS, DEMO into one document with the section numbers above; add every item in R and B–E to its
    section; write Introduction, Discussion (D) and Conclusion.
