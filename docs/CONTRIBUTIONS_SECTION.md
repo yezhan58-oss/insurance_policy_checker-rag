@@ -10,13 +10,18 @@ YZ set up the shared infrastructure that the whole study ran on. They tested and
 client, store). They also wrote the ingestion of both policies (FWD and MSIG) into sections with stable IDs, and the
 search over them. They switched the study to the two free cluster models when the planned API credits turned out not
 to cover API calls. They built three of the five setups: B0 (no retrieval), A0 (simple RAG) and A2 (corrective RAG,
-including its dev trials). They also added the exploratory long-context baseline L0 and the retrieval-only comparison
+including its dev trials), and tuned the shared base prompt on dev
+(PROMPT_TUNING.md). They also added the exploratory long-context baseline L0 and the retrieval-only comparison
 (dense, BM25, hybrid). On evaluation, they wrote the run and scoring pipeline: resumable runs, bootstrap confidence
 intervals, Holm-corrected McNemar tests, the decision rule, and the trace metrics, including the split between sound
-answers and answers that were right without the evidence. They also wrote the leaderboard and charts. They blind-labelled
+answers and answers that were right without the evidence. They also wrote the leaderboard and charts,
+the agreement script (Cohen's kappa between the two label sets), and the rule that splits the human "other" error
+type (over-cautious insufficient_info, all-or-nothing partial). They blind-labelled
 40 test scenarios for the agreement check (kappa 0.46), submitted the final test runs on both models, and hand-checked
-10 agent traces. In the report they wrote the method, evaluation design, development and results sections, kept the
-running list of findings for the report, and reviewed every number in the discussion.
+10 agent traces. In the report they wrote the method, evaluation design, development and results sections, and
+reviewed the numbers in them, kept the
+running list of findings for the report, and reviewed every number in the discussion. They also wrote the
+README: laptop and cluster setup, and how to rerun every result.
 
 ## Member B, written by Member A
 
