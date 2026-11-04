@@ -1,0 +1,41 @@
+// Render: dot -Tpng -Gdpi=200 architecture.dot -o architecture.png
+digraph G {
+  rankdir=TB; nodesep=0.15; ranksep=0.7; compound=true;
+  node [shape=box, style="rounded,filled", fillcolor="#f2f2f2", fontname="Helvetica", fontsize=15, margin="0.15,0.1"];
+  edge [fontname="Helvetica", fontsize=12, color="#555555"];
+
+  pdf   [label="Policy PDFs\n(FWD, MSIG)"];
+  ingest[label="ingest.py\nsplit by headings → sections\nwith IDs → chunks"];
+  index [label="Chroma index\nbge-small-en-v1.5 (CPU)\n+ defined-terms lookup", shape=cylinder];
+  scen  [label="Claim scenario\n(124 test, 20 dev)"];
+
+
+  subgraph cluster_setups {
+    label="Setups (same model, index and base prompt)"; fontname="Helvetica"; fontsize=15; style="rounded"; color="#999999";
+    B0 [label="B0  no retrieval"];
+    A0 [label="A0  simple RAG
+search top 5"];
+    A2 [label="A2  corrective RAG\nsearch → grade chunks\n→ rewrite query (max 2)"];
+    A4 [label="A4  claims workflow\nbenefit → definitions\n→ exclusions → decide"];
+    L0 [label="L0  long context\nevery section, no search\n(exploratory)"];
+    { rank=same; B0 -> A0 -> A2 -> A4 -> L0 [style=invis]; }
+  }
+
+  llm   [label="LLM on vLLM (SMU cluster)\nLlama 3.1 8B | gpt-oss-20b"];
+  out   [label="VerdictOutput\nverdict, cited sections,\nexplanation, steps, usage"];
+  score [label="Scoring\naccuracy, wrong-covered, \nclause recall, bootstrap CI,\nMcNemar (Holm), trace metrics"];
+  gold  [label="Gold labels
+(verdict, sections)"];
+  judge [label="Haiku 5.5 judge\nfaithfulness"];
+  demo  [label="Streamlit demo\n(winner A0, A4 toggle)"];
+
+  { rank=same; pdf -> ingest -> index; scen; }
+  { rank=same; out; judge; score; }
+  index -> A2 [lhead=cluster_setups, label="sections and chunks"];
+  scen  -> A2 [lhead=cluster_setups];
+  A2 -> llm [ltail=cluster_setups, dir=both, label="prompt / answer"];
+  llm -> out;
+  out -> score; out -> judge -> score;
+  gold -> score;
+  score -> demo [label="decision rule"];
+}
