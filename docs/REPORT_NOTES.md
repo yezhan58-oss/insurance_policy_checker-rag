@@ -212,7 +212,8 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
 - [x] Commit `results/test/retrieval/` (on the laptop) together with the test results (branch `a/test-results`).
 - [ ] A3 (ReAct): dev check on both models (does it run, how many lookups, does it use definitions and exclusions),
       then one test run per model from main, judge (print the cost first), report rebuilt. [4.2, 7, 9]
-- [ ] Safe mode numbers in `report.py` from the existing A0 and A4 answers (simulation in D); demo toggle (Member B).
+- [x] Safe mode numbers: `report.py` `safe_mode()` adds a table to leaderboard.md (same numbers as D; rebuilt
+      with A3). [ ] Demo toggle (Member B).
 - [ ] A0 plus structure lookups; A2 gpt-oss rerun with a larger reply limit (if time).
 
 ## G. Checks to run when the test results land (before writing any number)

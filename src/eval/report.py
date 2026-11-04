@@ -27,7 +27,7 @@ import yaml
 from src.eval import charts, traces
 from src.eval.charts import APPROACHES
 from src.eval.run import RESULTS_DIR, ROOT, load_scenarios
-from src.eval.score import score
+from src.eval.score import POSITIVE, score
 
 SHORT = {"vllm_llama8b": "Llama 8B", "vllm_gptoss20b": "gpt-oss-20b"}
 
@@ -61,6 +61,41 @@ def error_counts(data: dict) -> pd.DataFrame | None:
     return pd.concat(et).groupby(["approach", "model", "error_type"]).size().unstack(fill_value=0).reset_index()
 
 
+def safe_mode(rows: list[dict], first: str = "A0", check: str = "A4") -> dict | None:
+    """Exploratory, simulated from answers already run (no new model calls): answer with `first`, and whenever it
+    says covered or partially_covered, use `check`'s verdict instead (a second opinion before promising a payout).
+    Cost = `first` on every claim plus `check` on the claims it re-checks. None if either setup is missing."""
+    by = {}
+    for r in rows:
+        by.setdefault(r["scenario_id"], {})[r["approach"]] = r
+    pairs = [d for d in by.values() if first in d and check in d]
+    if not pairs:
+        return None
+
+    def verdict(r):
+        return None if r["output"].get("error") else r["output"].get("verdict")
+
+    def cost(r, key):
+        u = r["output"].get("usage") or {}
+        return u.get("latency_s", 0) if key == "latency_s" else u.get("prompt_tokens", 0) + u.get("completion_tokens", 0)
+
+    right = wrong_covered = not_covered = checked = 0
+    tokens = seconds = 0.0
+    for d in pairs:
+        a, b = d[first], d[check]
+        use_check = verdict(a) in POSITIVE
+        v, gold = verdict(b if use_check else a), a["gold_verdict"]
+        right += v == gold
+        not_covered += gold == "not_covered"
+        wrong_covered += gold == "not_covered" and v in POSITIVE
+        checked += use_check
+        tokens += cost(a, "tokens") + (cost(b, "tokens") if use_check else 0)
+        seconds += cost(a, "latency_s") + (cost(b, "latency_s") if use_check else 0)
+    n = len(pairs)
+    return {"first": first, "check": check, "n": n, "accuracy": right / n, "wrong_covered": wrong_covered,
+            "not_covered": not_covered, "checked": checked, "tokens": tokens / n, "latency_s": seconds / n}
+
+
 def load_model(split: str, model: str):
     d = RESULTS_DIR / split / model
     if not (d / "raw.jsonl").exists():
@@ -80,7 +115,7 @@ def load_model(split: str, model: str):
     error_types = (split_other(pd.read_csv(errors_path, keep_default_na=False), rows, tr)
                    if errors_path.exists() else None)
     return {"result": result, "by_cat": by_cat, "traces": trace_summary, "error_types": error_types,
-            "commits": sorted({r["commit"] for r in rows})}
+            "safe_mode": safe_mode(rows), "commits": sorted({r["commit"] for r in rows})}
 
 
 def leaderboard(data: dict) -> pd.DataFrame:
@@ -153,6 +188,16 @@ def write_markdown(df: pd.DataFrame, data: dict, split: str, path) -> None:
                   "gold another verdict. All-or-nothing partial: gold partially_covered, answered covered or "
                   "not_covered. Both split from the human \"other\" label by rule after the error review; the other "
                   "types are the human labels._"]
+    modes = {m: d["safe_mode"] for m, d in data.items() if d.get("safe_mode")}
+    if modes:
+        lines += ["", "## Safe mode (exploratory: A0, re-checked by A4 whenever A0 says covered)", "",
+                  "| Model | Accuracy | Wrong-covered | Re-checked by A4 | Tokens | Seconds |", "|---|---|---|---|---|---|"]
+        for m, s in modes.items():
+            lines.append(f"| {SHORT.get(m, m)} | {s['accuracy']:.2f} | {s['wrong_covered'] / s['not_covered']:.2f} "
+                         f"({s['wrong_covered']} of {s['not_covered']}) | {s['checked']} of {s['n']} | "
+                         f"{s['tokens']:.0f} | {s['latency_s']:.1f} |")
+        lines += ["", "_Simulated from the A0 and A4 answers above, no new model calls. Cost = A0 on every claim plus "
+                  "A4 on the re-checked ones._"]
     if (df.approach == "L0").any():
         lines += ["", "_L0 (whole policy in the prompt, no retrieval) is exploratory: added after pre-registration, "
                   "so it is outside the Holm-corrected tests and the decision rule._"]
