@@ -158,7 +158,14 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
       partly / no more often). Verbosity check over all judged rows, mean explanation words per judge label: Llama
       yes 59.8, partly 71.4, no 69.8; gpt-oss yes 67.8, partly 77.4, no 61.5: "yes" is not the longest, so no sign
       the judge rewards longer explanations.
-- [ ] Trace hand-check: rows 11–20 done (Member B, PR #44); **rows 1–10 Member A still to do**. [7.7]
+- [x] Trace hand-check: rows 11–20 Member B (PR #44), rows 1–10 Member A (4 Nov): 9 right, 1 over-cautious
+      insufficient_info; written into RESULTS 7.7. [7.7]
+- **New finding (4 Nov): CRAG's rewrite rarely helps** [7.7, 9]. A2 rewrote on 25 (Llama) / 70 (gpt-oss) of 124
+  claims; a rewrite added a needed section only 2 / 5 times, so A2's evidence recall equals A0's. On gpt-oss 42 of 70
+  rewrite replies were unusable (most likely reasoning past the 2,048-token reply limit; failed rows take 42 s vs
+  28 s; cause not logged). Fits A2 < A0 on gpt-oss (0.62 vs 0.69) and its 27.6 s latency. Discussion: the
+  generic self-correction loop costs calls without finding the definitions and exclusions; A4's structured lookups
+  do. Future work: raise the reply limit for reasoning models and log why a step failed.
 - [x] Error analysis with the error types (Member B, PR #48): all 176 wrong A0/A4 answers labelled, AI drafts kept
       next to the human labels; "other" split by rule (see B). [7.7 / error analysis]
 - [x] Prompt-injection questions in the demo (Member B, PR #48, DEMO_SECTION): 4 questions × A0, A4 on gpt-oss;
@@ -189,5 +196,13 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
    section; write Introduction, Discussion (D) and Conclusion.
 4. Keep the pre-registered story first (decision rule, Holm-corrected tests); exploratory items (L0, retrieval-only,
    citation checks) are labelled as such.
-5. Final check: every number traces to a results file; dev numbers appear only as development checks; no promise of
+5. Rubric gaps found 4 Nov (B-level checklist in the course pack), all must be in the final submission:
+   - **Related work** (short, about half a page): CRAG (Yan et al. 2024), ReAct (Yao et al. 2022), LLM-as-judge,
+     long context vs RAG. Not in any section yet.
+   - **Architecture diagram**: the shared pipeline (ingest → index → setup → verdict schema → scoring) with B0, A0,
+     A2, A4, L0 side by side.
+   - **README**: full laptop and cluster setup and how to rerun every result (currently 43 lines).
+   - **Contributions**: each member documents the other's contributions (course requirement).
+   - Keep the report about 10 pages: simple, concise sentences; only the numbers that matter.
+6. Final check: every number traces to a results file; dev numbers appear only as development checks; no promise of
    payout anywhere (demo guardrail wording).

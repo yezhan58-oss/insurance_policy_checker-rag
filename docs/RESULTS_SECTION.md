@@ -72,7 +72,12 @@ evidence / error.]
   only sound answers count.]
 - Evidence recall: [values per setup × model]; B0 is 0 by design.
 - Wrong answers split into missing evidence (retrieval failure) vs had evidence (reasoning failure): [counts].
-- Step quality: A2 grader precision [x] vs search [x]; A4 step recall (Llama / gpt-oss): benefits 0.94 / 0.88,
+- Step quality: A2's grader raises precision from 0.20 to 0.53 (Llama) and from 0.21 to 0.72 (gpt-oss) while
+  keeping recall (0.70 / 0.67), so it removes noise well. Its rewrite rarely helps: A2 rewrote the query on 25
+  (Llama) and 70 (gpt-oss) of 124 claims, but a rewrite added a needed section only 2 and 5 times, so A2's
+  evidence recall (0.66 / 0.68) matches A0's. On gpt-oss, 42 of the 70 rewrite replies were unusable, most likely
+  because the model's reasoning ran past the 2,048-token reply limit (the cause is not logged); A2 then answered from
+  what it had. A2 is limited by its search, not its grader. A4 step recall (Llama / gpt-oss): benefits 0.94 / 0.88,
   exclusions 0.90 / 0.81, definitions 0.62 / 0.58. Llama's exclusion step keeps about 10 sections per claim (precision
   0.04) while gpt-oss keeps 1 (precision 0.25). [One sentence on A2.] A4 is limited by the definitions step, which
   matches defined terms by name and misses a term the claim implies but does not use (fwd-059: it fetched
@@ -83,7 +88,11 @@ evidence / error.]
   wrong_section_retrieved, 1 missed_exclusion, 4 other (2 over-cautious insufficient_info, 1 pre-existing-condition
   eligibility question, 1 "cover not stated" read as not covered). Example: Llama A4 on fwd-080 had the medical
   benefit and the definition of accident in context, yet asked whether a diving injury was accidental and answered
-  insufficient_info. [Rows 1 to 10, Member A.]
+  insufficient_info. Rows 1 to 10 (Member A, 7 A2 and 3 A4): 9 right, 1 wrong (Llama A4 on msig-057: had the
+  pet-care section, asked for the plan limit and kennel cost, which set the amount, not cover; over-cautious
+  insufficient_info). Two patterns: right verdicts often skip a condition in the explanation (a 30-day window or the
+  6-hour threshold), and A2 rewrote the query in 5 of its 7 rows, only once adding a needed section. Across all 20
+  rows: 12 right, 8 wrong; the halves differ by chance (random sample).
 
 ### 7.8 By category
 
