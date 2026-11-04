@@ -146,6 +146,11 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   not_covered to 89 of 124 claims, which is why it looks safe (0.06 wrong-covered). gpt-oss's A4 context is about 7
   sections, not 18 (its exclusions step keeps about 1). By category, A4 gains most on needs_exclusion (+12 / +24
   over A0) and nothing on single_section.
+- **Safety cascade, simulated from existing answers (4 Nov, exploratory, no new runs).** Use A0; when A0 says covered
+  or partially_covered, use A4's verdict instead. Llama: accuracy 0.56 (= A0), wrong-covered 0.04 (2 of 53, vs A0
+  0.13), A4 run on 39 of 124 claims, 4,790 tokens and 6.6 s per claim (A0 2,635 and 3.4 s). gpt-oss: accuracy 0.66
+  (A0 0.69), wrong-covered 0.00 (0 of 53, vs 0.17), A4 on 50 of 124, 5,913 tokens and 12.3 s (A0 3,247 and 5.8 s).
+  The safest setup on both models at about 1.8x A0's tokens; costs 3 points of accuracy on gpt-oss.
 - **Deployment and privacy.** The tested models run on university hardware, so a claim answered by the system never
   leaves it. The judge is the only external API: it sees the claim, the explanation and the cited policy text,
   acceptable because our claims are synthetic; a real deployment would judge in-house.
