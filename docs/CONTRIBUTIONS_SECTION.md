@@ -18,11 +18,20 @@ answers and answers that were right without the evidence. They also wrote the le
 the agreement script (Cohen's kappa between the two label sets), and the rule that splits the human "other" error
 type (over-cautious insufficient_info, all-or-nothing partial). They blind-labelled
 40 test scenarios for the agreement check (kappa 0.46), submitted the final test runs on both models, and hand-checked
-10 agent traces. In the report they wrote the method, evaluation design, development and results sections, and
-reviewed the numbers in them, kept the
-running list of findings for the report, and reviewed every number in the discussion. They also wrote the
-README: laptop and cluster setup, and how to rerun every result.
+10 agent traces. In the report they wrote the method, evaluation design, development and results sections, kept the
+running list of findings for the report, and re-checked every number in Member B's sections and the discussion. They
+also wrote the README: laptop and cluster setup, and how to rerun every result.
 
 ## Member B, written by Member A
 
-[Member A to write.]
+Member B built the data the study rests on. They wrote the labelling guide that defines the four verdicts and how to
+choose gold sections, the drafting helpers and the Streamlit review page. They drafted 156 claim scenarios from
+specific clauses of both policies and reviewed every draft against the policy text. They removed 12 redundant claims
+and made the seeded split (20 dev, 124 test), then resolved the blind-labelling disagreements with Member A and updated
+the guide where a rule was unclear. They built the policy look-up tools and A4, the claims-workflow agent that is our
+domain-specific setup, including its dev trials. On evaluation, they wrote the Claude Haiku faithfulness judge with a
+cost dry-run and an agreement check, and hand-checked 30 judgments per model. They also labelled the error type of all
+176 wrong A0 and A4 test answers and hand-checked 10 agent traces. They built the "Am I covered?" demo with its
+guardrails, an offline answer cache and a prompt-injection check. In the report they wrote data and labelling, the A4
+design, faithfulness, the demo, the discussion (including the minimum detectable gap and the safety gap in the
+decision rule), related work and the architecture diagram.
