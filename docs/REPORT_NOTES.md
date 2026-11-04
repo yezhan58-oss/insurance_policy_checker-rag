@@ -212,12 +212,13 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
    section; write Introduction, Discussion (D) and Conclusion.
 4. Keep the pre-registered story first (decision rule, Holm-corrected tests); exploratory items (L0, retrieval-only,
    citation checks) are labelled as such.
-5. Rubric gaps found 4 Nov (B-level checklist in the course pack), all must be in the final submission:
+5. Rubric gaps found 4 Nov (B-level checklist in the course pack), all must be in the final submission. Split agreed
+   4 Nov: README Member A; architecture diagram and related work Member B; each writes the other's contributions.
    - **Related work** (short, about half a page): CRAG (Yan et al. 2024), ReAct (Yao et al. 2022), LLM-as-judge,
      long context vs RAG. Not in any section yet.
    - **Architecture diagram**: the shared pipeline (ingest → index → setup → verdict schema → scoring) with B0, A0,
      A2, A4, L0 side by side.
-   - **README**: full laptop and cluster setup and how to rerun every result (currently 43 lines).
+   - **README**: full laptop and cluster setup and how to rerun every result. Done 4 Nov (`a/readme`).
    - **Contributions**: each member documents the other's contributions (course requirement).
    - Keep the report about 10 pages: simple, concise sentences; only the numbers that matter.
 6. Final check: every number traces to a results file; dev numbers appear only as development checks; no promise of
