@@ -96,3 +96,9 @@ def test_citations_are_checked_against_the_policy_and_the_context():
     assert s["A0"]["citation_valid_rate"] == 0.5 and s["A0"]["citation_in_context_rate"] == 0.25
     assert s["A0"]["rows_bad_cite"] == 1 and s["B0"]["rows_no_cite"] == 1
     assert math.isnan(s["B0"]["citation_valid_rate"])                      # nothing cited: no rate
+
+
+def test_a4d_definitions_step_uses_fetched_not_only_picks():
+    step = {"step": "definitions", "picked": ["fwd:definitions:b"], "matched": ["fwd:definitions:a"],
+            "fallback": False, "fetched": ["fwd:definitions:a", "fwd:definitions:b"]}
+    assert traces.selected(step) == ["fwd:definitions:a", "fwd:definitions:b"]
