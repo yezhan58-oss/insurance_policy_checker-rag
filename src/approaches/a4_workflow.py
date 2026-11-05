@@ -5,7 +5,7 @@
                  expenses for plain medical claims on dev)
     definitions  fetch the definitions of defined terms used in those sections and in the claim
     exclusions   fetch the exclusions that apply to those sections; the LLM keeps the ones relevant to the claim
-                 (A4D, exploratory, tuned on dev only: the LLM also picks definitions from the list of defined
+                 (A4D, exploratory, tuned on dev only: the LLM also picks up to 3 extra definitions from the list of defined
                  terms, since name matching misses terms the claim implies but never names, e.g. an earthquake is
                  a "serious public event")
     decide       the shared answer call (same base prompt as every setup) over everything gathered
@@ -92,15 +92,14 @@ def build_graph(llm, store, approach_id: str = APPROACH_ID):
     def definitions(state: State) -> dict:
         s = state["scenario"]
         text = "\n".join([s.scenario, *(c.text for c in state["benefits"])])
-        matched = tools.find_defined_terms(text, s.policy)
+        ids = tools.find_defined_terms(text, s.policy)[:cfg["max_definitions"]]
         step = {"step": "definitions"}
-        if cfg.get("pick_definitions"):
+        if cfg.get("pick_definitions"):   # A4D: picks are added on top, so it always fetches what A4 fetches
             options = [c for c in store.list_sections(s.policy, "definition")
                        if c.title.lower() not in tools.GENERIC_TERMS]
             picked = _pick(llm, DEFINITION_PROMPT, s, options, state["usage"], titles_only=True)
-            step |= {"picked": picked or [], "matched": matched, "fallback": picked is None}
-            matched = list(dict.fromkeys((picked or []) + matched))   # picks first so the cap keeps them
-        ids = matched[:cfg["max_definitions"]]
+            step |= {"picked": picked or [], "matched": ids, "fallback": picked is None}
+            ids = ids + [i for i in (picked or []) if i not in ids][:cfg["max_picked_definitions"]]
         state["steps"].append(step | {"fetched": ids})
         return {"definitions": [c for c in map(store.get_section, ids) if c]}
 

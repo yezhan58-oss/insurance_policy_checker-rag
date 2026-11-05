@@ -18,6 +18,7 @@ A4D:                    # exploratory, 5 Nov: A4 + LLM picks definitions from th
   max_benefits: 3
   max_definitions: 6
   pick_definitions: true
+  max_picked_definitions: 3   # added on top of the name matches
 # Optional, only if M2 is met on time
 A1:
   top_k: 15
