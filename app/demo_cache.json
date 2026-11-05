@@ -1053,5 +1053,138 @@
    "latency_s": 24.17041259999678
   },
   "error": null
+ },
+ "fwd|vllm_gptoss20b|A0|A typhoon heading to Manila was all over the news when I bought my policy the next day. My flight there was then delayed 10 hours by that typhoon. Can I claim?": {
+  "verdict": "covered",
+  "cited_sections": [
+   "fwd:travel_delay"
+  ],
+  "explanation": "The policy states, \"We will pay this benefit if your trip is delayed for 6 continuous hours or more if your scheduled public transport is delayed; or you are forced to travel at another time because your scheduled public transport is overbooked, before you eventually reach your scheduled destination.\" Since the flight was delayed 10 hours due to a typhoon, it meets the 6‑hour threshold and the cause is not the insured. Therefore the travel delay benefit applies.",
+  "steps": [
+   {
+    "step": "search",
+    "query": "A typhoon heading to Manila was all over the news when I bought my policy the next day. My flight there was then delayed 10 hours by that typhoon. Can I claim?",
+    "top_k": 5,
+    "hits": [
+     {
+      "chunk_id": "fwd:trip_postponement#1",
+      "section_id": "fwd:trip_postponement",
+      "score": 0.7132
+     },
+     {
+      "chunk_id": "fwd:travel_delay#0",
+      "section_id": "fwd:travel_delay",
+      "score": 0.687
+     },
+     {
+      "chunk_id": "fwd:trip_diversion#0",
+      "section_id": "fwd:trip_diversion",
+      "score": 0.6841
+     },
+     {
+      "chunk_id": "fwd:trip_postponement#2",
+      "section_id": "fwd:trip_postponement",
+      "score": 0.6821
+     },
+     {
+      "chunk_id": "fwd:trip_disruption#0",
+      "section_id": "fwd:trip_disruption",
+      "score": 0.6806
+     }
+    ]
+   },
+   {
+    "step": "answer",
+    "attempt": 1,
+    "verdict": "covered",
+    "cited_sections": [
+     "fwd:travel_delay"
+    ]
+   }
+  ],
+  "usage": {
+   "model_calls": 1,
+   "prompt_tokens": 2645,
+   "completion_tokens": 522,
+   "reasoning_tokens": 394,
+   "llm_latency_s": 4.594736194703728,
+   "latency_s": 4.627522994764149
+  },
+  "error": null
+ },
+ "fwd|vllm_gptoss20b|A4|A typhoon heading to Manila was all over the news when I bought my policy the next day. My flight there was then delayed 10 hours by that typhoon. Can I claim?": {
+  "verdict": "not_covered",
+  "cited_sections": [
+   "fwd:general_exclusions:events_that_happen_before_you_book_or_take_up_cover"
+  ],
+  "explanation": "The policy excludes any event that was known or made known by the media or travel advice before the policy was purchased or the trip was booked. The claim states the typhoon was all over the news when the policy was bought, so the event falls under this exclusion and the travel‑delay benefit cannot be paid.",
+  "steps": [
+   {
+    "step": "benefits",
+    "picked": [
+     "fwd:travel_delay"
+    ],
+    "fallback": false
+   },
+   {
+    "step": "definitions",
+    "fetched": [
+     "fwd:definitions:trip",
+     "fwd:definitions:scheduled_public_transport",
+     "fwd:definitions:family_member",
+     "fwd:definitions:travel_companion"
+    ]
+   },
+   {
+    "step": "exclusions",
+    "candidates": [
+     "fwd:no_cover_for_travel_to_certain_countries",
+     "fwd:specified_countries_not_covered_under_your_policy",
+     "fwd:general_exclusions",
+     "fwd:general_exclusions:travel_while_medically_unfit",
+     "fwd:general_exclusions:unlawful_acts",
+     "fwd:general_exclusions:suicide_or_self_inflicted_act",
+     "fwd:general_exclusions:failing_to_protect_property_and_self",
+     "fwd:general_exclusions:events_that_happen_before_you_book_or_take_up_cover",
+     "fwd:general_exclusions:epidemic_or_pandemic",
+     "fwd:general_exclusions:pre_existing_medical_conditions",
+     "fwd:general_exclusions:mental_illness",
+     "fwd:general_exclusions:acts_of_customs_or_other_officials",
+     "fwd:general_exclusions:wear_and_tear_or_damage_from_cleaning_or_repair",
+     "fwd:general_exclusions:incidental_charges_that_we_have_not_specified",
+     "fwd:general_exclusions:professional_or_paid_sporting_activities",
+     "fwd:general_exclusions:speed_contest_or_racing",
+     "fwd:general_exclusions:high_altitude_hiking_or_trekking",
+     "fwd:general_exclusions:war_riot_or_revolution",
+     "fwd:general_exclusions:military_or_military_related_services_or_training",
+     "fwd:general_exclusions:claims_covered_by_other_insurance_or_service_providers",
+     "fwd:general_exclusions:stis_or_hiv",
+     "fwd:general_exclusions:pregnancy_childbirth_or_related_complications",
+     "fwd:general_exclusions:alcohol_or_substance_abuse",
+     "fwd:general_exclusions:consequential_or_indirect_loss"
+    ],
+    "picked": [
+     "fwd:general_exclusions:events_that_happen_before_you_book_or_take_up_cover"
+    ],
+    "fallback": false
+   },
+   {
+    "step": "answer",
+    "attempt": 1,
+    "verdict": "not_covered",
+    "cited_sections": [
+     "fwd:general_exclusions:events_that_happen_before_you_book_or_take_up_cover"
+    ]
+   }
+  ],
+  "usage": {
+   "model_calls": 3,
+   "prompt_tokens": 3764,
+   "completion_tokens": 1562,
+   "reasoning_tokens": 1388,
+   "llm_latency_s": 13.200360368471593,
+   "latency_s": 13.203613521996886
+  },
+  "error": null
  }
 }
