@@ -171,6 +171,14 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   has no tool-call parser). At most 8 lookups; unusable reply or the limit → answer with what it has; the answer is
   the shared answer call over every section it looked at. Run with MAX_LEN=131072 (the conversation grows each step;
   estimated 15k–30k tokens per claim vs A4's 6.5k).
+- **A3 dev check (5 Nov, 20 dev claims, a/react ff1b056, A40)** [7, 9]: runs on both models, 0 errors.
+  Llama: 9/20 (A4 9, A0 10), evidence recall 0.88 (A4 0.90), but **50k tokens and 22 s per claim (7× A4)**: 6.1
+  lookups per claim, 9 of 20 hit the 8-lookup limit, 31 of 122 lookups repeat an earlier one, 1 unusable reply.
+  It asks for exclusions on 17 of 20 claims but definitions on only 4. gpt-oss: 14/20 (A4 16, A0 13), evidence
+  recall 0.95 (A4 0.93), 11k tokens and 15 s per claim; stops by itself after 1.65 lookups (max 3), definitions on
+  2 claims, exclusions on 5: its searches already bring back the needed sections. So the free agent rarely
+  thinks of definitions; the small model loops (as the brief warned), the reasoning model stops early. Run on
+  test as is (no tuning), since how the agent behaves untuned is the question.
 - **A4D added 5 Nov as exploratory (Member B, PR #61)** [4.4, 7]: A4 plus an LLM pick of up to 3 definitions from the
   defined-terms list, on top of the name matches (A4 itself unchanged). Dev: gpt-oss 17/20 vs A4 15/20, Llama 10/20
   both, about 1.2× A4's tokens; evidence recall equals A4 (dev has only 3 gold definitions, all found by name). Found in
