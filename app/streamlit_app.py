@@ -87,7 +87,7 @@ with st.sidebar:
     policy = st.selectbox("Policy", list(POLICY_NAMES), format_func=POLICY_NAMES.get)
     model = st.selectbox("Model", MODELS)
     safe = st.toggle(f"Safe mode: {BASELINE} double-checks every \"covered\"",
-                     help="Exploratory, tuned on dev only. On test it cut wrong 'covered' answers from 9 to 0 of 53 "
+                     help="Exploratory (worked out from the test results). On test it cut wrong 'covered' answers from 9 to 0 of 53 "
                           "(gpt-oss) for about 1.8x the tokens and 3 points of accuracy.")
     compare = st.toggle(f"Compare with the claims-workflow agent ({BASELINE})")
 question = st.text_area("Describe what happened",
