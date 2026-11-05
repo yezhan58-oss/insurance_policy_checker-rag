@@ -23,8 +23,8 @@ from src.eval.run import RESULTS_DIR, load_scenarios
 POSITIVE = {"covered", "partially_covered"}
 AGENTS = ("A2", "A4")                             # agentic approaches eligible as "best agent"
 # Added after the comparisons were pre-registered: scored and shown, but never in the Holm family or the decision rule
-# (L0 on 30 Oct; A3, the ReAct agent, on 4 Nov after the test results)
-EXPLORATORY = ("L0", "A3")
+# (L0 on 30 Oct; A3, the ReAct agent, on 4 Nov and A4D, A4 with picked definitions, on 5 Nov, after the test results)
+EXPLORATORY = ("L0", "A3", "A4D")
 METRICS = ("verdict_accuracy", "binary_accuracy", "wrong_covered_rate", "clause_recall")
 COSTS = ("latency_s", "model_calls", "prompt_tokens", "completion_tokens", "reasoning_tokens")
 N_BOOT, SEED, ALPHA = 1000, 0, 0.05
@@ -107,7 +107,7 @@ def preregistered_tests(df: pd.DataFrame, overall: dict) -> list[dict]:
 
 
 def exploratory_tests(df: pd.DataFrame, overall: dict) -> list[dict]:
-    """Each exploratory setup (L0, A3) vs A0 and vs the best agent: McNemar p-values, not corrected and not part of
+    """Each exploratory setup (L0, A3, A4D) vs A0 and vs the best agent: McNemar p-values, not corrected and not part of
     the pre-registered family."""
     have = set(overall)
     agents = [a for a in AGENTS if a in have]
@@ -120,7 +120,7 @@ def exploratory_tests(df: pd.DataFrame, overall: dict) -> list[dict]:
 def decide(df: pd.DataFrame, overall: dict) -> dict:
     """Brief section 9: highest verdict accuracy whose wrong_covered_rate is no worse than A0's; if McNemar does
     not separate the top two, the cheaper and faster one wins (fewer mean model calls, then lower latency).
-    Exploratory setups (L0, A3) are never candidates."""
+    Exploratory setups (L0, A3, A4D) are never candidates."""
     a0_wc = overall.get("A0", {}).get("wrong_covered_rate")
     eligible = [a for a, s in overall.items() if a not in EXPLORATORY
                 and (a0_wc is None or np.isnan(a0_wc) or not s["wrong_covered_rate"] > a0_wc)]

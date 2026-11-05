@@ -120,3 +120,11 @@ def test_exploratory_l0_is_scored_but_never_preregistered_or_the_winner():
                                                                  "exploratory: L0 vs best agent"]
     assert result["exploratory_tests"][1]["b"] == "A2"
     assert result["decision"]["winner"] != "L0"
+
+
+def test_post_hoc_a3_and_a4d_never_win():
+    rows = ([row(f"s{i}", "A0", "covered" if i < 6 else "not_covered") for i in range(10)] +
+            [row(f"s{i}", x, "covered") for x in ("A3", "A4D") for i in range(10)])   # both beat A0
+    result, _ = score(rows, {})
+    assert result["decision"]["winner"] == "A0"
+    assert all({"A3", "A4D"}.isdisjoint((t["a"], t["b"])) for t in result["tests"])

@@ -171,6 +171,11 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   has no tool-call parser). At most 8 lookups; unusable reply or the limit → answer with what it has; the answer is
   the shared answer call over every section it looked at. Run with MAX_LEN=131072 (the conversation grows each step;
   estimated 15k–30k tokens per claim vs A4's 6.5k).
+- **A4D added 5 Nov as exploratory (Member B, PR #61)** [4.4, 7]: A4 plus an LLM pick of up to 3 definitions from the
+  defined-terms list, on top of the name matches (A4 itself unchanged). Dev: gpt-oss 17/20 vs A4 15/20, Llama 10/20
+  both, about 1.2× A4's tokens; evidence recall equals A4 (dev has only 3 gold definitions, all found by name). Found in
+  review: A4D was not in EXPLORATORY, so it could have won the decision rule; added there (and to the charts) with a
+  test that A3 and A4D never win.
 
 ## E. Engineering fixes to add to 6.4 (found by validation before the test run)
 
@@ -213,7 +218,9 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
 - [ ] A3 (ReAct): dev check on both models (does it run, how many lookups, does it use definitions and exclusions),
       then one test run per model from main, judge (print the cost first), report rebuilt. [4.2, 7, 9]
 - [x] Safe mode numbers: `report.py` `safe_mode()` adds a table to leaderboard.md (same numbers as D; rebuilt
-      with A3). [ ] Demo toggle (Member B).
+      with A3). [x] Demo toggle (Member B, PR #60: A4 re-checks every A0 "covered"; fwd-010 cached as the
+      catch: gold not_covered, A0 covered, A4 not_covered on gpt-oss test).
+- [ ] A4D: test run per model from main with A3, then judge and report rebuilt.
 - [ ] A0 plus structure lookups; A2 gpt-oss rerun with a larger reply limit (if time).
 
 ## G. Checks to run when the test results land (before writing any number)
