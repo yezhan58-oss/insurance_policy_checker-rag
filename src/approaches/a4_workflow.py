@@ -5,6 +5,9 @@
                  expenses for plain medical claims on dev)
     definitions  fetch the definitions of defined terms used in those sections and in the claim
     exclusions   fetch the exclusions that apply to those sections; the LLM keeps the ones relevant to the claim
+                 (A4D, exploratory, tuned on dev only: the LLM also picks up to 3 extra definitions from the list of defined
+                 terms, since name matching misses terms the claim implies but never names, e.g. an earthquake is
+                 a "serious public event")
     decide       the shared answer call (same base prompt as every setup) over everything gathered
 
 Each node appends to `steps`. If a pick call returns unusable output, the node falls back to a fixed rule
@@ -34,6 +37,8 @@ PICK_FORMAT = {"type": "json_schema", "json_schema": {"name": "pick", "schema": 
 BENEFIT_PROMPT = """You help a travel insurance claims assessor. Below is a claim and a list of benefit sections \
 from the policy. Pick the benefit section(s) the claim would be made under: usually 1, at most {n}. \
 Answer in JSON as {{"section_ids": [...]}}, copying IDs exactly from the list."""
+
+DEFINITION_PROMPT = """You help a travel insurance claims assessor. Below is a claim and the list of defined terms in the policy. Pick every defined term whose definition could decide this claim, including terms the claim describes without naming (e.g. an event, a person or a place that a definition covers). Usually 0 to 3. Answer in JSON as {"section_ids": [...]}, copying IDs exactly from the list."""
 
 EXCLUSION_PROMPT = """You help a travel insurance claims assessor. Below is a claim and the exclusions that apply to \
 the benefit it falls under. Pick every exclusion that could affect this claim, given the facts stated. If none \
@@ -69,8 +74,8 @@ def _pick(llm, system: str, scenario: Scenario, options: list[Chunk], usage: dic
     return [i for i in dict.fromkeys(ids) if i in valid]
 
 
-def build_graph(llm, store):
-    cfg = approach_config(APPROACH_ID)
+def build_graph(llm, store, approach_id: str = APPROACH_ID):
+    cfg = approach_config(approach_id)
 
     def benefits(state: State) -> dict:
         s = state["scenario"]
@@ -88,7 +93,14 @@ def build_graph(llm, store):
         s = state["scenario"]
         text = "\n".join([s.scenario, *(c.text for c in state["benefits"])])
         ids = tools.find_defined_terms(text, s.policy)[:cfg["max_definitions"]]
-        state["steps"].append({"step": "definitions", "fetched": ids})
+        step = {"step": "definitions"}
+        if cfg.get("pick_definitions"):   # A4D: picks are added on top, so it always fetches what A4 fetches
+            options = [c for c in store.list_sections(s.policy, "definition")
+                       if c.title.lower() not in tools.GENERIC_TERMS]
+            picked = _pick(llm, DEFINITION_PROMPT, s, options, state["usage"], titles_only=True)
+            step |= {"picked": picked or [], "matched": ids, "fallback": picked is None}
+            ids = ids + [i for i in (picked or []) if i not in ids][:cfg["max_picked_definitions"]]
+        state["steps"].append(step | {"fetched": ids})
         return {"definitions": [c for c in map(store.get_section, ids) if c]}
 
     def exclusions(state: State) -> dict:
@@ -118,8 +130,8 @@ def build_graph(llm, store):
     return g.compile()
 
 
-def run(scenario: Scenario, llm, store) -> VerdictOutput:
-    state = build_graph(llm, store).invoke({"scenario": scenario, "benefits": [], "definitions": [], "exclusions": [],
+def run(scenario: Scenario, llm, store, approach_id: str = APPROACH_ID) -> VerdictOutput:
+    state = build_graph(llm, store, approach_id).invoke({"scenario": scenario, "benefits": [], "definitions": [], "exclusions": [],
                                             "steps": [], "usage": new_usage(), "start": time.perf_counter(),
                                             "output": None})
     return state["output"]

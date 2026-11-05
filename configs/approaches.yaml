@@ -18,6 +18,12 @@ L0: {}
 A3:
   top_k: 5              # chunks per search
   max_tool_calls: 8     # lookups before the agent must answer
+A4D:                    # exploratory, 5 Nov: A4 + LLM picks definitions from the defined-terms list
+  fallback_k: 8
+  max_benefits: 3
+  max_definitions: 6
+  pick_definitions: true
+  max_picked_definitions: 3   # added on top of the name matches
 # Optional, not built
 A1:
   top_k: 15

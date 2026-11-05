@@ -86,6 +86,9 @@ st.caption(DISCLAIMER)
 with st.sidebar:
     policy = st.selectbox("Policy", list(POLICY_NAMES), format_func=POLICY_NAMES.get)
     model = st.selectbox("Model", MODELS)
+    safe = st.toggle(f"Safe mode: {BASELINE} double-checks every \"covered\"",
+                     help="Exploratory, tuned on dev only. On test it cut wrong 'covered' answers from 9 to 0 of 53 "
+                          "(gpt-oss) for about 1.8x the tokens and 3 points of accuracy.")
     compare = st.toggle(f"Compare with the claims-workflow agent ({BASELINE})")
 question = st.text_area("Describe what happened",
                         placeholder="My flight to Tokyo was delayed 7 hours because of a typhoon. Can I claim?")
@@ -100,6 +103,14 @@ if st.button("Check", type="primary", disabled=not question.strip()):
             except Exception as e:   # server down or tunnel closed: say so instead of a stack trace
                 st.error(f"Could not reach {model} ({type(e).__name__}). Open the SSH tunnel, or ask a cached question.")
                 continue
-            show(out, "Answer" if aid == WINNER else f"Claims-workflow agent ({aid})")
+            title = "Answer" if aid == WINNER else f"Claims-workflow agent ({aid})"
+            if aid == WINNER and safe and out.verdict == "covered":
+                # safe mode: A4's verdict replaces a "covered" from A0 (A's leaderboard rule)
+                with st.spinner(f"Safe mode: {BASELINE} is double-checking..."):
+                    check = guard(answer(policy, question, model, BASELINE))
+                st.caption(f"Safe mode: {WINNER} said covered; {BASELINE} checked it and says "
+                           f"{check.verdict.replace('_', ' ')}.")
+                out, title = check, f"Answer (safe mode, checked by {BASELINE})"
+            show(out, title)
 st.divider()
 st.caption(DISCLAIMER)

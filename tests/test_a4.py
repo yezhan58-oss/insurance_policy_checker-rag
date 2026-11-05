@@ -77,3 +77,19 @@ def test_empty_exclusion_pick_is_respected():
     out = REGISTRY["A4"](SCENARIO, llm, FakeStore())
     assert out.steps[2]["picked"] == [] and not out.steps[2]["fallback"]
     assert "general_exclusions" not in llm.calls[2][1].content
+
+
+def test_a4d_adds_picked_definitions_after_name_matches():
+    llm = FakeLLM(pick("fwd:travel_delay"), pick("fwd:definitions:typo", "fwd:travel_delay"),
+                  pick("fwd:general_exclusions:a"), GOOD)
+    out = REGISTRY["A4D"](SCENARIO, llm, FakeStore())
+    defs = out.steps[1]
+    assert defs["picked"] == ["fwd:definitions:typo"] and not defs["fallback"]       # non-definition ID dropped
+    assert defs["fetched"] == ["fwd:definitions:x", "fwd:definitions:typo"]
+    assert "[Section ID: fwd:definitions:typo]" in llm.calls[3][1].content and out.usage["model_calls"] == 4
+
+
+def test_a4d_bad_definition_pick_keeps_name_matches():
+    llm = FakeLLM(pick("fwd:travel_delay"), "garbage", pick(), GOOD)
+    out = REGISTRY["A4D"](SCENARIO, llm, FakeStore())
+    assert out.steps[1]["fallback"] and out.steps[1]["fetched"] == ["fwd:definitions:x"] and out.error is None

@@ -55,7 +55,7 @@ def selected(step: dict) -> list[str] | None:
     """Section IDs a step selected, in order, or None for steps that select nothing (e.g. the answer call)."""
     if step["step"] in NOT_SELECTION:
         return None
-    for key in ("context", "picked", "fetched"):
+    for key in ("context", "fetched", "picked"):   # A4D definitions: fetched = name matches + picks
         if key in step:
             return list(dict.fromkeys(step[key]))
     if "hits" in step:
