@@ -13,6 +13,12 @@ A4:
 # Exploratory, added 30 Oct after pre-registration (not in run.yaml's list, so the core runs never include it):
 # the whole policy in the prompt, no retrieval. Needs MAX_LEN=131072 in scripts/run_eval.sbatch.
 L0: {}
+A4D:                    # exploratory, 5 Nov: A4 + LLM picks definitions from the defined-terms list
+  fallback_k: 8
+  max_benefits: 3
+  max_definitions: 6
+  pick_definitions: true
+  max_picked_definitions: 3   # added on top of the name matches
 # Optional, only if M2 is met on time
 A1:
   top_k: 15
