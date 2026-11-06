@@ -146,12 +146,44 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   not_covered to 89 of 124 claims, which is why it looks safe (0.06 wrong-covered). gpt-oss's A4 context is about 7
   sections, not 18 (its exclusions step keeps about 1). By category, A4 gains most on needs_exclusion (+12 / +24
   over A0) and nothing on single_section.
+- **Safety cascade, simulated from existing answers (4 Nov, exploratory, no new runs).** Use A0; when A0 says covered
+  or partially_covered, use A4's verdict instead. Llama: accuracy 0.56 (= A0), wrong-covered 0.04 (2 of 53, vs A0
+  0.13), A4 run on 39 of 124 claims, 4,790 tokens and 6.6 s per claim (A0 2,635 and 3.4 s). gpt-oss: accuracy 0.66
+  (A0 0.69), wrong-covered 0.00 (0 of 53, vs 0.17), A4 on 50 of 124, 5,913 tokens and 12.3 s (A0 3,247 and 5.8 s).
+  The safest setup on both models at about 1.8x A0's tokens; costs 3 points of accuracy on gpt-oss.
 - **Deployment and privacy.** The tested models run on university hardware, so a claim answered by the system never
   leaves it. The judge is the only external API: it sees the claim, the explanation and the cited policy text,
   acceptable because our claims are synthetic; a real deployment would judge in-house.
 - **Limitations.** One labeller per claim outside the 40 blind-checked ones (kappa 0.46); 124 test claims detect only
   fairly large differences (about 14 points on Llama, 16 on gpt-oss, at 80% power); two travel policies from one market; seconds depend on cluster
   load; temperature 0 is still not perfectly repeatable on vLLM; no robustness test; L0 is exploratory.
+- **Extra work for the last week, agreed 4 Nov** (all exploratory: tuned on dev only, never in the Holm family or the
+  decision rule, which stays A0 on both models): (1) safe mode, A0 with an A4 check whenever A0 says covered
+  (numbers: Member A; demo: Member B); (2) A3, a ReAct tool agent (Member A); (3) A0 plus structure lookups, the
+  definitions and exclusions linked to the benefits A0 found, no extra model call (Member A); (4) A2 on gpt-oss with
+  a larger reply limit (Member A); (5) A4's definitions step picks from the list of defined terms (Member B). Order:
+  1, 2, 3, then 4 and 5 if time allows.
+- **A3 ReAct agent added 4 Nov as exploratory** [4.2, 7]: built after the test results, so `score.py` lists it in
+  EXPLORATORY and drops it from AGENTS (the pre-registered "best agent" stays A2 or A4; results unchanged). Tools =
+  A4's (search, get_definition, get_exclusions), so both can reach the same evidence; the prompt lists the tools but
+  no order to use them in, since whether the agent thinks of definitions and exclusions itself is the question.
+  Actions are JSON in plain text, not native tool calls: same on both models, no server change (gpt-oss's server
+  has no tool-call parser). At most 8 lookups; unusable reply or the limit → answer with what it has; the answer is
+  the shared answer call over every section it looked at. Run with MAX_LEN=131072 (the conversation grows each step;
+  estimated 15k–30k tokens per claim vs A4's 6.5k).
+- **A3 dev check (5 Nov, 20 dev claims, a/react ff1b056, A40)** [7, 9]: runs on both models, 0 errors.
+  Llama: 9/20 (A4 9, A0 10), evidence recall 0.88 (A4 0.90), but **50k tokens and 22 s per claim (7× A4)**: 6.1
+  lookups per claim, 9 of 20 hit the 8-lookup limit, 31 of 122 lookups repeat an earlier one, 1 unusable reply.
+  It asks for exclusions on 17 of 20 claims but definitions on only 4. gpt-oss: 14/20 (A4 16, A0 13), evidence
+  recall 0.95 (A4 0.93), 11k tokens and 15 s per claim; stops by itself after 1.65 lookups (max 3), definitions on
+  2 claims, exclusions on 5: its searches already bring back the needed sections. So the free agent rarely
+  thinks of definitions; the small model loops (as the brief warned), the reasoning model stops early. Run on
+  test as is (no tuning), since how the agent behaves untuned is the question.
+- **A4D added 5 Nov as exploratory (Member B, PR #61)** [4.4, 7]: A4 plus an LLM pick of up to 3 definitions from the
+  defined-terms list, on top of the name matches (A4 itself unchanged). Dev: gpt-oss 17/20 vs A4 15/20, Llama 10/20
+  both, about 1.2× A4's tokens; evidence recall equals A4 (dev has only 3 gold definitions, all found by name). Found in
+  review: A4D was not in EXPLORATORY, so it could have won the decision rule; added there (and to the charts) with a
+  test that A3 and A4D never win.
 
 ## E. Engineering fixes to add to 6.4 (found by validation before the test run)
 
@@ -191,6 +223,13 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   hand-checks, error types and demo on the winner (A0, A4 behind a toggle; 16 cached gpt-oss answers, none for
   Llama) on main. Left: Member A's trace rows 1–10, then section H.
 - [x] Commit `results/test/retrieval/` (on the laptop) together with the test results (branch `a/test-results`).
+- [ ] A3 (ReAct): dev check on both models (does it run, how many lookups, does it use definitions and exclusions),
+      then one test run per model from main, judge (print the cost first), report rebuilt. [4.2, 7, 9]
+- [x] Safe mode numbers: `report.py` `safe_mode()` adds a table to leaderboard.md (same numbers as D; rebuilt
+      with A3). [x] Demo toggle (Member B, PR #60: A4 re-checks every A0 "covered"; fwd-010 cached as the
+      catch: gold not_covered, A0 covered, A4 not_covered on gpt-oss test).
+- [ ] A4D: test run per model from main with A3, then judge and report rebuilt.
+- [ ] A0 plus structure lookups; A2 gpt-oss rerun with a larger reply limit (if time).
 
 ## G. Checks to run when the test results land (before writing any number)
 
@@ -208,7 +247,8 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
    (leaderboard, charts) and `python -m src.eval.traces --split test --sample 20` (hand-check sheet).
 2. (Done 4 Nov.) Fill every [placeholder] in RESULTS from `results/test/report/leaderboard.md`, the charts, `scores.json`,
    `traces.json`, `results/test/retrieval/retrieval.md` and the judge hand-checks.
-3. Merge DATA, METHOD, RESULTS, DEMO into one document with the section numbers above; add every item in R and B–E to its
+3. (First merged draft 4 Nov: `docs/REPORT.md`, about 4,600 words before contributions, 4 figures, 5 tables;
+   both members still edit their own parts in their own words.) Merge DATA, METHOD, RESULTS, DEMO into one document with the section numbers above; add every item in R and B–E to its
    section; write Introduction, Discussion (D) and Conclusion.
 4. Keep the pre-registered story first (decision rule, Holm-corrected tests); exploratory items (L0, retrieval-only,
    citation checks) are labelled as such.
