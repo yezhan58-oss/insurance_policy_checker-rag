@@ -193,6 +193,19 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   Judge (7 Nov, Haiku, US$0.076 for the 496 new rows, all judged): faithfulness Llama A3 0.40, A4D 0.35 (A4 0.29,
   A0 0.38); gpt-oss A3 0.72, A4D 0.63 (A4 0.68, A0 0.63). Grounded rate Llama A3 0.27, A4D 0.27 (A4 0.23); gpt-oss
   A3 0.45, A4D 0.48 (A4 0.48).
+- **Extra analyses from existing test answers (7 Nov, no new runs; exploratory)** [7, 9]:
+  1. *Does skipping definitions hurt?* On needs_definition claims (n = 20) A3 is the weakest agent on both models:
+     Llama A3 0.55 vs A4 0.70, A4D 0.65; gpt-oss A3 0.45 vs A4 0.60, A4D 0.65. On single_section claims (n = 65)
+     gpt-oss A3 is best (0.82 vs A4 0.69, McNemar p = 0.10). Same direction on both models, fits A3 rarely fetching
+     definitions, but no category test is significant (small n).
+  2. *Oracle (headroom).* Claims at least one setup gets right: Llama 95/124 (core four) and 103/124 (all seven);
+     gpt-oss 113 and 122 of 124. Best single setup: 76 and 94. The setups fail on different claims, so a way to
+     choose between them (e.g. safe mode) has room to help; an oracle needs the gold label, so it is an upper bound,
+     not a result. Every setup on both models misses fwd-030 (S$800 cash stolen; gold partially_covered because of
+     the S$300 sub-limit in the benefit-limits table): the sub-limit sits in a separate table section.
+  3. *More lookups do not help A3.* Llama A3 accuracy by lookups: 1–2 (n = 5) 1.00, 3–5 (n = 36) 0.50, 6–8
+     (n = 83) 0.64; A4 on the same claims 0.80, 0.56, 0.63. A3 tracks A4 in every group, so the groups reflect how
+     hard the claims are, not a gain from looking more. gpt-oss never goes past 5 (1–2: n = 113, 0.76; 3–5: 11, 0.73).
 - Engineering [6.4]: two test jobs cannot run side by side from one cluster checkout: run.py's dirty check counts
   the first job's results files as uncommitted changes and refuses the second. Fixed for this run by hiding the
   four results files from git status (`git update-index --assume-unchanged`, undone after); code was main c184cad.
