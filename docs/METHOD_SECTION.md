@@ -228,6 +228,12 @@ kept. An earlier checklist step (list the deciding facts before answering) gave 
 claim from about 10 s to 35 s, and was dropped for its cost. Both trials point the same way: once A4 has the evidence,
 Llama's remaining errors are reasoning failures that neither more structure nor less context fixed.
 
+A4D (exploratory, added 5 Nov) changes only A4's definitions step. A4 fetches a definition when a defined term's name
+appears in the benefit text; A4D gives the model the policy's full list of defined terms (24 for FWD, 42 for MSIG) and
+lets it pick the ones the claim depends on, falling back to name matching if the pick fails. This costs one extra call
+per claim. On dev it scored 17/20 vs A4's 15/20 on gpt-oss and 10/20 for both on Llama. A4 was already frozen, so A4D
+is reported as a separate exploratory setup and is never part of the decision rule.
+
 ### 6.4 Engineering fixes found by validation
 
 - A reply that ran into the token limit raised an exception and stopped runs; it is now retried and then scored as a
