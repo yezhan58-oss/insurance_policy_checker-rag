@@ -182,3 +182,23 @@ explanation that contradicts its own partially_covered verdict; the judge cannot
 Dev (20 claims) suggested A4 on gpt-oss was best (0.80, vs A0 0.65). Test agrees that A4 is top on gpt-oss, but the gap
 shrinks to 0.71 vs 0.69. On Llama, dev had A4 at 0.45 and A0 at 0.50; test has 0.61 and 0.56. With 20 claims one answer moves
 accuracy by 5 points, and the prompts were tuned on dev, so no reported claim uses dev numbers.
+
+### 7.12 A4D: letting the model pick definitions (exploratory)
+
+A4D (6.3) ran once on each model on all 124 test claims (main c184cad). It is exploratory and not in the decision rule.
+
+| Model | Setup | Accuracy [95% CI] | Wrong-covered | Evidence recall | Faithfulness | Calls | Tokens | Seconds |
+|---|---|---|---|---|---|---|---|---|
+| Llama 8B | A4 | 0.61 [0.53–0.69] | 0.08 | 0.91 | 0.29 | 3.0 | 6,626 | 9.5 |
+| Llama 8B | A4D | 0.58 [0.50–0.66] | 0.09 | 0.94 | 0.35 | 4.0 | 7,338 | 10.7 |
+| gpt-oss-20b | A4 | 0.71 [0.63–0.78] | 0.02 | 0.84 | 0.68 | 3.0 | 6,476 | 15.2 |
+| gpt-oss-20b | A4D | 0.73 [0.65–0.80] | 0.06 | 0.85 | 0.63 | 4.0 | 7,776 | 20.5 |
+
+- The dev gain did not hold: A4D vs A4 is −3 points on Llama (only A4D right 4, only A4 right 8; exploratory McNemar
+  p = 0.388) and +2 points on gpt-oss (13 vs 11; p = 0.839). Neither A4D vs A0 test is close to significant (p = 0.860
+  Llama, 0.644 gpt-oss).
+- Picking terms raised evidence recall only slightly (0.91 to 0.94 on Llama, 0.84 to 0.85 on gpt-oss), consistent with
+  7.7: A4's misses were mostly reasoning failures, not missing definitions.
+- A4D costs one more call and about 1.1–1.2× A4's tokens, and on gpt-oss its wrong-covered rate is higher (0.06 vs
+  0.02). A4 stays the agent we report; A0 remains the winner.
+

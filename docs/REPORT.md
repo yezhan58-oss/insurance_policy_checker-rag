@@ -197,6 +197,9 @@ guided go/no-go decisions.
 - **A4 exclusions** (Member B). On Llama, A4 fixed retrieval (evidence recall 0.95 vs 0.62 for A0) but not accuracy,
   and 9 of its 10 misses had all the evidence. A stricter exclusions prompt cut context from 21 to 10 sections without
   improving accuracy, so the original was kept: Llama's remaining errors are reasoning, not context size.
+- **A4D** (Member B, exploratory). A variant where the model picks the definitions it needs from the policy's full
+  list of defined terms (24 FWD, 42 MSIG) instead of matching names in the benefit text. Dev: 17/20 vs A4's 15/20 on
+  gpt-oss, 10/20 for both on Llama. A4 was already frozen, so A4D runs as a separate setup outside the decision rule.
 - **Engineering fixes.** Replies cut off at the token limit crashed runs (now retried, then scored as parse errors);
   two jobs rebuilding one shared index corrupted it (each job now builds its own on local disk); runs are resumable,
   record the commit and full prompt, and refuse to score the test split on uncommitted code.
@@ -308,6 +311,11 @@ lower bound.
 One search finds every needed section for only about half the claims. A claim names what happened, not the defined
 terms or exclusions that decide it, and no search method closes that gap at k = 5. This is the gap A4 closes by
 looking them up by structure.
+
+**A4D (exploratory).** On test the dev gain did not hold: Llama 0.58 vs A4's 0.61 (exploratory McNemar p = 0.388),
+gpt-oss 0.73 vs 0.71 (p = 0.839). Evidence recall barely moved (0.91 to 0.94 on Llama, 0.84 to 0.85 on gpt-oss), and on
+gpt-oss wrong-covered rose from 0.02 to 0.06, for one more call and 1.1–1.2× the tokens. Missing definitions were not
+what held A4 back.
 
 ## 8. Demo: "Am I covered?"
 
