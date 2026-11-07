@@ -6,29 +6,41 @@
 | Llama 8B | L0 | 0.32 [0.24–0.41] | 0.52 | 0.00 | 0.68 | 0.31 | 1.00 | 0.32 | 0.15 | 0.99 | 1.0 | 34246 | 4.5 |
 | Llama 8B | A0 | 0.56 [0.48–0.65] | 0.65 | 0.13 | 0.61 | 0.38 | 0.66 | 0.35 | 0.23 | 0.98 | 1.0 | 2635 | 3.4 |
 | Llama 8B | A2 | 0.60 [0.51–0.68] | 0.65 | 0.17 | 0.61 | 0.41 | 0.66 | 0.38 | 0.27 | 0.97 | 2.5 | 4339 | 4.3 |
+| Llama 8B | A3 | 0.61 [0.53–0.69] | 0.69 | 0.11 | 0.63 | 0.40 | 0.88 | 0.50 | 0.27 | 0.98 | 7.9 | 45988 | 16.6 |
 | Llama 8B | A4 | 0.61 [0.53–0.69] | 0.69 | 0.08 | 0.56 | 0.29 | 0.91 | 0.54 | 0.23 | 0.95 | 3.0 | 6626 | 9.5 |
+| Llama 8B | A4D | 0.58 [0.50–0.66] | 0.69 | 0.09 | 0.60 | 0.35 | 0.94 | 0.56 | 0.27 | 0.95 | 4.0 | 7338 | 10.7 |
 | gpt-oss-20b | B0 | 0.46 [0.38–0.54] | 0.62 | 0.23 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | – | 1.1 | 1700 | 9.1 |
 | gpt-oss-20b | L0 | 0.76 [0.68–0.83] | 0.82 | 0.13 | 0.78 | 0.42 | 1.00 | 0.76 | 0.40 | 0.98 | 1.1 | 40842 | 18.0 |
 | gpt-oss-20b | A0 | 0.69 [0.61–0.77] | 0.74 | 0.17 | 0.65 | 0.63 | 0.66 | 0.44 | 0.36 | 1.00 | 1.0 | 3247 | 5.8 |
 | gpt-oss-20b | A2 | 0.62 [0.53–0.70] | 0.74 | 0.11 | 0.66 | 0.60 | 0.68 | 0.44 | 0.33 | 1.00 | 2.8 | 6139 | 27.6 |
+| gpt-oss-20b | A3 | 0.76 [0.68–0.83] | 0.84 | 0.08 | 0.73 | 0.72 | 0.77 | 0.56 | 0.45 | 1.00 | 3.4 | 8263 | 11.3 |
 | gpt-oss-20b | A4 | 0.71 [0.63–0.78] | 0.76 | 0.02 | 0.76 | 0.68 | 0.84 | 0.62 | 0.48 | 1.00 | 3.0 | 6476 | 15.2 |
+| gpt-oss-20b | A4D | 0.73 [0.65–0.80] | 0.77 | 0.06 | 0.74 | 0.63 | 0.85 | 0.65 | 0.48 | 1.00 | 4.0 | 7776 | 20.5 |
 
-## Llama 8B (commits b80d7c3)
+## Llama 8B (commits b80d7c3, c184cad)
 
 - McNemar best agent vs A0: A4 vs A0, p = 0.377, Holm p = 1.000; only A4 right 19, only A0 right 13
 - McNemar A0 vs B0: A0 vs B0, p = 0.711, Holm p = 1.000; only A0 right 16, only B0 right 13
 - McNemar A2 vs A4: A2 vs A4, p = 0.860, Holm p = 1.000; only A2 right 15, only A4 right 17
 - McNemar exploratory: L0 vs A0: p = 0.000 (not corrected, not pre-registered); only L0 right 13, only A0 right 43
 - McNemar exploratory: L0 vs best agent: p = 0.000 (not corrected, not pre-registered); only L0 right 8, only A4 right 44
+- McNemar exploratory: A3 vs A0: p = 0.362 (not corrected, not pre-registered); only A3 right 18, only A0 right 12
+- McNemar exploratory: A3 vs best agent: p = 1.000 (not corrected, not pre-registered); only A3 right 13, only A4 right 13
+- McNemar exploratory: A4D vs A0: p = 0.860 (not corrected, not pre-registered); only A4D right 17, only A0 right 15
+- McNemar exploratory: A4D vs best agent: p = 0.388 (not corrected, not pre-registered); only A4D right 4, only A4 right 8
 - Decision rule: **A0** (A4 and A0 not separated (McNemar p=0.377); A0 is cheaper/faster)
 
-## gpt-oss-20b (commits b80d7c3)
+## gpt-oss-20b (commits b80d7c3, c184cad)
 
 - McNemar best agent vs A0: A4 vs A0, p = 0.878, Holm p = 0.878; only A4 right 22, only A0 right 20
 - McNemar A0 vs B0: A0 vs B0, p = 0.000, Holm p = 0.001 (significant); only A0 right 45, only B0 right 16
 - McNemar A2 vs A4: A2 vs A4, p = 0.117, Holm p = 0.235; only A2 right 15, only A4 right 26
 - McNemar exploratory: L0 vs A0: p = 0.280 (not corrected, not pre-registered); only L0 right 25, only A0 right 17
 - McNemar exploratory: L0 vs best agent: p = 0.451 (not corrected, not pre-registered); only L0 right 25, only A4 right 19
+- McNemar exploratory: A3 vs A0: p = 0.185 (not corrected, not pre-registered); only A3 right 18, only A0 right 10
+- McNemar exploratory: A3 vs best agent: p = 0.430 (not corrected, not pre-registered); only A3 right 23, only A4 right 17
+- McNemar exploratory: A4D vs A0: p = 0.644 (not corrected, not pre-registered); only A4D right 23, only A0 right 19
+- McNemar exploratory: A4D vs best agent: p = 0.839 (not corrected, not pre-registered); only A4D right 13, only A4 right 11
 - Decision rule: **A0** (A4 and A0 not separated (McNemar p=0.878); A0 is cheaper/faster)
 
 _Cites in context: share of cited section IDs that exist in the policy and were in the model's context (checked in code, no judge)._
@@ -46,4 +58,15 @@ _Sound rate: share of all claims answered right with every gold section in the m
 
 _Over-cautious insufficient info: answered insufficient_info with every gold section in context, gold another verdict. All-or-nothing partial: gold partially_covered, answered covered or not_covered. Both split from the human "other" label by rule after the error review; the other types are the human labels._
 
+## Safe mode (exploratory: A0, re-checked by A4 whenever A0 says covered)
+
+| Model | Accuracy | Wrong-covered | Re-checked by A4 | Tokens | Seconds |
+|---|---|---|---|---|---|
+| Llama 8B | 0.56 | 0.04 (2 of 53) | 39 of 124 | 4790 | 6.6 |
+| gpt-oss-20b | 0.66 | 0.00 (0 of 53) | 50 of 124 | 5913 | 12.3 |
+
+_Simulated from the A0 and A4 answers above, no new model calls. Cost = A0 on every claim plus A4 on the re-checked ones._
+
 _L0 (whole policy in the prompt, no retrieval) is exploratory: added after pre-registration, so it is outside the Holm-corrected tests and the decision rule._
+
+_A3 (ReAct tool agent) is exploratory: added after the test results, so it is outside the Holm-corrected tests and the decision rule._

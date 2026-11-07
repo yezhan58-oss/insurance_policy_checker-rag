@@ -179,6 +179,23 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   2 claims, exclusions on 5: its searches already bring back the needed sections. So the free agent rarely
   thinks of definitions; the small model loops (as the brief warned), the reasoning model stops early. Run on
   test as is (no tuning), since how the agent behaves untuned is the question.
+- **A3 and A4D on test (6 Nov, main c184cad, A40; exploratory, never in the decision rule)** [7, 9]: 124 claims
+  each, 0 errors, 0 duplicates. Winner unchanged: A0 on both models. Accuracy (wrong-covered):
+  Llama A3 0.61 (0.11), A4D 0.58 (0.09) vs A4 0.61 (0.08), A0 0.56 (0.13); gpt-oss A3 0.76 (0.08), A4D 0.73
+  (0.06) vs A4 0.71 (0.02), A0 0.69 (0.17). No exploratory McNemar test is below 0.05 (lowest: gpt-oss A3 vs A0,
+  p = 0.185). Cost per claim: Llama A3 46k tokens, 7.9 calls, 16.6 s (A4: 6.6k, 3, 9.5 s); gpt-oss A3 8.3k, 3.4
+  calls, 11.3 s (A4: 6.5k, 3, 15.2 s). A4D: about 1.1–1.2× A4's tokens, 4 calls.
+  A3 behaviour as on dev: Llama 6.3 lookups per claim, hits the 8-lookup limit on 52 of 124, 155 of 778 lookups
+  repeat an earlier one, definitions on 33 claims, exclusions on 96. gpt-oss 1.4 lookups, stops by itself (2
+  unusable), definitions on 6 claims, exclusions on 15, evidence recall 0.77 (A4 0.84), yet the most accurate
+  setup with L0 (0.76): the reasoning model decides well from less evidence. A4D's evidence recall 0.94 / 0.85
+  (A4 0.91 / 0.84); it fixes fwd-059 on gpt-oss (covered, A4 said not_covered), not on Llama.
+  Judge (7 Nov, Haiku, US$0.076 for the 496 new rows, all judged): faithfulness Llama A3 0.40, A4D 0.35 (A4 0.29,
+  A0 0.38); gpt-oss A3 0.72, A4D 0.63 (A4 0.68, A0 0.63). Grounded rate Llama A3 0.27, A4D 0.27 (A4 0.23); gpt-oss
+  A3 0.45, A4D 0.48 (A4 0.48).
+- Engineering [6.4]: two test jobs cannot run side by side from one cluster checkout: run.py's dirty check counts
+  the first job's results files as uncommitted changes and refuses the second. Fixed for this run by hiding the
+  four results files from git status (`git update-index --assume-unchanged`, undone after); code was main c184cad.
 - **A4D added 5 Nov as exploratory (Member B, PR #61)** [4.4, 7]: A4 plus an LLM pick of up to 3 definitions from the
   defined-terms list, on top of the name matches (A4 itself unchanged). Dev: gpt-oss 17/20 vs A4 15/20, Llama 10/20
   both, about 1.2× A4's tokens; evidence recall equals A4 (dev has only 3 gold definitions, all found by name). Found in
@@ -223,12 +240,12 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   hand-checks, error types and demo on the winner (A0, A4 behind a toggle; 16 cached gpt-oss answers, none for
   Llama) on main. Left: Member A's trace rows 1–10, then section H.
 - [x] Commit `results/test/retrieval/` (on the laptop) together with the test results (branch `a/test-results`).
-- [ ] A3 (ReAct): dev check on both models (does it run, how many lookups, does it use definitions and exclusions),
+- [x] A3 (ReAct): dev check on both models (does it run, how many lookups, does it use definitions and exclusions),
       then one test run per model from main, judge (print the cost first), report rebuilt. [4.2, 7, 9]
 - [x] Safe mode numbers: `report.py` `safe_mode()` adds a table to leaderboard.md (same numbers as D; rebuilt
       with A3). [x] Demo toggle (Member B, PR #60: A4 re-checks every A0 "covered"; fwd-010 cached as the
       catch: gold not_covered, A0 covered, A4 not_covered on gpt-oss test).
-- [ ] A4D: test run per model from main with A3, then judge and report rebuilt.
+- [x] A4D and A3 test runs (6 Nov, c184cad); report rebuilt. [x] Judge on the 248 new rows per model (7 Nov, US$0.076).
 - [ ] A0 plus structure lookups; A2 gpt-oss rerun with a larger reply limit (if time).
 
 ## G. Checks to run when the test results land (before writing any number)
