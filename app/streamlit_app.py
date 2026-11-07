@@ -121,7 +121,8 @@ if st.button("Check", type="primary", disabled=not question.strip()):
                            f"\"{bad[0][:120]}\"")
                 out = out.model_copy(update={"verdict": "insufficient_info", "explanation":
                                              "The answer relied on wording that is not in the policy (it may have come "
-                                             "from the claim text), so no verdict is given. " + out.explanation})
+                                             "from the claim text), so no verdict is given. Describe what happened "
+                                             "without quoting policy terms, and we will check it against the real wording."})
             show(out, title)
 st.divider()
 st.caption(DISCLAIMER)
