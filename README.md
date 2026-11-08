@@ -12,6 +12,7 @@ a small Streamlit demo. Full design: `PROJECT_BRIEF.md`; report drafts: `docs/`.
 | A2 | Corrective RAG: grade chunks, rewrite the query up to 2 times |
 | A4 | Claims workflow: benefits, then definitions, then exclusions, then verdict |
 | L0 | Exploratory: the whole policy in the prompt (not in the decision rule) |
+| A4D | Exploratory: A4, but the model picks which defined terms to look up; not in the decision rule |
 | A3 | Exploratory: ReAct agent that chooses its own lookups (search, definition, exclusions); not in the decision rule |
 
 **Result (test, 124 claims):** A4 was the most accurate pre-registered setup (0.61 Llama, 0.71 gpt-oss) but not
@@ -120,7 +121,9 @@ streamlit run app/streamlit_app.py
 ```
 
 Pick a policy and a model, describe what happened, and get a verdict with the quoted clauses and the step trace. It
-runs A0 (the winner) with an A4 toggle. The scripted questions are cached in `app/demo_cache.json`, so they work
+runs A0 (the winner) with an A4 toggle. Two exploratory sidebar toggles, both off by default: safe mode (A4 re-checks
+every "covered" from A0) and the quote check (a "covered" that quotes wording not in the policy becomes
+insufficient_info). The scripted questions are cached in `app/demo_cache.json`, so they work
 offline; new questions need a model server and an open tunnel. Not insurance or legal advice.
 
 ## Repository map
