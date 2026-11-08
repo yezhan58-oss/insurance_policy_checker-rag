@@ -282,7 +282,7 @@ right; right verdicts often skipped a condition in the explanation, such as a 30
 **A claim no setup got right: fwd-030.** "S$800 in cash was stolen from the wallet in my pocket in Barcelona. I
 reported it to the police that day. Will I get all S$800 back?" Gold is partially_covered: the theft-of-money benefit
 pays stolen cash, but the S$300 cash sub-limit is in FWD's separate table of benefit limits, not in the benefit text.
-All 14 answers (7 setups x 2 models) were wrong: 5 said covered, 5 not_covered, 4 insufficient_info. Only L0, which
+All 14 answers (7 setups x 2 models) were wrong: 5 said covered, 4 not_covered, 5 insufficient_info. Only L0, which
 reads the whole policy, had the limits table in context, and it still missed the limit (Llama insufficient_info,
 gpt-oss covered). Every retrieval setup cited only the benefit section. A4 looks up definitions and exclusions by
 structure but not the limits table, so a sub-limit stored apart from its benefit is out of reach for all of them.
