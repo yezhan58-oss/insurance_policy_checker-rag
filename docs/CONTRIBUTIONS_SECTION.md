@@ -29,9 +29,11 @@ choose gold sections, the drafting helpers and the Streamlit review page. They d
 specific clauses of both policies and reviewed every draft against the policy text. They removed 12 redundant claims
 and made the seeded split (20 dev, 124 test), then resolved the blind-labelling disagreements with Member A and updated
 the guide where a rule was unclear. They built the policy look-up tools and A4, the claims-workflow agent that is our
-domain-specific setup, including its dev trials. On evaluation, they wrote the Claude Haiku faithfulness judge with a
+domain-specific setup, including its dev trials, and the exploratory A4D variant, in which the model picks the defined terms to look up. On evaluation, they wrote the Claude Haiku faithfulness judge with a
 cost dry-run and an agreement check, and hand-checked 30 judgments per model. They also labelled the error type of all
 176 wrong A0 and A4 test answers and hand-checked 10 agent traces. They built the "Am I covered?" demo with its
-guardrails, an offline answer cache and a prompt-injection check. In the report they wrote data and labelling, the A4
+guardrails, an offline answer cache, a prompt-injection check, and two exploratory
+safeguards: a safe mode in which A4 double-checks every "covered" from A0, and a quote check that rejects a
+"covered" quoting wording not in the policy. In the report they wrote data and labelling, the A4
 design, faithfulness, the demo, the discussion (including the minimum detectable gap and the safety gap in the
 decision rule), related work and the architecture diagram.
