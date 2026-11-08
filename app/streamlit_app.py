@@ -18,6 +18,7 @@ from src import store  # noqa: E402
 from src.approaches import REGISTRY  # noqa: E402
 from src.approaches._common import POLICY_NAMES  # noqa: E402
 from src.schema import Scenario, VerdictOutput  # noqa: E402
+from src.tools import unsupported_quotes  # noqa: E402
 
 WINNER = "A0"            # decision rule on test (results/test/report/leaderboard.md), both models
 BASELINE = "A4"          # agent shown side by side: fewer wrong "covered" answers on test
@@ -89,6 +90,9 @@ with st.sidebar:
     safe = st.toggle(f"Safe mode: {BASELINE} double-checks every \"covered\"",
                      help="Exploratory (worked out from the test results). On test it cut wrong 'covered' answers from 9 to 0 of 53 "
                           "(gpt-oss) for about 1.8x the tokens and 3 points of accuracy.")
+    quotes = st.toggle("Quote check: a \"covered\" must quote real policy wording",
+                       help="Exploratory. Catches fake clauses pasted into the claim. On test it flagged 5 of 70 right "
+                            "covered/partially covered answers on gpt-oss (A0, A4) and none on Llama, which rarely quotes.")
     compare = st.toggle(f"Compare with the claims-workflow agent ({BASELINE})")
 question = st.text_area("Describe what happened",
                         placeholder="My flight to Tokyo was delayed 7 hours because of a typhoon. Can I claim?")
@@ -111,6 +115,14 @@ if st.button("Check", type="primary", disabled=not question.strip()):
                 st.caption(f"Safe mode: {WINNER} said covered; {BASELINE} checked it and says "
                            f"{check.verdict.replace('_', ' ')}.")
                 out, title = check, f"Answer (safe mode, checked by {BASELINE})"
+            bad = unsupported_quotes(out.explanation, policy) if out.verdict in ("covered", "partially_covered") else []
+            if quotes and bad:
+                st.caption(f"Quote check: the answer quotes wording that is not in the {POLICY_NAMES[policy]} policy: "
+                           f"\"{bad[0][:120]}\"")
+                out = out.model_copy(update={"verdict": "insufficient_info", "explanation":
+                                             "The answer relied on wording that is not in the policy (it may have come "
+                                             "from the claim text), so no verdict is given. Describe what happened "
+                                             "without quoting policy terms, and we will check it against the real wording."})
             show(out, title)
 st.divider()
 st.caption(DISCLAIMER)

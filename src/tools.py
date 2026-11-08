@@ -48,3 +48,23 @@ def get_exclusions(section_id: str) -> list[Chunk]:
         else:
             out.append(c)
     return out
+
+
+def _norm(s: str) -> str:
+    s = s.lower().replace("’", "'").replace("‘", "'").replace("‑", "-").replace("‐", "-")
+    return re.sub(r"[^a-z0-9$%']+", " ", s).strip()
+
+
+def unsupported_quotes(explanation: str, policy: str) -> list[str]:
+    """Quoted phrases (4+ words) in the explanation that appear nowhere in the policy wording.
+
+    Checked against the whole policy, not just cited sections: real answers often quote a definition they did not cite.
+    """
+    text = _norm(" ".join(c.text for c in store.list_sections(policy)))
+    quotes = re.findall(r'"([^"]+)"|“([^”]+)”', explanation)
+    bad = []
+    for q in (a or b for a, b in quotes):
+        parts = [_norm(p) for p in re.split(r"\.\.\.|…", q)]  # ellipsis: check each piece
+        if any(len(p.split()) >= 4 and p not in text for p in parts):
+            bad.append(q)
+    return bad
