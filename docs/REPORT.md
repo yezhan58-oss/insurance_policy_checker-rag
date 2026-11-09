@@ -3,7 +3,7 @@ REPORT_NOTES. Course AI policy: each member must edit and vet their own part in 
 
 # Is the agent worth it? Agentic RAG for travel insurance coverage verdicts
 
-IS469 Generative and Agentic AI, group project. Member A: Ye Zhan Wong. Member B: Than Liang.
+IS469 Generative and Agentic AI, group project. Member A: Ye Zhan. Member B: Liang Than.
 Code, data and results: https://github.com/yezhan58-oss/insurance_policy_checker-rag
 
 ## Abstract
@@ -404,7 +404,7 @@ is not (1 of 53 vs A0's 9 on gpt-oss).
 
 ## Contributions
 
-**Member A (Ye Zhan Wong), written by Member B.** YZ set up the shared infrastructure that the whole study ran on. They
+**Member A (Ye Zhan), written by Member B.** YZ set up the shared infrastructure that the whole study ran on. They
 tested and documented the SMU GPU cluster setup (vLLM servers and batch scripts), and wrote the repository skeleton and
 the shared contracts (output schema, model client, store). They also wrote the ingestion of both policies into
 sections with stable IDs, and the search over them. They switched the study to the two free cluster models when the
@@ -417,12 +417,12 @@ models, and hand-checked 10 agent traces. In the report they wrote the method, e
 results sections, kept the running list of findings, re-checked every number in Member B's sections and the
 discussion, and wrote the README.
 
-**Member B (Than Liang), written by Member A.** Member B built the data the study rests on. They wrote the labelling guide
+**Member B (Liang Than), written by Member A.** Member B built the data the study rests on. They wrote the labelling guide
 that defines the four verdicts and how to choose gold sections, the drafting helpers and the Streamlit review page.
 They drafted 156 claim scenarios from specific clauses of both policies and reviewed every draft against the policy
 text. They removed 12 redundant claims and made the seeded split (20 dev, 124 test), then resolved the
 blind-labelling disagreements with Member A and updated the guide where a rule was unclear. They built the policy
-look-up tools and A4, the claims-workflow agent that is our domain-specific setup, including its dev trials, and the exploratory A4D variant, in which the model picks the defined terms to look up. On
+look-up tools and A4, the claims-workflow agent that is our domain-specific setup, including its dev trials, and the exploratory A4D variant, in which the model picks up to 3 extra defined terms on top of the ones matched by name. On
 evaluation, they wrote the Claude Haiku faithfulness judge with a cost dry-run and an agreement check, and
 hand-checked 30 judgments per model. They also labelled the error type of all 176 wrong A0 and A4 test answers and
 hand-checked 10 agent traces. They built the "Am I covered?" demo with its guardrails, an offline answer cache, a prompt-injection check, and two exploratory
