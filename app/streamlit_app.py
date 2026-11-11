@@ -192,6 +192,13 @@ CSS = """
          font-weight: 700; padding: 0 0.75rem 0.55rem 0;}
 .cmp td {padding: 0.65rem 0.75rem 0.65rem 0; border-top: 1px solid var(--line); vertical-align: middle;}
 .cmp td.num, .cmp th.num {text-align: right;}
+/* even columns, everything after the method name centred under its header, rows only (Streamlit draws a full
+   grid on markdown tables) */
+.cmp {table-layout: fixed;}
+.cmp th:first-child {width: 24%;}
+[data-testid="stMarkdownContainer"] .cmp :is(th, td) {border-left: 0; border-right: 0; padding-left: 0.5rem;
+    padding-right: 0.5rem; text-align: center; vertical-align: middle;}
+[data-testid="stMarkdownContainer"] .cmp :is(th, td):first-child {text-align: left; padding-left: 0;}
 .cmp .m {font-weight: 650; color: var(--ink);}
 .vpill {display: inline-block; font-weight: 700; font-size: 0.84rem; padding: 0.18rem 0.65rem; border-radius: 999px;
         border: 1.5px solid currentColor; white-space: nowrap; background: color-mix(in srgb, currentColor 7%, #FFFFFF);}
