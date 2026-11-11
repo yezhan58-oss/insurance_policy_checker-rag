@@ -102,8 +102,8 @@ the workflow agent is the safer one on exactly this kind of claim.
 
 ## [Slide 10: What we would tell an insurer] Ye Zhan, 35 s
 
-So here's what we'd tell an insurer. For best value, use simple RAG: it's as accurate as the agents with a third of the
-model calls. If wrongly telling a customer "you're covered" is the error you can't afford, the workflow agent is
+So here's what we'd tell an insurer. For best value, use simple RAG: it's as accurate as the agents with one model call
+instead of three or more. If wrongly telling a customer "you're covered" is the error you can't afford, the workflow agent is
 safer. Our advice is to combine them: let simple RAG answer everything, and have the workflow agent re-check only
 the claims simple RAG says are covered. In our test, that brought the wrong "covered" answers down to zero. The limits are that
 we wrote these claims ourselves from two policies, and 124 claims can only detect fairly large gaps.
