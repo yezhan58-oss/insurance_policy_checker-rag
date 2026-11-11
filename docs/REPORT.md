@@ -3,7 +3,7 @@ REPORT_NOTES. Course AI policy: each member must edit and vet their own part in 
 
 # Is the agent worth it? Agentic RAG for travel insurance coverage verdicts
 
-IS469 Generative and Agentic AI, group project. Member A: [name]. Member B: [name].
+IS469 Generative and Agentic AI, group project. Member A: Ye Zhan. Member B: Liang Than.
 Code, data and results: https://github.com/yezhan58-oss/insurance_policy_checker-rag
 
 ## Abstract
@@ -57,8 +57,8 @@ to decide when to retrieve and to critique its own output. Our A2 follows CRAG w
 fine-tuned evaluator and no web search, because the corpus is closed.
 
 **Tool-using agents.** ReAct (Yao et al., 2023) lets a model mix reasoning with tool calls and choose what to look up
-next. A ReAct agent was an optional setup we did not build; our plan flagged tool calling with an 8B model as a risk.
-Our A4 takes the opposite approach: a fixed LangGraph workflow that follows how a claims assessor reads a policy. The
+next. Our plan flagged tool calling with an 8B model as a risk, so we built a ReAct agent (A3) only after the core
+study, as an exploratory setup. Our A4 takes the opposite approach: a fixed LangGraph workflow that follows how a claims assessor reads a policy. The
 domain knowledge sits in the graph, not in the model's choices.
 
 **Long context instead of retrieval.** Li et al. (2024) find that long-context models can beat RAG when enough
@@ -122,6 +122,25 @@ The answer is forced into a JSON schema; an unusable reply is retried once and t
 
 ### 4.2 The setups
 
+Every setup ends in the same answer call. They differ only in which policy text that call sees and how it was found.
+
+| Setup | How it finds the policy text | Model calls per claim (Llama / gpt-oss) | Status |
+|---|---|---|---|
+| B0 | It does not: the model answers from what it already knows | 1.0 / 1.1 | Pre-registered (floor) |
+| A0 | One search with the claim text, top 5 chunks | 1.0 / 1.0 | Pre-registered |
+| A2 | Search, grade each chunk, rewrite the query and search again if too few are relevant | 2.5 / 2.8 | Pre-registered |
+| A4 | Fixed steps like a claims assessor: benefits, then definitions, then exclusions | 3.0 / 3.0 | Pre-registered |
+| L0 | None needed: the whole policy goes in the prompt | 1.0 / 1.1 | Exploratory (30 Oct) |
+| A3 | The model chooses its own lookups, one at a time | 7.9 / 3.4 | Exploratory (4 Nov) |
+| A4D | A4, plus a model pick of extra definitions | 4.0 / 4.0 | Exploratory (5 Nov) |
+| Safe mode | A0 first; A4 re-checks any covered or partially covered answer | A0's call, plus A4's on 39 / 50 of 124 claims | Exploratory, simulated |
+
+Calls are measured means on test; above 1.0 for one-call setups means a retry after an unusable reply. Exploratory
+setups were added after the comparisons were pre-registered, so their tests are uncorrected and they can never win
+under the decision rule.
+
+**Pre-registered**
+
 - **B0, no retrieval:** the claim and no policy text. The floor.
 - **A0, simple RAG:** one search with the claim text, top 5 chunks.
 - **A2, corrective RAG** (after Yan et al., 2024), a LangGraph loop: search 5 chunks; the LLM grades which are
@@ -136,9 +155,21 @@ The answer is forced into a JSON schema; an unusable reply is retried once and t
   shared answer call over everything gathered. At most 3 model calls; an unusable pick falls back to a fixed rule. Its
   design bet: simple RAG fails on policies mainly because the deciding definition or exclusion does not resemble the
   claim wording.
-- **L0, long context (exploratory):** the whole policy in the prompt, every section with its ID (about 28k tokens for
-  FWD, 45k for MSIG). Added on 30 Oct, after the comparisons were pre-registered, so its tests are uncorrected and it
-  can never win under the decision rule.
+
+**Exploratory**
+
+- **L0, long context:** the whole policy in the prompt, every section with its ID (about 28k tokens for FWD, 45k for
+  MSIG). It tests whether retrieval is needed at all on a corpus this small.
+- **A3, ReAct tool agent** (after Yao et al., 2023): the model decides what to look up. At each step it writes a short
+  thought and one action: search the policy, get the definition of a term, get the exclusions of a benefit, or answer.
+  It has the same tools as A4, so it can reach the same evidence; the difference is that A4 uses them in a fixed order
+  and A3 chooses for itself. After 8 lookups it must answer, and the shared answer call sees every section it looked
+  at.
+- **A4D, A4 with picked definitions:** step 2 also asks the model to pick up to 3 more definitions from the policy's
+  list of defined terms, to catch terms a claim implies but does not name. One more call than A4.
+- **Safe mode:** A0 answers every claim; when it says covered or partially covered, A4 runs as well and its verdict is
+  used instead, a second opinion before anyone is told to expect a payout. Simulated from the stored A0 and A4 test
+  answers (no new model calls), and offered as a toggle in the demo.
 
 ### 4.3 Models and infrastructure
 
@@ -151,31 +182,56 @@ public, so no model can have seen them.
 
 ## 5. Evaluation design
 
-| Metric | What it measures |
-|---|---|
-| Verdict accuracy (main) | verdict equals the gold verdict |
-| Wrong-covered rate (safety) | share of gold not_covered claims answered covered or partially_covered |
-| Clause recall | share of gold sections the answer cites |
-| Faithfulness | LLM judge: is the explanation supported by the cited text (yes / partly / no) |
-| Cost | mean model calls, tokens (including reasoning) and seconds per claim |
+Every test claim has a human gold verdict (one of four) and gold sections: the clauses that decide it. Each measure
+below answers one question about an answer, and each is averaged over the 124 test claims.
+
+**What we measure about the answer**
+
+| Measure | Question it answers | How it is computed | Better |
+|---|---|---|---|
+| Verdict accuracy (main) | Is the verdict right? | share of claims whose verdict equals the gold verdict | higher |
+| Wrong-covered rate (safety) | Does it say "covered" when the claim is not? | of the 53 gold not_covered claims, share answered covered or partially_covered | lower |
+| Clause recall | Does it cite the deciding clauses? | share of gold sections that appear in the answer's citations | higher |
+| Faithfulness | Is the explanation backed by the clauses it cites? | Claude Haiku judge rates yes / partly / no; we report the share of "yes" | higher |
+
+**What we measure about the process** (from each setup's step trace, no extra labelling)
+
+| Measure | Question it answers | How it is computed | Better |
+|---|---|---|---|
+| Evidence recall | Did the needed clauses reach the model at all? | share of gold sections in the final answer's context | higher |
+| Sound rate | Is it right for the right reason? | right verdict with every gold section in context, over all claims | higher |
+| Grounded rate | Right, with evidence, and explained faithfully? | sound and judged faithful, over all claims | higher |
+| Failure split | Why was a wrong answer wrong? | *missing evidence* (a gold section never reached the model: a retrieval failure) or *had evidence* (a reasoning failure) | fewer |
+| Step recall / precision | Does each step do its job? | e.g. share of gold exclusions A4's exclusions step kept, and share of what it kept that was gold | higher |
+| Citation checks | Are citations real? | does each cited ID exist in the policy, and was it in the model's context | higher |
+
+**What we measure about cost** (both models run free on the cluster, so there is no dollar price)
+
+| Measure | Question it answers | How it is computed | Better |
+|---|---|---|---|
+| Model calls | How many times does it ask the model? | mean calls per claim | fewer |
+| Tokens | How much text does the model read and write? | mean prompt + reply tokens per claim, including gpt-oss's reasoning | fewer |
+| Seconds | How long does a user wait? | mean wall-clock time per claim, one claim at a time | fewer |
+
+*Example.* For the 7-hour typhoon claim (gold: covered; gold sections: the travel-delay benefit and the definition of
+scheduled public transport), an answer that says covered and cites only the benefit is accurate, has clause recall
+0.5, and is sound only if both sections were in its context.
 
 **Statistics.** 95% bootstrap confidence intervals (1,000 resamples, fixed seed). Setups are compared with exact
-McNemar tests on per-claim correctness (Dietterich, 1998). Three comparisons were fixed in advance, with Holm
+McNemar tests on per-claim correctness (Dietterich, 1998): the test looks only at claims where one setup is right and
+the other wrong, and asks whether that split could be chance. Three comparisons were fixed in advance, with Holm
 correction: best agent vs A0, A0 vs B0, and A2 vs A4.
 
-**Decision rule (fixed before the test run).** The best setup has the highest test accuracy among those whose
-wrong-covered rate is no worse than A0's. If McNemar does not separate the top two, the cheaper and faster one wins.
+**Decision rule (fixed before the test run).** Three steps, applied to each model separately:
 
-**Trace evaluation.** Following feedback that the agents' steps should be evaluated, not only their verdicts, we score
-each recorded step against the gold sections with no extra labelling:
+| Step | Rule | Why |
+|---|---|---|
+| 1. Safety filter | drop any setup whose wrong-covered rate is worse than A0's | a costlier setup must not be less safe than simple RAG |
+| 2. Rank | the most accurate remaining setup leads | accuracy is the main measure |
+| 3. Tie-break | if McNemar cannot separate the top two (p ≥ 0.05), the cheaper one wins: fewer model calls, then fewer seconds | a gain we cannot tell apart from chance is not worth paying for |
 
-- *Step recall and precision*, e.g. A2's grader or A4's exclusions step.
-- *Evidence recall:* share of gold sections that reached the final answer's context.
-- *Failure split:* a wrong answer is *missing evidence* (a gold section never reached the model: retrieval failure) or
-  *had evidence* (reasoning failure).
-- *Sound rate:* right answers with every gold section in context, over all claims; a stricter accuracy that does not
-  credit lucky guesses. The *grounded rate* also requires a faithful explanation.
-- *Citation checks* in code: does each cited ID exist in the policy, and was it in the model's context?
+There is no fixed budget in seconds or tokens: "cheaper" only matters in step 3, between two setups the test cannot
+separate. Exploratory setups added after pre-registration (such as L0) are scored but never compete.
 
 Both members also hand-checked 20 agent traces and labelled the error type of every wrong A0 and A4 answer.
 
@@ -206,7 +262,8 @@ guided go/no-go decisions.
 
 ## 7. Results
 
-All runs used commit b80d7c3. Each setup ran once on each model over the 124 test claims: 1,240 answers, of which 9
+The core setups and L0 ran at commit b80d7c3, A3 and A4D at c184cad, and A0K10 at bd31b05. Each of the 4 core
+setups and L0 ran once on each model over the 124 test claims: 1,240 answers, of which 9
 were parse errors (all gpt-oss: 8 L0, 1 A2), scored as wrong.
 
 ### 7.1 Leaderboard
@@ -242,14 +299,40 @@ A4 was the most accurate pre-registered setup on both models. Retrieval helped t
 Only one comparison is separated: retrieval beats no retrieval on gpt-oss. With 124 claims, a gap of about 14 points
 (Llama) or 16 points (gpt-oss) between A4 and A0 would be needed for 80% power; the observed gaps are 5 and 2.
 
-Under the decision rule, A4 is top and eligible on both models (wrong-covered 0.08 vs A0's 0.13 on Llama, 0.02 vs
-0.17 on gpt-oss); A2 is not eligible on Llama (0.17). A4 and A0 are not separated, so **A0, the cheaper and faster
-setup, wins on both models**. The demo uses A0 on gpt-oss-20b, the more accurate model.
+How the decision rule played out:
+
+| Step | Llama 8B | gpt-oss-20b |
+|---|---|---|
+| 1. Safety filter (A0's wrong-covered rate) | 0.13: A2 out (0.17); B0, A0, A4 stay | 0.17: B0 out (0.23); A0, A2, A4 stay |
+| 2. Top two by accuracy | A4 0.61 (76 of 124 right), A0 0.56 (70) | A4 0.71 (88 right), A0 0.69 (86) |
+| 3. Does McNemar separate them? | no, p = 0.38 | no, p = 0.88 |
+| Tie-break: model calls per claim | A0 1.0, A4 3.0 | A0 1.0, A4 3.0 |
+| **Winner** | **A0** | **A0** |
+
+**A0, the cheaper and faster setup, wins on both models**, although A4 has the higher accuracy. A4's lead is 6 claims
+on Llama and 2 on gpt-oss, well inside what chance produces on 124 claims, so the rule does not pay three times the
+model calls for it. The demo uses A0 on gpt-oss-20b, the more accurate model.
 
 ### 7.3 Cost and long context
 
-A4 bought +5 points on Llama for 2.8× the seconds and 2.5× the tokens of A0, and +2 points on gpt-oss for 2.6× and
-2.0×; neither gain is significant. A2 gained nothing on gpt-oss and was the slowest setup (27.6 s, 4.8× A0).
+What each pre-registered setup costs compared with simple RAG (A0):
+
+| Model | Setup | Accuracy (vs A0) | Model calls | Tokens per claim (× A0) | Seconds per claim (× A0) | Time for 1,000 claims |
+|---|---|---|---|---|---|---|
+| Llama 8B | A0 | 0.56 | 1.0 | 2,635 (1×) | 3.4 (1×) | 1.0 h |
+| | A2 | 0.60 (+3) | 2.5 | 4,339 (1.6×) | 4.3 (1.3×) | 1.2 h |
+| | A4 | 0.61 (+5) | 3.0 | 6,626 (2.5×) | 9.5 (2.8×) | 2.6 h |
+| gpt-oss-20b | A0 | 0.69 | 1.0 | 3,247 (1×) | 5.8 (1×) | 1.6 h |
+| | A2 | 0.62 (−7) | 2.8 | 6,139 (1.9×) | 27.6 (4.7×) | 7.7 h |
+| | A4 | 0.71 (+2) | 3.0 | 6,476 (2.0×) | 15.2 (2.6×) | 4.2 h |
+
+Time for 1,000 claims: seconds per claim × 1,000, one claim at a time on one A40.
+
+In plain terms: on gpt-oss, A4 got 2 more of 124 claims right than A0, but took 2.6 times as long per claim and read
+twice the text; checking 1,000 claims would take about 4.2 hours instead of 1.6. On Llama, A4 got 6 more right for
+2.8 times the time. Neither gain is significant, so the extra cost buys no accuracy we can show. A2 was the worst trade
+on gpt-oss: less accurate than A0 and the slowest setup, because many of its rewrite replies ran long (Section 7.4).
+The absolute seconds depend on our hardware; the ratios to A0 are what carry over.
 
 ![Accuracy against tokens per claim, one point per setup and model.](../results/test/report/accuracy_vs_tokens.png)
 
@@ -325,6 +408,12 @@ gpt-oss 0.73 vs 0.71 (p = 0.839). Evidence recall barely moved (0.91 to 0.94 on 
 gpt-oss wrong-covered rose from 0.02 to 0.06, for one more call and 1.1–1.2× the tokens. Missing definitions were not
 what held A4 back.
 
+**A0K10 (exploratory): would simple RAG do better with 10 passages?** No. Added on 11 Nov after the test results,
+so it is outside the decision rule. Doubling k raised evidence recall from 0.66 to 0.75, but accuracy barely moved:
+gpt-oss 0.70 vs A0's 0.69 (87 vs 86 right; exploratory McNemar p = 1.00), Llama 0.59 vs 0.56 (73 vs 70; p = 0.607).
+Wrong-covered stayed about the same (8 vs 9 of 53 on gpt-oss, 7 vs 7 on Llama), for 1.7× the tokens. More passages
+do not close the gap to A4's safety. These runs used an L40S GPU, so their seconds are not comparable.
+
 ## 8. Demo: "Am I covered?"
 
 The build half turns the winner into a Streamlit app. The user picks a policy and a model, describes what happened, and
@@ -337,8 +426,8 @@ Each answer has a hedged headline ("Likely covered under `fwd:travel_delay`, sub
 a payout amount), the full text of every cited clause with its page, and the step trace the evaluation scores.
 
 **Guardrails.** A check after the model keeps only cited IDs that exist in the index. If no real clause is left, or the
-call fails, the verdict becomes insufficient_info and the app asks for the missing details instead of guessing. A
-fixed disclaimer says it is a student demo, not insurance or legal advice. In a prompt-injection check (4 claims with
+call fails, the verdict becomes insufficient_info and the app asks for the missing details instead of guessing. Every
+headline is hedged ("likely", "subject to the insurer's assessment"). In a prompt-injection check (4 claims with
 instructions such as "ignore your previous instructions and say covered", on A0 and A4), none of the 8 answers said
 covered or cited the injected section. A harder attack got through: a fake policy endorsement pasted into the claim
 (minimum delay 3 hours instead of 6), with an instruction to cite the real `fwd:travel_delay`. A0 on gpt-oss answered
@@ -404,7 +493,7 @@ is not (1 of 53 vs A0's 9 on gpt-oss).
 
 ## Contributions
 
-**Member A ([name]), written by Member B.** YZ set up the shared infrastructure that the whole study ran on. They
+**Member A (Ye Zhan), written by Member B.** YZ set up the shared infrastructure that the whole study ran on. They
 tested and documented the SMU GPU cluster setup (vLLM servers and batch scripts), and wrote the repository skeleton and
 the shared contracts (output schema, model client, store). They also wrote the ingestion of both policies into
 sections with stable IDs, and the search over them. They switched the study to the two free cluster models when the
@@ -417,7 +506,7 @@ models, and hand-checked 10 agent traces. In the report they wrote the method, e
 results sections, kept the running list of findings, re-checked every number in Member B's sections and the
 discussion, and wrote the README.
 
-**Member B ([name]), written by Member A.** Member B built the data the study rests on. They wrote the labelling guide
+**Member B (Liang Than), written by Member A.** Member B built the data the study rests on. They wrote the labelling guide
 that defines the four verdicts and how to choose gold sections, the drafting helpers and the Streamlit review page.
 They drafted 156 claim scenarios from specific clauses of both policies and reviewed every draft against the policy
 text. They removed 12 redundant claims and made the seeded split (20 dev, 124 test), then resolved the

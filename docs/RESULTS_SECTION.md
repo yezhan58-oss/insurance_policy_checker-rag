@@ -8,7 +8,7 @@ Structure fixed before the test run (27 Oct), so what we report does not depend 
 ### 7.1 Test set
 
 124 claims (80 FWD, 44 MSIG), frozen on 28 Oct at commit b7bcde0. Gold verdicts: 46 covered, 53 not_covered,
-14 partially_covered, 11 insufficient_info. All runs used commit b80d7c3. Each of the 4 pre-registered setups and the
+14 partially_covered, 11 insufficient_info. These runs used commit b80d7c3 (A3 and A4D: c184cad; A0K10: bd31b05). Each of the 4 pre-registered setups and the
 exploratory L0 ran once on each model: 1,240 answers. 9 were parse errors, all on gpt-oss (8 L0, 1 A2), scored as
 wrong.
 
@@ -65,7 +65,7 @@ discussion 8.4).
 The winner is A0, so the question is what A4 buys. On Llama, +5 points for 2.8× the seconds (9.5 vs 3.4) and 2.5× the
 tokens (6,626 vs 2,635). On gpt-oss, +2 points for 2.6× the seconds (15.2 vs 5.8) and 2.0× the tokens (6,476 vs
 3,247). Neither gain is significant (7.3), so on accuracy the extra cost is not justified. A2 costs more and gains
-nothing on gpt-oss (27.6 s, 4.8× A0).
+nothing on gpt-oss (27.6 s, 4.7× A0).
 
 **Exploratory: long context (L0).** L0 accuracy 0.32 (Llama) / 0.76 (gpt-oss) at about 13× A0's tokens (34k and 41k
 per claim). On Llama it is far below A0 and A4 (p < 0.001 for both; only A0 right on 43 claims, only L0 on 13): it
@@ -202,3 +202,23 @@ A4D (6.3) ran once on each model on all 124 test claims (main c184cad). It is ex
 - A4D costs one more call and about 1.1–1.2× A4's tokens, and on gpt-oss its wrong-covered rate is higher (0.06 vs
   0.02). A4 stays the agent we report; A0 remains the winner.
 
+### 7.13 A0K10: simple RAG with 10 passages (exploratory)
+
+A0K10 is A0 with top_k = 10 instead of 5. It was added on 11 Nov, after the test results, to check whether A0 only
+needed more passages. It ran once on each model on all 124 test claims (commit bd31b05) and is not in the decision rule.
+
+| Model | Setup | Accuracy [95% CI] | Right | Wrong-covered | Evidence recall | Tokens |
+|---|---|---|---|---|---|---|
+| Llama 8B | A0 | 0.56 [0.48–0.65] | 70 | 0.13 (7/53) | 0.66 | 2,635 |
+| Llama 8B | A0K10 | 0.59 [0.50–0.67] | 73 | 0.13 (7/53) | 0.75 | 4,573 |
+| gpt-oss-20b | A0 | 0.69 [0.61–0.77] | 86 | 0.17 (9/53) | 0.66 | 3,247 |
+| gpt-oss-20b | A0K10 | 0.70 [0.62–0.78] | 87 | 0.15 (8/53) | 0.75 | 5,382 |
+
+- More passages did not help: +3 claims on Llama (only A0K10 right 9, only A0 right 6; exploratory McNemar p = 0.607)
+  and +1 on gpt-oss (13 vs 12; p = 1.00). A0K10 vs A4 is also not significant (p = 0.690 Llama, 1.00 gpt-oss).
+- Evidence recall rose from 0.66 to 0.75, as the retrieval-only check in 7.10 predicted, but the extra evidence did not
+  turn into correct verdicts. On Llama, wrong answers that had all the evidence rose from 23 to 27.
+- Safety did not improve: A4 still has the fewest wrong "covered" answers (1 of 53 on gpt-oss, against 8 for A0K10).
+- Cost is 1.7× A0's tokens for the same single call. A0 stays the winner.
+- Limits: these two runs used an L40S GPU because the A40 node was down, so seconds per claim are not compared (5.4 s
+  gpt-oss, 2.8 s Llama on the L40S). Faithfulness was not judged for A0K10.

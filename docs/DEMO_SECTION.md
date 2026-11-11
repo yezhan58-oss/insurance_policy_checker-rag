@@ -24,8 +24,8 @@ Each answer has three parts:
 section IDs that exist in the index, so an invented ID never reaches the screen. If no real clause is left, or the
 call failed, the verdict becomes insufficient_info and the app asks for the missing details (cause, dates, amounts,
 what is claimed). This follows the safety goal behind the wrong_covered_rate metric: when the evidence is missing,
-the demo says so instead of guessing "covered". A fixed disclaimer at the top and bottom states that this is a student
-research demo, not insurance or legal advice, and that only the insurer can decide a claim.
+the demo says so instead of guessing "covered". Every headline is hedged ("likely", "subject to the insurer's assessment"), so the
+app never presents itself as the insurer's decision.
 
 **Running offline.** Both models run on the SMU cluster and are reached through an SSH tunnel. So that the demo does
 not depend on a GPU job being up, every answer is cached by (policy, model, approach, question), and the scripted
