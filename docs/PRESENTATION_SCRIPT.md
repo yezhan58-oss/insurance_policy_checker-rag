@@ -48,7 +48,7 @@ differences together against the policy text. We also wrote the winner rule befo
 first, a method must not wrongly say "covered" more often than simple RAG; then the most accurate one wins; and if the
 gap isn't statistically significant, the cheaper, faster method wins.
 
-*(hand over)* Liang will show you how the agent works.
+*(hand over)* Liang will show you how the workflow agent works.
 
 ## [Slide 5: The workflow agent reads like a claims assessor] Liang Than, 35 s
 
@@ -61,17 +61,15 @@ claim, compared with 66% for simple RAG.
 
 ## [Slide 6: The agents led, but not by enough] Ye Zhan, 35 s
 
-The two agents were the most accurate, but only just. On gpt-oss the workflow agent got 88 claims right and ReAct 94,
-against simple RAG's 86; on Llama both got 76 against 70. None of these gaps is statistically significant: with 124 claims,
-differences this small could just be luck. So they are too close to call, and the best value is simple RAG. (If asked: our planned rule picks simple RAG;
+The two agents were the most accurate, but only just: on gpt-oss, ReAct got 94 of 124 right against simple RAG's 86.
+None of these gaps is statistically significant: with 124 claims, differences this small could just be luck. So they are too close to call, and the best value is simple RAG. (If asked: our planned rule picks simple RAG;
 with ReAct added later, its tie-break picks the workflow agent. Either way, no agent is significantly better.)
 
-## [Slide 7: What the agent costs, and what it buys] Ye Zhan, 35 s
+## [Slide 7: What the workflow agent costs, and what it buys] Ye Zhan, 35 s
 
-The workflow agent takes 2.6 times as long per claim, 15.2 seconds against 5.8, so checking a thousand claims would take
-4.2 hours instead of 1.6. For that, you get two more right answers, which isn't a real difference. Where it does
-matter is safety: out of the 53 claims that are not covered, simple RAG wrongly told the customer "you're covered"
-9 times, while the workflow agent did it only once.
+The workflow agent takes 2.6 times as long per claim, and for that you get two more right answers, which isn't a
+real difference. Where it does matter is safety: on the claims that are not covered, simple RAG wrongly told the
+customer "you're covered" 9 times, the workflow agent only once.
 
 ## [Slide 8: The model mattered more than the method] Ye Zhan, 15 s
 
@@ -96,7 +94,7 @@ exclusion for events already reported by the media. ReAct gets there too, by its
 a tick.
 
 *(scroll down to the "Which one wins?" panel)* This panel sums up the study: simple RAG is our best-value pick, and
-the agent is the safer one on exactly this kind of claim.
+the workflow agent is the safer one on exactly this kind of claim.
 
 > If live fails, or the cluster is slow: untick "Run live" and say "here are the saved answers from the same run".
 > If simple RAG says not covered this time, say "simple RAG got this one right today, but in our test run it said
@@ -104,10 +102,10 @@ the agent is the safer one on exactly this kind of claim.
 
 ## [Slide 10: What we would tell an insurer] Ye Zhan, 35 s
 
-So here's what we'd tell an insurer. For best value, use simple RAG: it's as accurate as the agent with a third of the
-model calls. If wrongly telling a customer "you're covered" is the error you can't afford, the agent is safer, with 1
-wrong out of 53 against 9. Our advice is to combine them: let simple RAG answer everything, and have the agent
-re-check only the claims simple RAG says are covered, which brought the wrong "covered" count to 0 of 53 at 66% accuracy. The limits are that
+So here's what we'd tell an insurer. For best value, use simple RAG: it's as accurate as the agents with a third of the
+model calls. If wrongly telling a customer "you're covered" is the error you can't afford, the workflow agent is
+safer. Our advice is to combine them: let simple RAG answer everything, and have the workflow agent re-check only
+the claims simple RAG says are covered. In our test, that brought the wrong "covered" answers down to zero. The limits are that
 we wrote these claims ourselves from two policies, and 124 claims can only detect fairly large gaps.
 
 ## [Slide 11: Thank you. Questions?] Ye Zhan, 10 s
@@ -123,6 +121,6 @@ So, is the agent worth it? For accuracy, not yet. For safety, yes. Thank you, an
 - Open `localhost:8502` in the browser before you start, with all four methods ticked. Click the "Typhoon already in the
   news" example instead of pasting: the wording then matches our test claim exactly, so the page shows the tick or
   cross under each verdict. After "Check my claim" the banner shrinks, so all four verdicts fit on the first screen.
-- On the cover and the last slide, replace "[presentation date]" with **13 November 2026**.
-- Rehearse once with a timer. If you run long, cut the last sentence of slide 3 and the slide 8 "Without the policy"
-  line first.
+- Rehearse once with a timer. If you run long, cut in this order: the "Without the policy" line on slide 8, the
+  limits sentence on slide 10, then "We ran all of it on two models" on slide 3 (the slide still shows it).
+- Say one number per point; the slides hold the rest. Avoid "McNemar", "Holm" and "kappa" unless asked.
