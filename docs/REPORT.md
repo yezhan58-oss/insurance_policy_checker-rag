@@ -113,7 +113,7 @@ The call counts are measured means on the test set; a one-call setup can show sl
 **Exploratory methods:**
 
 - **Whole policy (Full-context).** The whole policy goes in together with the user's prompt, every section with its ID. That is about 28k tokens for FWD and 45k for MSIG. It asks whether retrieval is needed at all on a corpus this small.
-- **Agent with term picking (Agent-Pick).** In step 2 the model also picks up to 3 more definitions from the policy's list of defined terms, to catch terms a claim implies without naming them. It costs one more call than the workflow agent.
+- **Agent with term picking (Agent-Pick).** A claim about a delayed flight doesn't say anything about scheduled public transport, but that additional info decides whether or not it's covered. In Agent-Pick, the model also picks up to 3 extra definitions from the policy's list of defined terms in step 2, for one more call than the workflow agent.
 - **Simple RAG, 10 passages (RAG-10).** Simple RAG with the top 10 chunks instead of 5. We added it after seeing the test results, to check whether simple RAG just needed more text.
 - **Safe mode (RAG+Check).** Simple RAG answers every claim, and whenever it says covered or partially covered, the agent double-checks and its answer is used. We worked this out from the answers both setups had already given on the test set, so no new runs were needed.
 
