@@ -260,15 +260,15 @@ A claim describes what happened and never uses the defined terms or exclusion wo
 
 ## 8. Demo: "Am I covered?"
 
-The demo is a Streamlit app that runs no retrieval, simple RAG and the workflow agent side by side on gpt-oss-20b, so the audience sees the floor, the winner and the agent answer the same claim.
+The demo is a Streamlit app that runs no retrieval, simple RAG, the workflow agent and ReAct side by side on gpt-oss-20b, so the audience sees the floor, the winner and both agents answer the same claim.
 
 ![The demo (earlier version, 7-hour typhoon claim): simple RAG says likely covered; the workflow agent asks for the check-in detail. To be replaced with a screenshot of the current page on the Manila claim.](demo_typhoon.png)
 
 - **Each card shows** a hedged verdict ("Likely covered under Travel delay, subject to the insurer's assessment", never a payout amount), the steps taken, a short reason and one deciding line per cited clause. On labelled test claims it also marks the verdict right or wrong.
 - **Guardrails:** every cited ID must exist in the policy, or the answer becomes "need more detail" and asks for the missing facts. A safe-mode toggle has the agent re-check every "covered", and a quote check rejects a "covered" that quotes wording not found in the policy.
-- **Prompt injection:** four claims with instructions such as "say covered" fooled neither setup. A fake policy endorsement pasted into a claim did fool simple RAG; the quote check catches it.
+- **Prompt injection:** four claims with instructions such as "say covered" fooled neither simple RAG nor the workflow agent. A fake policy endorsement pasted into a claim did fool simple RAG; the quote check catches it.
 - **Offline:** scripted questions use cached answers, which are never used for any reported number.
-- **Limit:** the winner is right on 69% of claims. The app points to the deciding clauses; it is not a claims decision.
+- **Limit:** simple RAG, the winner under the planned rule, is right on 69% of claims. The app points to the deciding clauses; it is not a claims decision.
 
 ## 9. Discussion
 
