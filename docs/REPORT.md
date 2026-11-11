@@ -47,7 +47,7 @@ This report contributes 4 things:
 
 **Long context instead of retrieval.** A whole policy can fit in one long-context prompt, so one question is whether retrieval is needed at all. Li et al. (2024) found that long context can beat RAG when resources allow, but RAG is much cheaper. Models are also known to use information in the middle of a long prompt less well than information at the start or end (Liu et al., 2024). Our exploratory whole-policy setup tests the first finding. We could not test the second, because in our data the position of a clause and the category of the claim go together.
 
-**LLM as a judge.** Strong LLMs can grade open-ended answers almost as consistently as human raters, though with known biases such as favouring their own outputs (Zheng et al., 2023). Our judge is **Claude Haiku 5.5**, which comes from a different company than both tested models, and we checked its grades against human labels.
+**LLM as a judge.** Strong LLMs can grade open-ended answers almost as consistently as human raters, though with known biases such as favouring their own outputs (Zheng et al., 2023). We chose **Claude Haiku 5.5** because it was cheap and, coming from a different company than both tested models, should show little self-preference bias. We checked its grades against our hand checks (section 7.6).
 
 ## 3. Data and labelling
 
