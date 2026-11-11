@@ -6,9 +6,10 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import pandas as pd  # noqa: E402
 
-APPROACHES = ["B0", "L0", "A0", "A2", "A3", "A4", "A4D"]   # exploratory L0, A3, A4D only if they were run
+APPROACHES = ["B0", "L0", "A0", "A0K10", "A2", "A3", "A4", "A4D"]   # exploratory ones only if they were run
 # A3 and A4D (added 4-5 Nov) are outside the validated set; values are printed on every chart, so color is never the only cue
-COLORS = {"B0": "#2a78d6", "A0": "#eb6834", "A2": "#1baf7a", "A4": "#eda100", "L0": "#4a3aa7", "A3": "#c4327f", "A4D": "#8a6d00"}
+COLORS = {"B0": "#2a78d6", "A0": "#eb6834", "A2": "#1baf7a", "A4": "#eda100", "L0": "#4a3aa7", "A3": "#c4327f", "A4D": "#8a6d00",
+          "A0K10": "#9c4a1f"}
 MARKERS = ["o", "s", "^", "D"]
 INK, MUTED, GRID, EMPTY = "#0b0b0b", "#52514e", "#e4e3df", "#f3f2ef"
 BLUES = ["#eef5fd", "#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95"]     # light -> dark
