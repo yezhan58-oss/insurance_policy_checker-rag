@@ -179,6 +179,35 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   2 claims, exclusions on 5: its searches already bring back the needed sections. So the free agent rarely
   thinks of definitions; the small model loops (as the brief warned), the reasoning model stops early. Run on
   test as is (no tuning), since how the agent behaves untuned is the question.
+- **ReAct (A3) in the main comparison (11 Nov, after the test results; disclosed in the report)** [4.2, 7.2, 9]:
+  shown next to the four core setups in every table, chart, slide and the demo, marked "added later". score.py
+  also reports the decision rule with A3 as a full candidate (`with_react` in scores.json); the planned result is
+  unchanged. As planned: A0 wins on both models. With A3: the top two become A3 and A4, not separated (p = 1.00
+  Llama, 0.43 gpt-oss), so A4 wins as the cheaper. A3 vs A0: p = 0.36 / 0.18 (Holm 0.23 on gpt-oss as best agent).
+  Finding: the top-two tie-break makes the formal winner depend on which setups are in the race; what holds either
+  way is that no agent is significantly more accurate than A0. Headline: "simple RAG is the best value, the
+  workflow agent the safest". YZ built A3 (b93b856, 4 Nov); the Contributions paragraph does not say so yet.
+- **Advice to an insurer, refined (11 Nov)** [9]: simple RAG as the main engine, workflow agent re-checks every
+  "covered" (0 of 53 wrong, 66% accuracy, about 1.8x tokens, simulated). ReAct only for open-ended questions
+  (comparing plans, multi-part questions), with a strong model and a lookup cap: claim checking is well-structured,
+  where Topic 7 slide 36 (ReAct vs Plan-and-Execute) favours a fixed plan, and A3 was less safe (4 of 53 vs 1) with
+  unpredictable cost (7.9 calls on Llama). Invest in the model first (+13 points vs at most +6 from method). At
+  about 70% accuracy, point customers to the deciding clauses and leave the claim decision to a person.
+- **Power** [9]: with the observed discordance (32 to 42 of 124 claims), a 5-point gap needs about 800 to 1,100
+  claims for 80% power (McNemar, two-sided 5%); about 230 to 290 for a 10-point gap.
+- **Course links** [1, 2]: Topic 7 slides 18-19 (ReAct loop), 36 (ReAct vs Plan-and-Execute: the workflow agent is
+  Plan-and-Execute), 38 (planning ladder); Topic 8 slides 10-12 (long context, lost in the middle: Full-context),
+  13 (RAG pipeline), 28 (BM25 hybrid: retrieval-only check), 32 and 43-44 (query rewriting, judge and re-query:
+  corrective RAG), 46 (faithfulness, trajectory metrics), 47 (cap retrieval calls).
+- **Why these two models** [4.3]: largest that fit one 48 GB student GPU. Shared models on the cluster
+  (/common/public/llm-models, checked 11 Nov): Llama 3.1 8B/70B/405B, Llama 3.3 70B, gpt-oss-20b/120b,
+  DeepSeek-R1 and its 7B/8B/14B/32B/70B distills, Qwen2.5-VL 7B/72B, NVLM-D-72B, Janus, whisper; several folders
+  locked. Only the R1 distills (7B to 14B) were real alternatives, and they are reasoning models like gpt-oss.
+- **Names and presentation (11 Nov)**: report, slides, script, demo and charts use names instead of codes
+  (B0 No-RAG, A0 RAG, A2 CRAG, A4 Agent, L0 Full-context, A3 ReAct, A4D Agent-Pick, A0K10 RAG-10); code and
+  results files keep the IDs. Report cut toward 10 pages; slides cut to short cue phrases; slide 3 has a ReAct row,
+  slide 6 a ReAct bar, slide 9 a ReAct line. Demo: ReAct card (live, plus saved test-run answers for fwd-010 and
+  fwd-003; not covered on fwd-010, like A4). Charts: scatter plots show the core setups, ReAct and Full-context.
 - **A0K10 on test (11 Nov, branch a/a0-k10 at bd31b05, L40S; exploratory, a test only; code merged in PR #71)** [7]: A0 with
   top_k 10. 124 claims each, 0 errors. Accuracy (wrong-covered): gpt-oss 0.70 (0.15) vs A0 0.69 (0.17), McNemar
   p = 1.00 (13 vs 12); Llama 0.59 (0.13) vs A0 0.56 (0.13), p = 0.607 (9 vs 6). Evidence recall 0.66 to 0.75 on
