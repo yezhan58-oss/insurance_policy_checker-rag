@@ -280,14 +280,14 @@ The demo is a Streamlit app that runs no retrieval, simple RAG, the workflow age
 - **The model mattered more than the method.** A strong model can even read the whole policy, or plan its own lookups (ReAct on gpt-oss); a weak one needs retrieval to keep the context small, and as a free agent it flails (ReAct on Llama: 7.9 calls per claim).
 - **Searching again or searching wider does not help** when the missing clause shares no words with the claim (corrective RAG, RAG-10).
 - **The formal winner depends on which setups are in the race.** Our tie-break only compares the top two, so adding ReAct afterwards switched the winner from simple RAG to the workflow agent without changing either one's results. A rule that compares every setup against the cheapest would be more stable.
-- **Safety is where the workflow agent earns its cost.** On gpt-oss it wrongly said "covered" on 1 of 53 claims, against 9 for simple RAG and 4 for ReAct (exploratory, p = 0.021 against simple RAG; not significant on Llama). Our rule only checked safety against simple RAG, so it could not reward this; a real deployment should break ties on safety.
+- **Safety is where the workflow agent earns its cost.** On gpt-oss it wrongly said "covered" on 1 of 53 claims labelled "not covered", against 9 for simple RAG and 4 for ReAct (exploratory, p = 0.021 against simple RAG; not significant on Llama). That is the costliest error if customers were told they're covered and the insurer then refused the claim. Our rule only checked safety against simple RAG, so it could not reward this; a real deployment should break ties on safety.
 
 **Advice to an insurer.** Use simple RAG as the main engine and let the workflow agent re-check every "covered" or "partially covered". On the stored gpt-oss answers this gave 0 wrong "covered" of 53, at 66% accuracy and about 1.8× simple RAG's tokens (simulated, exploratory). Keep ReAct for open-ended questions, such as comparing plans, and only with a strong model and a cap on lookups: claim checking is a well-structured task, where Topic 7's rule of thumb favours a fixed plan over ReAct, and our results agree (more calls, less safe). Invest in the model before the method, and at about 70% accuracy let the chatbot point customers to the deciding clauses while a person decides the claim.
 
 **Limitations**
 
 - **Labels:** agreement was moderate (kappa 0.46); "not covered" versus "need more detail" is partly a judgement call.
-- **Power:** 124 claims only detect gaps of about 14 to 16 points. A 5-point gap would need about 800 to 1,100 claims.
+- **Power:** With 124 claims we had an 80% chance of detecting a gap of about 14 points on Llama and 16 on gpt-oss. A 5-point gap would need about 800 to 1,100 claims.
 - **ReAct joined after the core runs,** so its comparison was not pre-registered; we report the rule both ways for that reason.
 - **Scope:** two policies from one market, two open models (8B and 20B), and claims we wrote ourselves.
 - **One run per setup,** and vLLM is not fully deterministic.
