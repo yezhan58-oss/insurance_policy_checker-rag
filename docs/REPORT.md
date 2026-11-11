@@ -37,17 +37,17 @@ This report contributes 4 things:
 3. A dataset of 144 claims, drafted by an LLM from specific clauses and then hand checked by us.
 4. A brief demo built on the winning setup, with guardrails in-place.
 
-## 2. Related work that we referenced
+## 2. Related work
 
 **Retrieval-augmented generation.** RAG gives a language model passages fetched from an outside corpus when it answers (Lewis et al., 2020). Our simple RAG setup is the plainest version of this: one search with the claim text, five chunks, one answer. Policy wordings are a hard case for it, because the text that decides a claim is spread out and a single search rarely brings back the benefit, the definition and the exclusion together.
 
 **Corrective and self-reflective retrieval.** Corrective RAG (CRAG; Yan et al., 2024) grades the passages it retrieves and, when they look weak, rewrites the query or falls back to web search. Self-RAG (Asai et al., 2024) goes further and trains the model to decide when to retrieve and to critique its own output. Our corrective RAG setup follows CRAG, with two changes: an LLM does the grading in place of the fine-tuned evaluator, and there is no web search because our corpus is closed.
 
-**Tool-using agents.** ReAct (Yao et al., 2023) lets a model mix reasoning with tool calls and choose for itself what to look up next. Our plan had flagged tool calling on an 8B model as a risk, so we only built a ReAct agent after the core study, as an exploratory setup. Our workflow agent takes the opposite route. It is a fixed LangGraph workflow that reads a policy the way a claims assessor would, so the domain knowledge is in the graph and not in the model's choices.
+**Tool-using agents.** ReAct (Yao et al., 2023) lets a model mix reasoning with tool calls and choose for itself what to look up next. Our plan had flagged tool calling on an 8B model as a risk, so we only built a ReAct agent after the core runs; it then joined the main comparison. Our workflow agent takes the opposite route. It is a fixed LangGraph workflow that reads a policy the way a claims assessor would, so the domain knowledge is in the graph and not in the model's choices.
 
 **Long context instead of retrieval.** Li et al. (2024) find that long-context models can beat RAG when resources allow, although RAG is far cheaper. Models are also known to use information in the middle of a long prompt less well than information at the start or end (Liu et al., 2024). Our exploratory whole-policy setup tests the first finding. We could not test the second, because in our data the position of a clause and the category of the claim go together.
 
-**LLM as a ****judge.** Strong LLMs can grade open-ended answers almost as consistently as human raters, though with known biases such as favouring their own outputs (Zheng et al., 2023). Our judge is **Claude Haiku 5.5**, which comes from a different company than both tested models, and we checked its grades against human labels.
+**LLM as a judge.** Strong LLMs can grade open-ended answers almost as consistently as human raters, though with known biases such as favouring their own outputs (Zheng et al., 2023). Our judge is **Claude Haiku 5.5**, which comes from a different company than both tested models, and we checked its grades against human labels.
 
 ## 3. Data and labelling
 
