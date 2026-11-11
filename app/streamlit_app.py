@@ -251,6 +251,30 @@ b, strong {font-weight: 650;}
 .cmp .rp.no {color: var(--no); background: #F8E1DD;}
 .cmp td {vertical-align: middle;}
 .sum-foot {color: var(--muted); font-size: 0.88rem; margin: 0.8rem 0 1.2rem;}
+/* the study's 124-claim results: a panel of its own under the summary, folded */
+.st-key-study {margin-top: 1rem; background: #FFFFFF; border: 1px solid var(--frame); border-radius: 0.9rem;
+               padding: 0.15rem 1.3rem;}
+.st-key-study [data-testid="stExpander"] details {border-top: 0;}
+.st-key-study [data-testid="stExpander"] summary {padding: 0.75rem 0;}
+.st-key-study [data-testid="stExpander"] summary p {font-family: var(--display); font-size: 1.1rem; font-weight: 600;
+                                                   color: var(--ink);}
+.st-key-study .cmp {max-width: 50rem;}
+.st-key-study .cmp th {vertical-align: bottom; line-height: 1.3;}
+.st-key-study .cmp th.wrap {white-space: normal; max-width: 12rem;}
+.takeaways {display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.8rem;
+            margin: 1.3rem 0 0.4rem; max-width: 60rem;}
+.takeaways > div {background: #F7F3EC; border-radius: 0.7rem; padding: 0.85rem 1rem;}
+.takeaways .k {display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+               color: #12263A;}
+.takeaways .tk-name {display: block; font-family: var(--display); font-size: 1.1rem; font-weight: 600; color: var(--ink);
+                     margin-top: 0.2rem;}
+.takeaways .tk-text {display: block; font-size: 0.88rem; line-height: 1.45; color: var(--muted); margin-top: 0.2rem;}
+/* fold-out headers: no orange box on hover or click; a ring only for keyboard focus */
+[data-testid="stExpander"] summary:hover, [data-testid="stExpander"] summary:focus {background: transparent;
+    border-color: transparent; box-shadow: none;}
+[data-testid="stExpander"] details:hover, [data-testid="stExpander"] details:focus-within {border-top-color: var(--line); border-left-color: transparent;
+    border-right-color: transparent; border-bottom-color: transparent; box-shadow: none;}
+[data-testid="stExpander"] summary:focus-visible {outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 0.4rem;}
 .sum-foot b {color: var(--ink);}
 </style>
 """
@@ -917,7 +941,9 @@ def summary(outs: dict) -> None:
 
 
 def study_results() -> None:
-    """The 124-claim test results for the chosen model: the same for every claim, so folded away by default."""
+    """The 124-claim test results for the chosen model, in a panel of their own: the same for every claim, so folded
+    away by default. The wrong-"covered" column counts only the 53 claims whose correct answer is not covered (the only
+    claims where saying "covered" is that mistake); "Right" is over all 124."""
     name = BOARD_MODEL[model]
     rows = study(name)
     wc = {a: round(float(r["wrong_covered_rate"]) * NOT_COVERED) for a, r in rows.items()}
@@ -925,12 +951,20 @@ def study_results() -> None:
                    + (' <span class="pg">added later</span>' if a == "A3" else "") + "</td>"
                    f'<td class="num">{float(rows[a]["accuracy"]):.0%}</td><td class="num">{wc[a]} of {NOT_COVERED}</td>'
                    f'<td class="num">{float(rows[a]["latency_s"]):.1f} s</td></tr>' for a in METHODS if a in rows)
-    with st.expander(f"How each method did on our 124 test claims ({name})"):
-        st.markdown('<div class="tbl"><table class="cmp"><thead><tr><th>Method</th><th class="num">Right</th>'
-                    '<th class="num">Wrongly "covered"</th><th class="num">Time per claim</th></tr></thead>'
-                    f'<tbody>{body}</tbody></table></div><p class="sum-foot"><b>Best value:</b> simple RAG &middot; '
-                    "<b>Safer:</b> workflow agent &middot; <b>Our advice:</b> simple RAG, with the workflow agent "
-                    'checking every "covered".</p>', unsafe_allow_html=True)
+    times = lambda n: "once" if n == 1 else f"{n} times"   # noqa: E731
+    safer = (f"Said “covered” on a not-covered claim {times(wc[BASELINE])}, against {times(wc[WINNER])} for simple RAG."
+             if BASELINE in wc and WINNER in wc else "Said “covered” wrongly far less often than simple RAG.")
+    takeaways = (("Best value", "Simple RAG", "No agent was significantly more accurate, and it needs one model call."),
+                 ("Safer", "Workflow agent", safer),
+                 ("Our advice", "Combine them", "Simple RAG answers; the workflow agent re-checks every “covered”."))
+    with st.container(key="study"), st.expander(f"How each method did on our 124 test claims ({name})"):
+        st.markdown('<div class="tbl"><table class="cmp"><thead><tr><th>Method</th><th class="num">Right<br>(of 124)</th>'
+                    '<th class="num wrap">Said “covered” on a not-covered claim (of 53)</th>'
+                    '<th class="num">Time<br>per claim</th></tr></thead>'
+                    f'<tbody>{body}</tbody></table></div><div class="takeaways">'
+                    + "".join(f'<div><span class="k">{k}</span><span class="tk-name">{n}</span>'
+                              f'<span class="tk-text">{html.escape(t)}</span></div>' for k, n, t in takeaways)
+                    + "</div>", unsafe_allow_html=True)
 
 
 if asked:
