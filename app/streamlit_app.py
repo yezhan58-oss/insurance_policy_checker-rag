@@ -130,6 +130,13 @@ b, strong {font-weight: 650;}
 [data-testid="stColumn"]:has([class*="st-key-res-"]) {background: #FFFFFF; border: 1px solid var(--frame);
                                                       container-type: inline-size;}
 [data-testid="stColumn"]:has([class*="st-key-res-"]) + [data-testid="stColumn"]:has([class*="st-key-res-"]) {border-left: 0;}
+/* a little rounding: the panel's outer corners (first and last column), and the bands follow the curve */
+[data-testid="stColumn"]:first-child:has([class*="st-key-res-"]) {border-radius: 0.9rem 0 0 0.9rem;}
+[data-testid="stColumn"]:has([class*="st-key-res-"]):not(:has(+ [data-testid="stColumn"] [class*="st-key-res-"])) {
+    border-top-right-radius: 0.9rem; border-bottom-right-radius: 0.9rem;}
+[data-testid="stColumn"]:first-child .grp {border-top-left-radius: calc(0.9rem - 1px);}
+[data-testid="stColumn"]:has([class*="st-key-res-"]):not(:has(+ [data-testid="stColumn"] [class*="st-key-res-"])) .grp {
+    border-top-right-radius: calc(0.9rem - 1px);}
 [class*="st-key-res-"] {gap: 0.85rem; padding: 0 1.1rem 1rem;}
 .grp {display: flex; align-items: baseline; gap: 0.55rem; margin: 0 -1.1rem; padding: 0.45rem 1.1rem; min-height: 2rem;
       background: #12263A; color: #FFFFFF; white-space: nowrap; overflow: hidden;}
@@ -139,8 +146,11 @@ b, strong {font-weight: 650;}
 .grp .d {font-size: 0.8rem; color: #D3DBE3; overflow: hidden; text-overflow: ellipsis;}
 .grp.cont .g, .grp.cont .d {visibility: hidden;}
 @media (max-width: 640px) {
-  [data-testid="stColumn"]:has([class*="st-key-res-"]) + [data-testid="stColumn"]:has([class*="st-key-res-"]) {
-      border-left: 1px solid var(--frame); border-top: 0;}
+  /* stacked on a phone: each method is its own rounded box */
+  [data-testid="stHorizontalBlock"]:has([class*="st-key-res-"]) {gap: 0.9rem !important;}
+  [data-testid="stColumn"]:has([class*="st-key-res-"]) {border: 1px solid var(--frame) !important;
+      border-radius: 0.9rem !important;}
+  [data-testid="stColumn"]:has([class*="st-key-res-"]) .grp {border-radius: calc(0.9rem - 1px) calc(0.9rem - 1px) 0 0 !important;}
   .grp.cont {margin-left: -1.1rem;}
   .grp.cont .g, .grp.cont .d {visibility: visible;}
 }
@@ -150,21 +160,23 @@ b, strong {font-weight: 650;}
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
 .mh .clock {font-family: var(--display); font-size: 1.2rem; font-weight: 600; color: var(--ink);
             font-variant-numeric: tabular-nums; white-space: nowrap;}
-.mh .sub {margin-top: 0.1rem; font-size: 0.8rem; min-height: 1.25rem;}
-.mh .tag {font-weight: 650; white-space: nowrap; flex-shrink: 0;}
-.tag.win {color: #8A3D10;} .tag.safe {color: var(--ok);} .tag.own {color: #2F4A66;} .tag.none {color: var(--muted); font-weight: 500;}
+.mh .sub {margin-top: 0.3rem; font-size: 0.76rem; min-height: 1.45rem; align-items: center;}
+.mh .tag {font-weight: 700; white-space: nowrap; flex-shrink: 0; border-radius: 999px; padding: 0.12rem 0.55rem;}
+.tag.win {color: #8A3D10; background: #FBE6D6;} .tag.safe {color: var(--ok); background: #DFF0E5;}
+.tag.own {color: #2F4A66; background: #E3EAF2;} .tag.none {color: var(--muted); font-weight: 500; padding-left: 0;}
 .mh .status {color: var(--muted); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
 /* the verdict: a solid block straight under the header (Streamlit's text blocks end in a -1rem margin, which already
    closes the gap between the two) */
-.verdict {margin: 0 -1.1rem; padding: 0.7rem 1.1rem; color: #FFFFFF; font-family: var(--display);
-          font-weight: 600; font-size: clamp(1.05rem, 6.6cqi, 1.4rem); line-height: 1.2; white-space: nowrap;
+.verdict {margin: 0.9rem 0 0; padding: 0.6rem 0.85rem; border-radius: 0.6rem; color: #FFFFFF; font-family: var(--display);
+          font-weight: 600; font-size: clamp(1rem, 6.2cqi, 1.3rem); line-height: 1.2; white-space: nowrap;
           overflow: hidden; text-overflow: ellipsis; animation: land 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;}
 @keyframes land {from {opacity: 0;} to {opacity: 1;}}
 .verdict.pending {background: #ECE6DA; color: var(--muted); animation: breathe 1.6s ease-in-out infinite;}
 @keyframes breathe {50% {opacity: 0.45;}}
-.mark {font-size: 1rem; font-weight: 700; margin: 0.7rem 0 0;}
-.mark.ok {color: var(--ok);}
-.mark.no {color: var(--no);}
+.mark {display: inline-block; font-size: 0.9rem; font-weight: 700; margin: 0.6rem 0 0; padding: 0.15rem 0.65rem;
+       border-radius: 999px;}
+.mark.ok {color: var(--ok); background: #DFF0E5;}
+.mark.no {color: var(--no); background: #F8E1DD;}
 .under {margin: 0.45rem 0 0 !important; font-size: 0.92rem; line-height: 1.45; color: var(--ink);}
 .meta {color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; margin: 0.4rem 0 0;}
 .note {color: #7A4A00; font-size: 0.86rem; line-height: 1.45; margin: 0.7rem 0 0;}
@@ -173,16 +185,21 @@ b, strong {font-weight: 650;}
                 margin: 0 -1.1rem 0.45rem; padding: 0.75rem 1.1rem 0; border-top: 1px solid var(--line);}
 /* steps: numbered, a running step in orange, steps still to come in grey */
 .steps {margin: 0; padding: 0; list-style: none;}
-.steps li {display: grid; grid-template-columns: 1.1rem minmax(0, 1fr) auto; column-gap: 0.45rem; padding: 0.25rem 0;
+.steps li {display: grid; grid-template-columns: 1.3rem minmax(0, 1fr) auto; column-gap: 0.55rem; padding: 0.25rem 0;
            font-size: 0.88rem; line-height: 1.4;}
 [data-testid="stMarkdownContainer"] :is(.steps, .clauses, .limits) li {margin: 0;}   /* Streamlit indents list items; these lists sit flush */
-.steps .n {font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums;}
+.steps .n {width: 1.3rem; height: 1.3rem; margin-top: 0.03rem; border-radius: 50%; display: grid; place-items: center;
+           font-size: 0.7rem; font-weight: 700; font-variant-numeric: tabular-nums; color: #FFFFFF; background: #12263A;
+           box-sizing: border-box;}
 .steps .name {font-weight: 650; color: var(--ink);}
 .steps .what {display: block; color: var(--muted); font-size: 0.82rem; overflow-wrap: anywhere;}
 .steps .at {color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums;}
-.steps .active .n, .steps .active .name {color: var(--accent);}
+.steps .active .name {color: var(--accent);}
+.steps .active .n {color: var(--accent); background: transparent; border: 2px solid var(--accent);}
 .steps .active .n {animation: breathe 1.1s ease-in-out infinite;}
-.steps .todo .n, .steps .todo .name, .steps .skip .n, .steps .skip .name {color: var(--faint); font-weight: 500;}
+.steps .todo .name, .steps .skip .name {color: var(--faint); font-weight: 500;}
+.steps .todo .n, .steps .skip .n {color: var(--faint); background: transparent; border: 1.5px solid #CFC6B6;}
+.steps .skip .n {border-style: dashed;}
 .steps .skip .name {text-decoration: line-through;}
 @media (prefers-reduced-motion: reduce) {.verdict, .verdict.pending, .steps .active .n {animation: none;}}
 /* why, clauses, policy limit */
@@ -210,7 +227,8 @@ b, strong {font-weight: 650;}
 [data-testid="stExpander"] summary:hover {color: var(--ink);}
 [data-testid="stExpander"] [data-testid="stExpanderDetails"] {padding: 0.2rem 0 1rem;}
 /* this claim, side by side */
-.st-key-summary {margin-top: 1.5rem; background: #FFFFFF; border: 1px solid var(--frame); padding: 1.1rem 1.3rem 0.4rem;}
+.st-key-summary {margin-top: 1.5rem; background: #FFFFFF; border: 1px solid var(--frame); border-radius: 0.9rem;
+                 padding: 1.1rem 1.3rem 0.4rem;}
 .sum-h {font-family: var(--display); font-size: 1.35rem; font-weight: 600; color: var(--ink); margin: 0;}
 .sum-line {color: var(--muted); font-size: 0.95rem; margin: 0.15rem 0 0.9rem;}
 .sum-line b {color: var(--ink);}
@@ -224,9 +242,14 @@ b, strong {font-weight: 650;}
 .cmp td {padding: 0.6rem 1.2rem 0.6rem 0; border-bottom: 1px solid var(--line); vertical-align: baseline;}
 .cmp td.num, .cmp th.num {text-align: right; padding-right: 0; padding-left: 1.2rem;}
 .cmp .m {font-weight: 650; color: var(--ink); white-space: nowrap;}
-.cmp .v {font-family: var(--display); font-weight: 600; font-size: 1.05rem; white-space: nowrap;}
-.cmp .ok {color: var(--ok); font-weight: 700;}
-.cmp .no {color: var(--no); font-weight: 700;}
+/* this claim's verdicts and marks as soft pills, echoing the columns above */
+.cmp .vp {display: inline-block; font-weight: 700; font-size: 0.9rem; white-space: nowrap; padding: 0.15rem 0.7rem;
+          border-radius: 999px; background: color-mix(in srgb, currentColor 11%, #FFFFFF);}
+.cmp .rp {display: inline-block; font-weight: 700; font-size: 0.85rem; white-space: nowrap; padding: 0.12rem 0.6rem;
+          border-radius: 999px;}
+.cmp .rp.ok {color: var(--ok); background: #DFF0E5;}
+.cmp .rp.no {color: var(--no); background: #F8E1DD;}
+.cmp td {vertical-align: middle;}
 .sum-foot {color: var(--muted); font-size: 0.88rem; margin: 0.8rem 0 1.2rem;}
 .sum-foot b {color: var(--ink);}
 </style>
@@ -872,13 +895,13 @@ def summary(outs: dict) -> None:
         body = ""
         for a in order:
             o, v = outs[a], verdicts[a]
-            result = (f'<td class="{"ok" if v == GOLD else "no"}">{"&#10003; right" if v == GOLD else "&#10007; wrong"}</td>'
+            result = (f'<td><span class="rp {"ok" if v == GOLD else "no"}">{"&#10003; right" if v == GOLD else "&#10007; wrong"}</span></td>'
                       if GOLD else "")
             secs = o.usage.get("shown_s", o.usage.get("latency_s", 0))
             cited = len(dict.fromkeys(title_of(s) for s in o.cited_sections))
             label = TITLES[a] + (" + safe mode" if o.usage.get("safe_mode") else "")
             body += (f'<tr><td class="m">{html.escape(label)}</td>'
-                     f'<td class="v" style="color:{VERDICT[v][2]}">{VERDICT[v][0]}</td>{result}'
+                     f'<td><span class="vp" style="color:{VERDICT[v][2]}">{VERDICT[v][0]}</span></td>{result}'
                      f'<td class="num">{secs:.1f} s</td><td class="num">{o.usage.get("model_calls", 0)}</td>'
                      f'<td class="num">{cited}</td></tr>')
         st.markdown(f'<div class="tbl"><table class="cmp"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>'

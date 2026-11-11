@@ -10,7 +10,7 @@ borderColor = "#E4DCCD"
 font = "sans-serif"                 # Source Sans, bundled with Streamlit, so it works offline
 headingFont = "serif"
 codeFont = "monospace"              # only for clause IDs
-baseRadius = "0.2rem"               # near-square widgets, to match the ruled, flat page
+baseRadius = "0.5rem"               # softly rounded widgets, matching the panel corners
 showWidgetBorder = true
 
 [theme.sidebar]
