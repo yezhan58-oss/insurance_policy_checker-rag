@@ -113,7 +113,7 @@ The call counts are measured means on the test set; a one-call setup can show sl
 **Exploratory methods:**
 
 - **Whole policy (Full-context).** The whole policy goes in together with the user's prompt, every section with its ID. That is about 28k tokens for FWD and 45k for MSIG. It asks whether retrieval is needed at all on a corpus this small.
-- **Agent with term picking (Agent-Pick).** A claim about a delayed flight doesn't say anything about scheduled public transport, but that additional info decides whether or not it's covered. In Agent-Pick, the model also picks up to 3 extra definitions from the policy's list of defined terms in step 2, for one more call than the workflow agent.
+- **Agent with term picking (Agent-Pick).** A claim about a delayed flight doesn't say anything about scheduled public transport, but that definition decides whether or not it's covered. In Agent-Pick, the model also picks up to 3 extra definitions from the policy's list of defined terms in step 2, for one more call than the workflow agent.
 - **Simple RAG, 10 passages (RAG-10).** Simple RAG with the top 10 chunks instead of 5. We added it after seeing the test results, to check whether simple RAG just needed more text.
 - **Safe mode (RAG+Check).** Simple RAG answers every claim, and whenever it says covered or partially covered, the agent double-checks and its answer is used. We worked this out from the answers both setups had already given on the test set, so no new runs were needed.
 
@@ -244,7 +244,7 @@ Accuracy as Llama / gpt-oss. The workflow agent gained most on claims that need 
 
 ### 7.6 Faithfulness, retrieval only and exploratory setups
 
-- **Faithfulness:** ReAct (0.72) and the workflow agent (0.68) were the most faithful on gpt-oss, but on Llama the workflow agent was the least faithful of the search setups (0.29): the 8B model had the right clauses but misquoted them. The judge agreed with our hand checks on 77% of 30 grades on Llama (kappa 0.64) and 80% on gpt-oss (kappa 0.52), and was usually the stricter one.
+- **Faithfulness:** Faithfulness is the share of explanations the Claude Haiku judge found supported by the cited clause text. What we found was that ReAct (0.72) and the workflow agent (0.68) were the most faithful on gpt-oss, but on Llama the workflow agent was the least faithful of the search setups (0.29): the 8B model had the right clauses in its context but didn't use them in their citations, so the judge could not match its explanations to the cited text. The judge agreed with our hand checks on 77% of 30 grades on Llama (kappa 0.64) and 80% on gpt-oss (kappa 0.52), and was usually the stricter one.
 - **One search is not enough.** Searching with the claim text alone (k = 5):
 
 | Search | All gold sections | Benefits | Definitions | Exclusions |
