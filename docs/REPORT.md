@@ -100,11 +100,11 @@ The call counts are measured means on the test set; a one-call setup can show sl
 1. **No retrieval (No-RAG):** The model sees only the claim, no policy text. This is the floor.
 2. **Simple RAG (RAG):** One search with the claim text; the top 5 chunks go to the answer call.
 3. **Corrective RAG (CRAG):** A LangGraph loop. It retrieves 5 chunks and the LLM grades which are relevant. If fewer than 2 are, the LLM rewrites the query in the policy's wording and searches again, at most twice. The answer uses only the relevant chunks. Exclusions always count as relevant, so the text that stops a payout is never thrown away.
-4. **Workflow agent (Agent):** Built on the idea that simple RAG misses the definition or exclusion because the clause uses different words from the claim. It is a fixed four-step LangGraph graph (at most 3 model calls) that reads the policy in the order a claims assessor would: benefit, then definitions, then exclusions. The model makes the choices inside each step, but the steps always run in this order:
-   1. Pick up to 3 benefits from the list of benefit titles (the table of contents).
-   2. Look up the defined terms used in the claim and those benefits (no model call).
-   3. Collect the general exclusions and the exclusions specific to those benefits, and keep the ones that could apply.
-   4. Answer from everything gathered.
+4. **Workflow agent (Agent):** Built because simple RAG misses critical definitions or exclusions as policy clauses use different terminology than the claim. The agent operates on a fixed, four-step LangGraph structure (capped at 3 model calls) that follows how a claims assessor reads a policy: benefits first, then definitions, then exclusions. The model decides within each step, but never the order:
+   1. Benefit Selection: Picks up to 3 relevant benefits from the policy's table of contents.
+   2. Definition Lookup: Retrieves defined terms used in the claim and selected benefits (no model call).
+   3. Exclusion Filtering: Gathers general and benefit-specific exclusions, retaining only those that potentially apply.
+   4. Answer: Generates an answer from everything gathered.
 
 **Added to the main comparison after the core runs:**
 
