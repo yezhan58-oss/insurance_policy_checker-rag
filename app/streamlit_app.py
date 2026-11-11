@@ -35,7 +35,7 @@ BASELINE = "A4"          # agent shown side by side: fewer wrong "covered" answe
 FLOOR = "B0"             # no retrieval: shows what the model says without reading the policy
 METHODS = {   # sidebar and column order: reads nothing -> one search -> reads like an assessor
     "B0": ("No retrieval (B0)", "Reads no policy: answers from what it already knows"),
-    "A0": ("Simple RAG (A0)", "Study winner: 1 search, about 5 s"),
+    "A0": ("Simple RAG (A0)", "Best value in our study: 1 search, about 5 s"),
     "A4": ("Workflow agent (A4)", "4 steps like a claims assessor, usually 7 to 20 s"),
 }
 TITLES = {aid: name for aid, (name, _) in METHODS.items()}
@@ -173,7 +173,7 @@ CSS = """
 .stamp.pending {color: #8A939C; border: 2px dashed #C9BFAE; animation: breathe 1.6s ease-in-out infinite;}
 @keyframes breathe {50% {opacity: 0.45;}}
 @media (prefers-reduced-motion: reduce) {.stamp.pending {animation: none;}}
-.under {margin: 0.95rem 0 0.3rem; font-size: 1rem; line-height: 1.5; color: var(--ink);}
+.under {margin: 1.05rem 0 0.3rem !important; font-size: 1rem; line-height: 1.5; color: var(--ink);}
 .under b {font-weight: 650;}
 .meta {color: var(--muted); font-size: 0.83rem; font-variant-numeric: tabular-nums; margin: 0 0 1rem;
        padding-bottom: 0.9rem; border-bottom: 1px solid var(--line);}
@@ -235,6 +235,14 @@ CSS = """
 @keyframes pulse {50% {transform: scale(0.75); opacity: 0.55;}}
 @media (prefers-reduced-motion: reduce) {.live .active::before {animation: none;}}
 .dot {display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; margin-right: 0.4rem;}
+.mark {font-size: 0.95rem; font-weight: 700; margin: 0 0 0.55rem;}
+.mark.ok {color: #1B6B3A;}
+.mark.no {color: #A3271B;}
+.chip.no {border-style: dashed;}
+.gold {font-family: var(--display); font-size: 1.2rem; font-weight: 700;}
+.gold small {font-family: inherit; font-size: 0.82rem; font-weight: 400; color: var(--muted); margin-left: 0.5rem;}
+.hero.slim {padding: 0.85rem 1.6rem; margin-bottom: 1rem; border-radius: 0.9rem;}
+.hero.slim .t {font-size: 1.7rem;}
 .note {color: #7A4A00; background: #FBF1E2; font-size: 0.88rem; border-radius: 0.5rem; padding: 0.55rem 0.8rem;
        margin: 0 0 0.9rem;}
 </style>
@@ -337,7 +345,7 @@ def card(box) -> dict:
 
 
 BADGES = {   # from the 124-claim test: A0 won under the decision rule; A4 said covered wrongly less often than A0
-    WINNER: '<span class="badge win">Study winner</span>',
+    WINNER: '<span class="badge win">Best value</span>',
     BASELINE: '<span class="badge safe">Safer than A0</span>',
 }
 
@@ -352,10 +360,38 @@ def head_html(title: str, status: str, secs: float | None, aid: str | None = Non
             f'<span class="status">{html.escape(status)}</span><span class="clock">{clock}</span></div></div>')
 
 
+@st.cache_data(show_spinner=False)
+def gold_for(policy: str, question: str) -> str | None:
+    """Our gold verdict when the claim is word for word one of the labelled dev or test claims, else None."""
+    want = " ".join(question.split())
+    for name in ("dev", "test"):
+        path = ROOT / "data" / "scenarios" / f"{name}.jsonl"
+        if not path.exists():
+            continue
+        for line in path.read_text(encoding="utf-8").splitlines():
+            row = json.loads(line) if line.strip() else {}
+            if row.get("policy") == policy and " ".join(row.get("scenario", "").split()) == want:
+                return row["gold_verdict"]
+    return None
+
+
+def plain(verdict: str) -> str:
+    return {"insufficient_info": "need more detail"}.get(verdict, verdict.replace("_", " "))
+
+
+def mark_html(verdict: str, gold: str | None) -> str:
+    """Right or wrong against our label, shown only for labelled claims."""
+    if not gold:
+        return ""
+    if verdict == gold:
+        return '<div class="mark ok">&#10003; Correct</div>'
+    return f'<div class="mark no">&#10007; Wrong: the correct answer is {plain(gold)}</div>'
+
+
 PENDING = '<div class="stamp pending">Deciding</div><p class="under">&nbsp;</p>'
 
 
-def stamp_html(out: VerdictOutput, aid: str, notes: list[str] = ()) -> str:
+def stamp_html(out: VerdictOutput, aid: str, notes: list[str] = (), gold: str | None = None) -> str:
     """Verdict stamp, the clauses it rests on and its cost, plus any safe-mode or quote-check notes."""
     label, line, ink = VERDICT[out.verdict]
     if aid == FLOOR:
@@ -368,7 +404,7 @@ def stamp_html(out: VerdictOutput, aid: str, notes: list[str] = ()) -> str:
     if out.usage.get("cached"):
         meta += " &middot; saved answer, timed when it ran live"
     return (f'<div class="stamp" style="color:{ink}">{label}</div>'
-            f'<p class="under">{under}</p><div class="meta">{meta}</div>' + "".join(note_html(n) for n in notes))
+            f'<p class="under">{under}</p>{mark_html(out.verdict, gold)}<div class="meta">{meta}</div>' + "".join(note_html(n) for n in notes))
 
 
 def steps_html(aid: str, steps: list, seen: dict | None = None, running: bool = False) -> str:
@@ -542,7 +578,7 @@ def run_live(aids: list, slots: dict, titles: dict) -> dict:
                 if "out" in res:   # the verdict lands as soon as this method is done, not when the slowest is
                     out = keep(aid, res["out"])   # shown_s: the time on this card's clock, reused by the summary
                     res["out"] = out.model_copy(update={"usage": {**out.usage, "shown_s": round(now, 1)}})
-                    slots[aid]["stamp"].markdown(stamp_html(res["out"], aid), unsafe_allow_html=True)
+                    slots[aid]["stamp"].markdown(stamp_html(res["out"], aid, gold=GOLD), unsafe_allow_html=True)
                 else:
                     slots[aid]["stamp"].empty()
         time.sleep(0.25)
@@ -590,7 +626,14 @@ with st.sidebar:
                        "clauses pasted into the claim. On test it flagged 5 of 70 right covered/partially covered "
                        "answers on gpt-oss (A0, A4) and none on Llama, which rarely quotes.")
 
-st.markdown(f'<div class="hero">{ROUTE}<div class="t">Am I <em>covered?</em></div>'
+def go_slim() -> None:
+    st.session_state.slim = True
+
+
+if st.session_state.get("slim"):
+    st.markdown('<div class="hero slim"><div class="t">Am I <em>covered?</em></div></div>', unsafe_allow_html=True)
+else:
+    st.markdown(f'<div class="hero">{ROUTE}<div class="t">Am I <em>covered?</em></div>'
             '<p>Tell us what happened on your trip. We read the '
             f'{html.escape(POLICY_NAMES[policy])} wording and show the clauses that decide it.</p>'
             '<div class="facts"><span>Real policy wording</span><span>Every verdict cites its clause</span>'
@@ -600,9 +643,12 @@ with st.container(key="ask"):
     st.markdown('<div class="kicker-free">What happened?</div>', unsafe_allow_html=True)
     st.pills("Try an example" + ("" if live else " (saved answers, instant)"), list(EXAMPLES[policy]),
              key=f"ex-{policy}", on_change=use_example, args=(policy,))
-    question = st.text_area("Your claim", key="question", height=120, label_visibility="collapsed",
+    question = st.text_area("Your claim", key="question", height=80 if st.session_state.get("slim") else 120,
+                            label_visibility="collapsed",
                             placeholder="My flight to Tokyo was delayed 7 hours because of a typhoon. Can I claim?")
-    asked = st.button("Check my claim", type="primary", disabled=not question.strip() or not picked)
+    asked = st.button("Check my claim", type="primary", disabled=not question.strip() or not picked,
+                      on_click=go_slim)
+    GOLD = gold_for(policy, question) if question.strip() else None
     if not picked:
         st.markdown('<p class="empty">Tick at least one method in the sidebar.</p>', unsafe_allow_html=True)
     elif not asked:
@@ -641,7 +687,7 @@ def finish(aid: str, out, box, outs: dict, slot: dict) -> None:
             if isinstance(check, Exception):
                 sub["stamp"].empty()
             else:
-                sub["stamp"].markdown(stamp_html(check, BASELINE), unsafe_allow_html=True)
+                sub["stamp"].markdown(stamp_html(check, BASELINE, gold=GOLD), unsafe_allow_html=True)
         else:
             try:
                 check = guard(answer(policy, question, model, BASELINE, server=up))
@@ -664,7 +710,7 @@ def finish(aid: str, out, box, outs: dict, slot: dict) -> None:
                                      "The answer relied on wording that is not in the policy (it may have come "
                                      "from the claim text), so no verdict is given. Describe what happened "
                                      "without quoting policy terms, and we will check it against the real wording."})
-    slot["stamp"].markdown(stamp_html(out, aid, notes), unsafe_allow_html=True)
+    slot["stamp"].markdown(stamp_html(out, aid, notes, GOLD), unsafe_allow_html=True)
     with box:
         show_body(out)
 
@@ -707,7 +753,12 @@ def summary(outs: dict) -> None:
             if len(outs) > 1:
                 head = "All agree" if len(set(verdicts.values())) == 1 else "They disagree"
                 facts.append(("This claim", f'<span class="big">{head}</span>'))
-            chips = "".join(f'<span class="chip" style="color:{VERDICT[v][2]}"><b>{aid}</b>{VERDICT[v][0]}</span>'
+            if GOLD:
+                facts.append(("Correct answer", f'<span class="gold">{html.escape(plain(GOLD).capitalize())}'
+                                                '<small>our label, from the test set</small></span>'))
+            tick = {True: "&#10003; ", False: "&#10007; "}
+            chips = "".join(f'<span class="chip{" no" if GOLD and v != GOLD else ""}" style="color:{VERDICT[v][2]}">'
+                            f'<b>{aid}</b>{tick[v == GOLD] if GOLD else ""}{VERDICT[v][0]}</span>'
                             for aid, v in verdicts.items())
             facts.append(("Verdicts", f'<div class="chips">{chips}</div>'))
             facts.append(("Time", '<div class="times">' + "".join(
@@ -731,7 +782,7 @@ def summary(outs: dict) -> None:
                         f'<th>Time</th></tr></thead><tbody>{body}</tbody></table>', unsafe_allow_html=True)
             st.markdown(
                 '<div class="take">'
-                f'<span class="tl win">Winner</span><p><b>A0</b>, as accurate as A4 '
+                f'<span class="tl win">Best value</span><p><b>A0</b>, as accurate as A4 '
                 f'<span class="q">({acc0:.0%} vs {acc4:.0%}, no real difference, p = {extra["p"]:.2f})</span> '
                 f'and {ratio:.1f}× faster</p>'
                 f'<span class="tl safe">Safer</span><p><b>A4</b>, {wc[BASELINE]} wrong "covered" vs A0\'s '

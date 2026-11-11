@@ -340,9 +340,13 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
     and clause text are one click away; nothing is changed in the stored answers.
     "Which one wins?" panel under the cards: left, this claim (agree/disagree, verdict chips, the time on each card's
     clock, clauses only A4 found); right, the test results for the chosen model from leaderboard.csv (accuracy bars,
-    wrong "covered" of 53, time) and three takeaways (Winner A0, Safer A4, advice: A0 with A4 checking "covered").
+    wrong "covered" of 53, time) and three takeaways (Best value A0, Safer A4, advice: A0 with A4 checking "covered").
     Live check (9 Nov, gpt-oss, the page end to end): Manila B0 need more detail 6.0 s, A0 covered 11.8 s, A4 not
     covered 13.1 s; Osaka phone theft, all three need more detail (7.4 / 10.1 / 21.0 s). The first question after the
     server starts is slower (about 20 s per method), so ask one warm-up question before presenting.
-    Card badges: "Study winner" on A0 (orange line along the top of its card) and "Safer than A0" on A4 (wrong
+    Demo fixes (11 Nov): the verdict stamp no longer overlaps the line under it; after "Check my claim" the banner
+    shrinks so all three verdicts fit on the first screen; when the claim is word for word a labelled dev or test claim
+    (e.g. Manila = fwd-010), each card shows a tick or cross against our gold label and the panel names the correct
+    answer. Labels are only displayed, not changed.
+    Card badges: "Best value" on A0 (was "Study winner"; renamed 11 Nov to match slide 10) (orange line along the top of its card) and "Safer than A0" on A4 (wrong
     covered 1 vs 9 of 53 on gpt-oss, 4 vs 7 on Llama, so true on both models); B0 has none.
