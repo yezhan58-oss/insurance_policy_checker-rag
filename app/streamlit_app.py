@@ -212,6 +212,7 @@ CSS = """
 .badge.win {background: #FBE9DC; color: #8A3D10;}
 .badge.safe {background: #E2F0E7; color: #1B6B3A;}
 .badge.later {background: #E5ECF3; color: #1F3B57;}
+.limit-note {color: var(--muted); font-size: 0.82rem; margin: -0.6rem 0 1rem;}
 .st-key-res-A0 {box-shadow: inset 0 3px 0 var(--accent), 0 1px 2px rgba(18,38,58,0.05),
                 0 14px 30px -18px rgba(18,38,58,0.25) !important;}
 [data-testid="stColumn"] [class*="st-key-res-"] {padding: 1.15rem 1.15rem 1.25rem;}
@@ -484,7 +485,57 @@ def deciding_line(explanation: str, sid: str) -> str:
     return clip(first, 150)
 
 
-def show_body(out: VerdictOutput) -> None:
+FWD_LIMIT_TABLES = ("fwd:benefit_limits:protecting_your_travel_plans", "fwd:benefit_limits:protecting_your_stuff",
+                    "fwd:benefit_limits:protecting_you_and_your_health", "fwd:benefit_limits:optional_covers")
+LIMIT_ROW = re.compile(r"^(?P<name>.+?) \[(?P<plans>[^\]]+)\](?::\s*(?P<note>.*))?$")
+MSIG_PLAN_ROW = re.compile(r"^(?P<plan>\w+ Plan) \| (?P<amount>.+)$")
+
+
+@st.cache_data(show_spinner=False)
+def fwd_limits() -> dict:
+    """FWD's table of benefits (its own sections in the index): benefit name, lower case -> the row's wording."""
+    rows = {}
+    for sid in FWD_LIMIT_TABLES:
+        sec = store.get_section(sid)
+        for line in (sec.text.splitlines() if sec else []):
+            m = LIMIT_ROW.match(line.strip())
+            if m:
+                rows[m["name"].strip().lower()] = line.strip()
+    return rows
+
+
+def policy_limits(out: VerdictOutput) -> list[tuple[str, str]]:
+    """The most each cited benefit pays per plan, quoted from the policy: (benefit title, wording). No calculation:
+    the payout depends on the plan bought and the insurer's assessment. MSIG prints the limits inside each benefit
+    section ("The maximum we will pay under this section is:" then one line per plan); FWD in its table of benefits."""
+    found = []
+    for sid in dict.fromkeys(out.cited_sections):
+        sec = store.get_section(sid)
+        if not sec or sec.type != "benefit":
+            continue
+        if sid.startswith("msig:"):
+            lines = [ln.strip() for ln in sec.text.splitlines()]
+            start = next((i for i, ln in enumerate(lines) if ln.startswith("The maximum we will pay under this section")), None)
+            plans, per_person = [], False
+            for ln in lines[start + 1:] if start is not None else []:
+                m = MSIG_PLAN_ROW.match(ln)
+                if not m:
+                    break
+                first = re.match(r"\$[\d,]+", m["amount"])   # "$300 for each insured person $750 in total ..." -> "$300"
+                plans.append(f"{m['plan'].removesuffix(' Plan')} {first.group(0) if first else m['amount']}")
+                per_person |= "for each insured person" in m["amount"]
+            if plans:
+                found.append((sec.title, " · ".join(plans) + (", per insured person" if per_person else "")))
+        else:
+            title = sec.title.strip().lower()
+            row = next((r for name, r in fwd_limits().items() if name == title or name.startswith(title + ":")), None)
+            if row:   # "[Premium S$300, Business S$500, First S$1,000]: ..." -> "Premium S$300 · Business S$500 · ..."
+                wording = re.sub(r"\[([^\]]+)\]", lambda m: m.group(1).replace(", ", " · "), row[len(sec.title):])
+                found.append((sec.title, wording.lstrip(" :")))
+    return found
+
+
+def show_body(out: VerdictOutput, aid: str | None = None) -> None:
     """Below the steps, short for reading on a projector: why (2 sentences), one deciding line per clause, then the
     full explanation and clause wording and the raw trace, folded away."""
     st.markdown(f'<div class="section-label">Why</div><p class="why">{html.escape(short_why(out.explanation))}</p>',
@@ -501,6 +552,15 @@ def show_body(out: VerdictOutput) -> None:
                        + "".join(f'<span class="line">{html.escape(ln)}</span>' for ln in g["lines"]) + "</li>"
                        for t, g in groups.items())
         st.markdown(f'<div class="section-label">The clauses behind it</div><ul class="clauses">{rows}</ul>',
+                    unsafe_allow_html=True)
+    if out.verdict in ("covered", "partially_covered") and aid != FLOOR:   # B0 reads no policy: no limit to quote
+        limits = policy_limits(out)
+        items = ("".join(f'<li><span class="ct">{html.escape(t)}</span><span class="line">{html.escape(clip(w, 260))}'
+                         f'</span></li>' for t, w in limits) if limits
+                 else '<li><span class="line">No limit is printed in the cited clause: see your policy schedule.</span></li>')
+        st.markdown('<div class="section-label">Policy limit, not an estimate</div>'
+                    f'<ul class="clauses">{items}</ul><p class="limit-note">The most this benefit pays per trip under '
+                    'each plan. What you receive depends on your plan and the insurer\'s assessment.</p>',
                     unsafe_allow_html=True)
     with st.expander("Full explanation and clause wording"):
         st.markdown(out.explanation)
@@ -738,7 +798,7 @@ def finish(aid: str, out, box, outs: dict, slot: dict) -> None:
                                      "without quoting policy terms, and we will check it against the real wording."})
     slot["stamp"].markdown(stamp_html(out, aid, notes, GOLD), unsafe_allow_html=True)
     with box:
-        show_body(out)
+        show_body(out, aid)
 
 
 BOARD = ROOT / "results" / "test" / "report" / "leaderboard.csv"

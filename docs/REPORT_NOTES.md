@@ -208,6 +208,16 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   results files keep the IDs. Report cut toward 10 pages; slides cut to short cue phrases; slide 3 has a ReAct row,
   slide 6 a ReAct bar, slide 9 a ReAct line. Demo: ReAct card (live, plus saved test-run answers for fwd-010 and
   fwd-003; not covered on fwd-010, like A4). Charts: scatter plots show the core setups, ReAct and Full-context.
+- **Live demo test (11 Nov, L40S job 363304, gpt-oss)** [8]: all four methods run live, steps shown as they happen.
+  Manila (fwd-010): simple RAG covered every time (wrong), the workflow agent not covered every time (right), ReAct
+  not covered in 2 of 3 live runs and in the test run (3 of 4 right): it picks its own searches, and once looked for
+  weather exclusions instead of the news exclusion. Slide 9 and the script no longer promise ReAct finds it. ReAct
+  answers saved for all 7 scripted examples; neither injection test made it say covered.
+- **Policy limit in the demo (11 Nov)** [8]: YZ asked for the dollar amount on covered verdicts. The brief's
+  guardrail forbids promising a payout, amounts were never evaluated, and the payout depends on the plan, so the
+  card quotes the cited benefit's limit per plan from the policy (FWD table of benefits, MSIG "The maximum we will
+  pay under this section is:" lines), labelled "Policy limit, not an estimate". No calculation; no block for
+  no-retrieval or non-covered verdicts; "see your policy schedule" when the clause prints no limit.
 - **A0K10 on test (11 Nov, branch a/a0-k10 at bd31b05, L40S; exploratory, a test only; code merged in PR #71)** [7]: A0 with
   top_k 10. 124 claims each, 0 errors. Accuracy (wrong-covered): gpt-oss 0.70 (0.15) vs A0 0.69 (0.17), McNemar
   p = 1.00 (13 vs 12); Llama 0.59 (0.13) vs A0 0.56 (0.13), p = 0.607 (9 vs 6). Evidence recall 0.66 to 0.75 on
