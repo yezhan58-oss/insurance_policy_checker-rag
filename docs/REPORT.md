@@ -51,7 +51,7 @@ This report contributes 4 things:
 
 ## 3. Data and labelling
 
-We used two public Singapore travel policy wordings, **FWD Travel Insurance** (April 2024, 45 pages) and **MSIG TravelEasy** (70 pages, 52 benefit sections). We downloaded them on 16 and 17 Oct 2026 and committed them with their SHA-256 hashes. The two are laid out differently. FWD keeps its definitions at the back and prints its benefit tables as images, which we transcribed by hand, while MSIG points from each benefit to its general exclusions by number.
+We found and used two public Singapore travel policy wordings, **FWD Travel Insurance** (April 2024, 45 pages) and **MSIG TravelEasy** (70 pages, 52 benefit sections). We downloaded them on 16 and 17 Oct 2026, verifiable with their SHA-256 hashes. These two policies are laid out differently. FWD keeps its definitions at the back and prints its benefit tables as images. We transcribed those by hand. MSIG points from each benefit to its general exclusions by number.
 
 **Ingestion.** Each policy is split along its own headings. This gives 284 sections (FWD 131, MSIG 153), each with a stable ID such as `fwd:travel_delay` and a type: benefit (93), definition (66), condition (56), exclusion (46) or other (23). Sections longer than 500 words are cut into chunks of about 400 words with a 50-word overlap, which gives 323 chunks that all keep their section ID. Defined terms also go into a lookup table. Ingestion is deterministic, so every machine builds the same index.
 
