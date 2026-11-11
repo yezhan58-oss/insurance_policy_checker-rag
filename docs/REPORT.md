@@ -244,7 +244,7 @@ Accuracy as Llama / gpt-oss. The workflow agent gained most on claims that need 
 
 ### 7.6 Faithfulness, retrieval only and exploratory setups
 
-- **Faithfulness:** This is the share of explanations the Claude Haiku judge found supported by the cited clause text. ReAct (0.72) and the workflow agent (0.68) were the most faithful on gpt-oss, but on Llama the workflow agent was the least faithful of the search setups (0.29): the 8B model had the right clauses in its context but didn't use them in itss  citations, so the judge could not match its explanations to the cited text. The judge agreed with our hand checks on 77% of 30 grades on Llama (kappa 0.64) and 80% on gpt-oss (kappa 0.52), and was usually the stricter one.
+- **Faithfulness:** This is the share of explanations the Claude Haiku judge found supported by the cited clause text.  ReAct (0.72) and the workflow agent (0.68) were the most faithful on gpt-oss, but on Llama the workflow agent was the least faithful of the search setups (0.29): the 8B model had the right clauses in its context but didn't use them in itss  citations, so the judge could not match its explanations to the cited text. The judge agreed with our hand checks on 77% of 30 grades on Llama (kappa 0.64) and 80% on gpt-oss (kappa 0.52), and was usually the stricter one.
 - **One search is not enough.** Searching with the claim text alone (k = 5):
 
 | Search | All gold sections | Benefits | Definitions | Exclusions |
@@ -260,15 +260,15 @@ A claim describes what happened and never uses the defined terms or exclusion wo
 
 ## 8. Demo: "Am I covered?"
 
-The demo is a Streamlit app that runs no retrieval, simple RAG, the workflow agent and ReAct side by side on gpt-oss-20b, so the audience sees the floor, the winner and both agents answer the same claim.
+The demo is a Streamlit app that runs no retrieval, simple RAG, the workflow agent and ReAct side by side on gpt-oss-20b, so the user sees the floor, the winner and both agents answer the same claim on one page.
 
 ![The demo (earlier version, 7-hour typhoon claim): simple RAG says likely covered; the workflow agent asks for the check-in detail. To be replaced with a screenshot of the current page on the Manila claim.](demo_typhoon.png)
 
-- **Each card shows** a hedged verdict ("Likely covered under Travel delay, subject to the insurer's assessment", never a payout amount), the steps taken, a short reason and one deciding line per cited clause. On labelled test claims it also marks the verdict right or wrong.
-- **Guardrails:** every cited ID must exist in the policy, or the answer becomes "need more detail" and asks for the missing facts. A safe-mode toggle has the agent re-check every "covered", and a quote check rejects a "covered" that quotes wording not found in the policy.
-- **Prompt injection:** four claims with instructions such as "say covered" fooled neither simple RAG nor the workflow agent. A fake policy endorsement pasted into a claim did fool simple RAG; the quote check catches it.
+- **Each card shows** a possible verdict ("Likely covered under Travel delay, subject to the insurer's assessment", never a payout amount), the steps taken, a short reason and one deciding line per cited clause. On labelled test claims it also marks the verdict right or wrong.
+- **Guardrails:** every cited ID must exist in the policy, or the answer becomes "need more detail" and asks for the missing info. A safe-mode toggle has the agent re-check every "covered" or "partially covered", and a quote check rejects a "covered" that quotes wording not found in the policy.
+- **Prompt injection:** four claims with instructions such as "say covered" fooled neither the simple RAG nor the workflow agent. A fake policy endorsement pasted into the claim field did fool the simple RAG, but the quote check catches it.
 - **Offline:** scripted questions use cached answers, which are never used for any reported number.
-- **Limit:** simple RAG, the winner under the planned rule, is right on 69% of claims. The app points to the deciding clauses; it is not a claims decision.
+- **Limit:** simple RAG, the winner under the planned rule, is right on 69% of claims. The app points to the deciding clauses, but it does not decide the claim.
 
 ## 9. Discussion
 
