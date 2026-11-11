@@ -1,6 +1,7 @@
 """Charts for src/eval/report.py. Colors: the approach palette and the two failure colors passed a colorblind-safety
 check; heatmaps use one blue hue from light to dark; every value is also printed, so nothing relies on color alone."""
 import matplotlib
+import matplotlib.ticker
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
@@ -10,6 +11,15 @@ APPROACHES = ["B0", "L0", "A0", "A0K10", "A2", "A3", "A4", "A4D"]   # explorator
 # A3 and A4D (added 4-5 Nov) are outside the validated set; values are printed on every chart, so color is never the only cue
 COLORS = {"B0": "#2a78d6", "A0": "#eb6834", "A2": "#1baf7a", "A4": "#eda100", "L0": "#4a3aa7", "A3": "#c4327f", "A4D": "#8a6d00",
           "A0K10": "#9c4a1f"}
+# Names shown on the charts (the report's names); results files and code keep the IDs
+NAMES = {"B0": "No-RAG", "A0": "RAG", "A2": "CRAG", "A4": "Agent", "L0": "Full-context", "A3": "ReAct",
+         "A4D": "Agent-Pick", "A0K10": "RAG-10"}
+# Hand-placed labels (points from the dot, alignment) where the defaults collide; key (approach, model index), model 0 =
+# the first model in the leaderboard. Everything else sits above its dot.
+LABEL_AT = {"tokens": {("A0", 0): (0, -20, "center"), ("A2", 0): (0, -44, "center"), ("A4", 0): (-6, -16, "right"),
+                       ("B0", 1): (0, -20, "center"), ("A2", 1): (12, 4, "left")},
+            "latency_s": {("A0", 0): (0, -20, "center"), ("L0", 0): (0, -20, "center"), ("B0", 1): (0, -20, "center"),
+                          ("A4", 1): (-10, -3, "right")}}
 MARKERS = ["o", "s", "^", "D"]
 INK, MUTED, GRID, EMPTY = "#0b0b0b", "#52514e", "#e4e3df", "#f3f2ef"
 BLUES = ["#eef5fd", "#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95"]     # light -> dark
@@ -57,13 +67,13 @@ def heat_leaderboard(df: pd.DataFrame, path) -> None:
         for i, r in enumerate(rows):
             v = getattr(r, col)
             if pd.isna(v):
-                cell(ax, j, i, None, "â€“")
+                cell(ax, j, i, None, "–")
                 continue
             good = 0.5 if hi == lo else ((v - lo) if higher else (hi - v)) / (hi - lo)
             text = f"{v:.0f}" if col == "tokens" else f"{v:.1f}" if col == "latency_s" else f"{v:.2f}"
             cell(ax, j, i, good, text, bold=good == 1)
     for i, r in enumerate(rows):
-        ax.text(-0.12, i + 0.5, r.approach, ha="right", va="center", fontsize=9, color=INK, fontweight="bold")
+        ax.text(-0.12, i + 0.5, NAMES.get(r.approach, r.approach), ha="right", va="center", fontsize=9, color=INK, fontweight="bold")
         if i == 0 or rows[i - 1].model != r.model:
             ax.text(-0.75, i + 0.5, r.model, ha="right", va="center", fontsize=8.5, color=MUTED)
             if i:
@@ -76,7 +86,10 @@ def heat_leaderboard(df: pd.DataFrame, path) -> None:
 
 
 def frontier(df: pd.DataFrame, x: str, xlabel: str, path) -> None:
-    """Accuracy against cost; each model's approaches joined in order of cost, so the trade-off reads as a path."""
+    """Accuracy against cost; each model's approaches joined in order of cost, so the trade-off reads as a path.
+    Only the pre-registered setups and Full-context (L0), the ones section 7.3 compares; the later exploratory
+    variants are reported in the tables, and their labels made the middle of the chart unreadable."""
+    df = df[df.approach.isin(["B0", "L0", "A0", "A2", "A4"])]
     models = list(dict.fromkeys(df.model))
     fig, ax = plt.subplots(figsize=(6.6, 4.2), dpi=200)
     style(ax)
@@ -91,20 +104,24 @@ def frontier(df: pd.DataFrame, x: str, xlabel: str, path) -> None:
             ax.vlines(getattr(r, x), r.acc_lo, r.acc_hi, color=COLORS[r.approach], lw=1.2, alpha=0.35, zorder=1)
             ax.scatter(getattr(r, x), r.accuracy, s=130, marker=MARKERS[k], color=COLORS[r.approach],
                        edgecolor="white", linewidth=2, zorder=3)
-            ax.annotate(f"{r.approach} {r.accuracy:.2f}", (getattr(r, x), r.accuracy),
-                        xytext=(0, 11 if n % 2 == 0 else -18), textcoords="offset points", ha="center",
-                        fontsize=7.5, color=INK, fontweight="bold")
+            dx, dy, ha = LABEL_AT.get(x, {}).get((r.approach, k), (0, 11 if n % 2 == 0 or x in LABEL_AT else -18,
+                                                                    "center"))
+            ax.annotate(f"{NAMES.get(r.approach, r.approach)} {r.accuracy:.2f}", (getattr(r, x), r.accuracy),
+                        xytext=(dx, dy), textcoords="offset points", ha=ha, fontsize=7.5, color=INK,
+                        fontweight="bold", arrowprops=dict(arrowstyle="-", color=MUTED, lw=0.6) if abs(dy) > 30 else None)
     lo, hi = df[x].min(), df[x].max()
     if lo > 0 and hi / lo > 8:          # e.g. L0's whole-policy prompts: a linear axis would squash the rest together
         ax.set_xscale("log")
         ax.set_xlim(lo / 1.6, hi * 2.2)
+        ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:,.0f}"))
+        ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())   # plain numbers, no crowded 3x10^0 labels
         xlabel += " (log scale)"
     else:
         ax.set_xlim(0, hi * 1.35)
     ax.set_ylim(0, 1)
     ax.set_xlabel(xlabel, color=MUTED, fontsize=9)
     ax.set_ylabel("Verdict accuracy (faint lines: 95% CI)", color=MUTED, fontsize=9)
-    handles = [plt.Line2D([], [], marker="o", ls="", ms=8, color=COLORS[a], label=a)
+    handles = [plt.Line2D([], [], marker="o", ls="", ms=8, color=COLORS[a], label=NAMES.get(a, a))
                for a in APPROACHES if a in set(df.approach)]
     handles += [plt.Line2D([], [], marker=MARKERS[k], ls="-" if k == 0 else "--", ms=7, color=MUTED, label=m)
                 for k, m in enumerate(models)]
@@ -131,7 +148,7 @@ def category_heat(by_cat: dict, path) -> None:
                 v = bc[(bc.approach == a) & (bc.category == c)].verdict_accuracy.mean()
                 cell(ax, j, i, v, f"{v:.2f}")
         for i, a in enumerate(present):
-            ax.text(-0.08, i + 0.5, a, ha="right", va="center", fontsize=9, color=INK, fontweight="bold")
+            ax.text(-0.08, i + 0.5, NAMES.get(a, a), ha="right", va="center", fontsize=9, color=INK, fontweight="bold")
         ax.set_title(model, fontsize=10, color=INK, loc="left")
     fig.text(0.99, 0.0, "Shade = verdict accuracy (white 0, dark blue 1). Few scenarios per cell: read with care.",
              ha="right", fontsize=7, color=MUTED)
@@ -148,7 +165,7 @@ def failures(df: pd.DataFrame, path) -> None:
     style(ax)
     ax.grid(axis="y", visible=False)
     ax.grid(axis="x", color=GRID, linewidth=0.8)
-    names = [f"{r.approach}  {r.model}" for r in rows]
+    names = [f"{NAMES.get(r.approach, r.approach)}  {r.model}" for r in rows]
     parts = [("missing_evidence", "Needed section never reached the model"),
              ("had_evidence", "Had the evidence, still wrong"), ("error_rows", "No answer (error)")]
     left = [0] * len(rows)
@@ -187,7 +204,7 @@ def process_outcomes(df: pd.DataFrame, path) -> None:
     style(ax)
     ax.grid(axis="y", visible=False)
     ax.grid(axis="x", color=GRID, linewidth=0.8)
-    names = [f"{r.approach}  {r.model}" for r in rows]
+    names = [f"{NAMES.get(r.approach, r.approach)}  {r.model}" for r in rows]
     parts = [("sound", "Right, evidence reached the model"), ("right_without_evidence", "Right without the evidence"),
              ("had_evidence", "Wrong, had the evidence"), ("missing_evidence", "Wrong, evidence never reached it"),
              ("error_rows", "No answer (error)")]
@@ -227,7 +244,7 @@ def error_types(counts: pd.DataFrame, path) -> None:
     fig, ax = plt.subplots(figsize=(6.6, height), dpi=200)
     style(ax)
     ax.grid(axis="y", visible=False)
-    names = [f"{r.approach}  {r.model}" for r in counts.itertuples()]
+    names = [f"{NAMES.get(r.approach, r.approach)}  {r.model}" for r in counts.itertuples()]
     left = [0] * len(counts)
     for typ, color in zip(types, BLUES[::-1]):
         vals = list(counts[typ])

@@ -34,11 +34,12 @@ WINNER = "A0"            # decision rule on test (results/test/report/leaderboar
 BASELINE = "A4"          # agent shown side by side: fewer wrong "covered" answers on test
 FLOOR = "B0"             # no retrieval: shows what the model says without reading the policy
 METHODS = {   # sidebar and column order: reads nothing -> one search -> reads like an assessor
-    "B0": ("No retrieval (B0)", "Reads no policy: answers from what it already knows"),
-    "A0": ("Simple RAG (A0)", "Best value in our study: 1 search, about 5 s"),
-    "A4": ("Workflow agent (A4)", "4 steps like a claims assessor, usually 7 to 20 s"),
+    "B0": ("No retrieval", "Reads no policy: answers from what it already knows"),
+    "A0": ("Simple RAG", "Best value in our study: 1 search, about 5 s"),
+    "A4": ("Workflow agent", "4 steps like a claims assessor, usually 7 to 20 s"),
 }
 TITLES = {aid: name for aid, (name, _) in METHODS.items()}
+SHORT = {"B0": "No-RAG", "A0": "RAG", "A4": "Agent"}   # report names; the IDs above stay as in the repo
 MODELS = {"vllm_gptoss20b": "gpt-oss-20b", "vllm_llama8b": "Llama 3.1 8B"}   # gpt-oss first: only it has cached answers
 CACHE = ROOT / "app" / "demo_cache.json"
 VERDICT = {   # stamp text, line under it ({secs} = clause names), stamp colour (AA contrast on white)
@@ -346,7 +347,7 @@ def card(box) -> dict:
 
 BADGES = {   # from the 124-claim test: A0 won under the decision rule; A4 said covered wrongly less often than A0
     WINNER: '<span class="badge win">Best value</span>',
-    BASELINE: '<span class="badge safe">Safer than A0</span>',
+    BASELINE: '<span class="badge safe">Safer than simple RAG</span>',
 }
 
 
@@ -611,7 +612,7 @@ with st.sidebar:
                 f'{"Model server connected" if up else "Model server offline: saved answers only"}</span>',
                 unsafe_allow_html=True)
     st.subheader("Methods", help="Ticked methods run at the same time, side by side. Simple RAG won under the "
-                 "pre-registered rule; the workflow agent (A4) was more accurate but not significantly, at about 2.6x "
+                 "pre-registered rule; the workflow agent was more accurate but not significantly, at about 2.6x "
                  "the time, and said covered wrongly far less often.")
     picked = []
     for aid, (name, caption) in METHODS.items():
@@ -619,12 +620,12 @@ with st.sidebar:
             picked.append(aid)
         st.caption(caption)
     st.subheader("Extra checks")
-    safe = st.toggle("Safe mode", help=f"{BASELINE} double-checks every \"covered\" from {WINNER}. Exploratory: on "
+    safe = st.toggle("Safe mode", help="The workflow agent double-checks every \"covered\" from simple RAG. Exploratory: on "
                      "test it cut wrong 'covered' answers from 9 to 0 of 53 (gpt-oss) for about 1.8x the tokens and "
                      "3 points of accuracy.")
     quotes = st.toggle("Quote check", help="A \"covered\" must quote real policy wording. Exploratory: catches fake "
                        "clauses pasted into the claim. On test it flagged 5 of 70 right covered/partially covered "
-                       "answers on gpt-oss (A0, A4) and none on Llama, which rarely quotes.")
+                       "answers on gpt-oss (simple RAG and the agent) and none on Llama, which rarely quotes.")
 
 def go_slim() -> None:
     st.session_state.slim = True
@@ -680,10 +681,10 @@ def finish(aid: str, out, box, outs: dict, slot: dict) -> None:
             check = outs[BASELINE]
         elif live:
             with box:
-                st.markdown(note_html(f"Safe mode: {WINNER} said {said}, so {BASELINE} is double-checking."),
+                st.markdown(note_html(f"Safe mode: simple RAG said {said}, so the workflow agent is double-checking."),
                             unsafe_allow_html=True)
                 sub = card(st.container())
-            check = run_live([BASELINE], {BASELINE: sub}, {BASELINE: "Safe-mode check (A4)"})[BASELINE]
+            check = run_live([BASELINE], {BASELINE: sub}, {BASELINE: "Safe-mode check (workflow agent)"})[BASELINE]
             if isinstance(check, Exception):
                 sub["stamp"].empty()
             else:
@@ -698,7 +699,7 @@ def finish(aid: str, out, box, outs: dict, slot: dict) -> None:
             with box:
                 failed(check)
             return
-        notes.append(f"Safe mode: {WINNER} said {said}; {BASELINE} checked it and says "
+        notes.append(f"Safe mode: simple RAG said {said}; the workflow agent checked it and says "
                      f"{check.verdict.replace('_', ' ')}, so that is the answer shown.")
         out = check
     bad = (unsupported_quotes(out.explanation, policy)
@@ -758,22 +759,21 @@ def summary(outs: dict) -> None:
                                                 '<small>our label, from the test set</small></span>'))
             tick = {True: "&#10003; ", False: "&#10007; "}
             chips = "".join(f'<span class="chip{" no" if GOLD and v != GOLD else ""}" style="color:{VERDICT[v][2]}">'
-                            f'<b>{aid}</b>{tick[v == GOLD] if GOLD else ""}{VERDICT[v][0]}</span>'
+                            f'<b>{SHORT[aid]}</b>{tick[v == GOLD] if GOLD else ""}{VERDICT[v][0]}</span>'
                             for aid, v in verdicts.items())
             facts.append(("Verdicts", f'<div class="chips">{chips}</div>'))
             facts.append(("Time", '<div class="times">' + "".join(
-                f'<span><b>{aid}</b>{o.usage.get("shown_s", o.usage.get("latency_s", 0)):.1f} s</span>'
+                f'<span><b>{SHORT[aid]}</b>{o.usage.get("shown_s", o.usage.get("latency_s", 0)):.1f} s</span>'
                 for aid, o in outs.items()) + "</div>"))
             if WINNER in outs and BASELINE in outs:
                 found = [s for s in outs[BASELINE].cited_sections if s not in outs[WINNER].cited_sections]
                 if found:
-                    facts.append(("Only A4 found", names(found)))
+                    facts.append(("Only the agent found", names(found)))
             st.markdown('<dl class="facts">' + "".join(f"<dt>{k}</dt><dd>{v}</dd>" for k, v in facts) + "</dl>",
                         unsafe_allow_html=True)
         with right:
             body = "".join(
-                f'<tr class="{"win" if aid == WINNER else ""}"><td><span class="aid">{aid}</span>'
-                f'<span class="nm">{html.escape(TITLES[aid].split(" (")[0])}</span></td>'
+                f'<tr class="{"win" if aid == WINNER else ""}"><td><span class="aid">{html.escape(TITLES[aid])}</span></td>'
                 f'<td><div class="bar"><i style="width:{float(r["accuracy"]):.0%}"></i>'
                 f'<span>{float(r["accuracy"]):.0%}</span></div></td>'
                 f'<td>{wc[aid]} of {NOT_COVERED}</td><td>{float(r["latency_s"]):.1f} s</td></tr>'
@@ -782,12 +782,12 @@ def summary(outs: dict) -> None:
                         f'<th>Time</th></tr></thead><tbody>{body}</tbody></table>', unsafe_allow_html=True)
             st.markdown(
                 '<div class="take">'
-                f'<span class="tl win">Best value</span><p><b>A0</b>, as accurate as A4 '
+                f'<span class="tl win">Best value</span><p><b>Simple RAG</b>, as accurate as the agent '
                 f'<span class="q">({acc0:.0%} vs {acc4:.0%}, no real difference, p = {extra["p"]:.2f})</span> '
                 f'and {ratio:.1f}× faster</p>'
-                f'<span class="tl safe">Safer</span><p><b>A4</b>, {wc[BASELINE]} wrong "covered" vs A0\'s '
+                f'<span class="tl safe">Safer</span><p><b>Workflow agent</b>, {wc[BASELINE]} wrong "covered" vs simple RAG\'s '
                 f'{wc[WINNER]}</p>'
-                f'<span class="tl adv">Our advice</span><p>A0, with A4 checking every "covered" '
+                f'<span class="tl adv">Our advice</span><p>Simple RAG, with the agent checking every "covered" '
                 f'<span class="q">(safe mode: {extra["safe_wrong"]} wrong)</span></p></div>', unsafe_allow_html=True)
 
 
