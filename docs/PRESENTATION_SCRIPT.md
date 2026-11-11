@@ -100,7 +100,7 @@ the workflow agent is the safer one on exactly this kind of claim.
 > If simple RAG says not covered this time, say "simple RAG got this one right today, but in our test run it said
 > covered, and it made that mistake on 9 of the 53 not-covered claims."
 > If ReAct says covered, say "this is why we call the fixed workflow safer: ReAct picks its own route, and on this
-> claim it sometimes misses the exclusion. In our runs so far it got it right two times out of three"
+> claim it sometimes misses the exclusion. In our runs so far it got it right three times out of four"
 
 ## [Slide 10: What we would tell an insurer] Ye Zhan, 35 s
 

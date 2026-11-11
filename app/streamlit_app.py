@@ -37,7 +37,7 @@ METHODS = {   # sidebar and column order: reads nothing -> one search -> reads l
     "B0": ("No retrieval", "Reads no policy: answers from what it already knows"),
     "A0": ("Simple RAG", "Best value in our study: 1 search, about 5 s"),
     "A4": ("Workflow agent", "4 steps like a claims assessor, usually 7 to 20 s"),
-    "A3": ("ReAct agent", "Picks its own lookups, one at a time (added after the core runs)"),
+    "A3": ("ReAct agent", "Picks its own lookups, one at a time (added later)"),
 }
 TITLES = {aid: name for aid, (name, _) in METHODS.items()}
 SHORT = {"B0": "No-RAG", "A0": "RAG", "A4": "Agent", "A3": "ReAct"}   # report names; the IDs above stay as in the repo
@@ -359,7 +359,7 @@ def card(box) -> dict:
 BADGES = {   # from the 124-claim test: A0 won under the decision rule; A4 said covered wrongly less often than A0
     WINNER: '<span class="badge win">Best value</span>',
     BASELINE: '<span class="badge safe">Safer than simple RAG</span>',
-    "A3": '<span class="badge later">Added after the core runs</span>',
+    "A3": '<span class="badge later">Picks its own steps</span>',   # "added later" stays in the results table
 }
 
 
