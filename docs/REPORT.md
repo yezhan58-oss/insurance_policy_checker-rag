@@ -264,9 +264,9 @@ A claim describes what happened and never uses the defined terms or exclusion wo
 
 The demo is a Streamlit app that runs no retrieval, simple RAG and the workflow agent side by side on gpt-oss-20b, so the audience sees the floor, the winner and the agent answer the same claim.
 
-![The demo (earlier version, 7-hour typhoon claim): simple RAG says likely covered; the workflow agent asks for the check-in detail. To be replaced with a screenshot of the current page on the Manila claim.](demo_typhoon.png)
+![The demo (earlier version, 7-hour typhoon claim). To be replaced with a screenshot of the current page on the Manila claim.](demo_typhoon.png)
 
-- **Each card shows** a hedged verdict ("Likely covered under Travel delay, subject to the insurer's assessment", never a payout amount), the steps taken, a short reason and one deciding line per cited clause. On labelled test claims it also marks the verdict right or wrong.
+- **Each card shows** a hedged verdict ("Likely covered under Travel delay, subject to the insurer's assessment", never a payout amount), the steps taken, a short reason and one deciding line per cited clause. On labelled test claims it also marks the verdict right or wrong, and a table under the cards lines up the four answers with their time and model calls; the test-set results are folded below it. For a covered verdict it quotes the benefit's limit for each plan from the policy (FWD's table of benefits, or the limits printed in each MSIG section), labelled as a limit and not an estimate: the payout depends on the plan bought and the insurer's assessment, and amounts were not part of our evaluation.
 - **Guardrails:** every cited ID must exist in the policy, or the answer becomes "need more detail" and asks for the missing facts. A safe-mode toggle has the agent re-check every "covered", and a quote check rejects a "covered" that quotes wording not found in the policy.
 - **Prompt injection:** four claims with instructions such as "say covered" fooled neither setup. A fake policy endorsement pasted into a claim did fool simple RAG; the quote check catches it.
 - **Offline:** scripted questions use cached answers, which are never used for any reported number.

@@ -218,6 +218,13 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   card quotes the cited benefit's limit per plan from the policy (FWD table of benefits, MSIG "The maximum we will
   pay under this section is:" lines), labelled "Policy limit, not an estimate". No calculation; no block for
   no-retrieval or non-covered verdicts; "see your policy schedule" when the clause prints no limit.
+- **Demo layout, round 2 (11 Nov)** [8]: at 1440 px the four cards were 239 px wide and up to 1,457 px tall. Now: the
+  sidebar starts collapsed and the page is wider (cards 300 px, at most about 1,000 px tall); flat verdict labels instead
+  of tilted stamps; one-line reason; clause titles with one deciding quote; policy limit as "Up to S$300 - S$1,000, by
+  plan" plus its basis; one fold-out per card. The summary is now one table of this claim's answers (verdict, right
+  or wrong, time, calls, clauses cited); the static 124-claim results are folded below it. Live run 3 on Manila: ReAct
+  right again (4 of 5 runs), and no retrieval guessed not covered for a wrong reason (weather), so the script has a
+  fallback line for that.
 - **A0K10 on test (11 Nov, branch a/a0-k10 at bd31b05, L40S; exploratory, a test only; code merged in PR #71)** [7]: A0 with
   top_k 10. 124 claims each, 0 errors. Accuracy (wrong-covered): gpt-oss 0.70 (0.15) vs A0 0.69 (0.17), McNemar
   p = 1.00 (13 vs 12); Llama 0.59 (0.13) vs A0 0.56 (0.13), p = 0.607 (9 vs 6). Evidence recall 0.66 to 0.75 on
