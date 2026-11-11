@@ -12,7 +12,7 @@ search over them. They switched the study to the two free cluster models when th
 to cover API calls. They built three of the five setups: B0 (no retrieval), A0 (simple RAG) and A2 (corrective RAG,
 including its dev trials), and tuned the shared base prompt on dev
 (PROMPT_TUNING.md). They also added the exploratory long-context baseline L0 and the retrieval-only comparison
-(dense, BM25, hybrid). On evaluation, they wrote the run and scoring pipeline: resumable runs, bootstrap confidence
+(dense, BM25, hybrid). They also built the safe-mode analysis (A0 re-checked by A4 on every ‘covered’), simulated from the stored test answers. On evaluation, they wrote the run and scoring pipeline: resumable runs, bootstrap confidence
 intervals, Holm-corrected McNemar tests, the decision rule, and the trace metrics, including the split between sound
 answers and answers that were right without the evidence. They also wrote the leaderboard and charts,
 the agreement script (Cohen's kappa between the two label sets), and the rule that splits the human "other" error

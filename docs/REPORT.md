@@ -409,7 +409,7 @@ tested and documented the SMU GPU cluster setup (vLLM servers and batch scripts)
 the shared contracts (output schema, model client, store). They also wrote the ingestion of both policies into
 sections with stable IDs, and the search over them. They switched the study to the two free cluster models when the
 planned API credits turned out not to cover API calls. They built B0, A0 and A2 (including its dev trials), tuned the
-shared base prompt on dev, and added the exploratory L0 and the retrieval-only comparison. On evaluation, they wrote
+shared base prompt on dev, and added the exploratory L0 and the retrieval-only comparison. They also built the safe-mode analysis (A0 re-checked by A4 on every ‘covered’), simulated from the stored test answers. On evaluation, they wrote
 the run and scoring pipeline (resumable runs, bootstrap confidence intervals, Holm-corrected McNemar tests, the
 decision rule, the trace metrics), the leaderboard and charts, the agreement script, and the rule that splits the
 human "other" error type. They blind-labelled 40 test claims (kappa 0.46), submitted the final test runs on both
