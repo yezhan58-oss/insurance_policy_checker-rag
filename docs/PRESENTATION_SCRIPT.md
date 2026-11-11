@@ -8,7 +8,7 @@ its word count.
 | Slides | Speaker | Time | Running total |
 |---|---|---|---|
 | 1–4: why it matters, problem, methods, fair test | Ye Zhan | 2:15 | 2:15 |
-| 5: how the agent reads the policy | Liang Than | 0:35 | 2:50 |
+| 5: how the workflow agent reads the policy | Liang Than | 0:35 | 2:50 |
 | 6–8: results, cost, the model | Ye Zhan | 1:25 | 4:15 |
 | 9: live demo | Liang Than (Ye Zhan drives the laptop) | 1:30 | 5:45 |
 | 10–11: advice, close | Ye Zhan | 0:45 | 6:30 |
@@ -33,28 +33,28 @@ the first clause, but the other two use words the claim never says.
 
 ## [Slide 3: Five ways to read the policy] Ye Zhan, 45 s
 
-So we compared four ways of reading the policy. No-RAG reads nothing and answers from what the model already knows.
+So we compared five ways of reading the policy. No-RAG reads nothing and answers from what the model already knows.
 Simple RAG does one search that returns the top five passages. Corrective RAG grades what it found and rewrites the
 search if the passages are weak. Our workflow agent works like a claims assessor and goes benefits first, then
-definitions, then exclusions. Everything else stays the same in all four (the index, the prompt
-and the final answer step), so only the reading strategy changes. We ran all of it on two models, Llama 3.1 8B and
-gpt-oss-20b. After the core runs we also added a ReAct agent, which picks its own lookups, and compared it
-alongside the four; a few smaller extras were scored but never allowed to win.
+definitions, then exclusions. ReAct, which we added after the first four had run, picks its own lookups one at a
+time. Everything else stays the same in all five (the index, the prompt and the final answer step), so only the
+reading strategy changes. We ran all of it on two models, Llama 3.1 8B and gpt-oss-20b.
 
 ## [Slide 4: How we kept the comparison fair] Ye Zhan, 30 s
 
 We wrote 144 claims against two real policies, FWD and MSIG. We tuned on 20 of them and froze the other 124 as a test
-set before any test run. A second labeller checked 40 claims blind. We also wrote the winner rule before testing:
+set before any test run. A second person re-labelled 40 claims blind; agreement was moderate, so we settled the
+differences together against the policy text. We also wrote the winner rule before testing:
 first, a method must not wrongly say "covered" more often than simple RAG; then the most accurate one wins; and if the
 gap isn't statistically significant, the cheaper, faster method wins.
 
 *(hand over)* Liang will show you how the agent works.
 
-## [Slide 5: The agent reads the policy like a claims assessor] Liang Than, 35 s
+## [Slide 5: The workflow agent reads like a claims assessor] Liang Than, 35 s
 
-This strip is the whole FWD policy. The agent first picks up to three benefits from the contents, then looks up the
+This strip is the whole FWD policy. The workflow agent first picks up to three benefits from the contents, then looks up the
 defined terms by name at the back, and then keeps the general exclusions that could apply. Simple RAG's single search
-usually lands near the benefit and stops there. That's why the agent reached 84 to 91% of the clauses that decide a
+usually lands near the benefit and stops there. That's why the workflow agent reached 84 to 91% of the clauses that decide a
 claim, compared with 66% for simple RAG.
 
 *(hand back)* Ye Zhan will take you through the results.
@@ -62,21 +62,21 @@ claim, compared with 66% for simple RAG.
 ## [Slide 6: The agents led, but not by enough] Ye Zhan, 35 s
 
 The two agents were the most accurate, but only just. On gpt-oss the workflow agent got 88 claims right and ReAct 94,
-against simple RAG's 86; on Llama both got 76 against 70. None of these gaps is statistically significant, so on 124
-claims they are too close to call, and the best value is simple RAG. (If asked: our planned rule picks simple RAG;
+against simple RAG's 86; on Llama both got 76 against 70. None of these gaps is statistically significant: with 124 claims,
+differences this small could just be luck. So they are too close to call, and the best value is simple RAG. (If asked: our planned rule picks simple RAG;
 with ReAct added later, its tie-break picks the workflow agent. Either way, no agent is significantly better.)
 
 ## [Slide 7: What the agent costs, and what it buys] Ye Zhan, 35 s
 
-The agent takes 2.6 times as long per claim, 15.2 seconds against 5.8, so checking a thousand claims would take
+The workflow agent takes 2.6 times as long per claim, 15.2 seconds against 5.8, so checking a thousand claims would take
 4.2 hours instead of 1.6. For that, you get two more right answers, which isn't a real difference. Where it does
 matter is safety: out of the 53 claims that are not covered, simple RAG wrongly told the customer "you're covered"
-9 times, while the agent did it only once.
+9 times, while the workflow agent did it only once.
 
 ## [Slide 8: The model mattered more than the method] Ye Zhan, 15 s
 
 One surprise: the model mattered more than the method. Switching to the bigger model lifted simple RAG by 13 points,
-while switching method added about 2. Without the policy, though, the bigger model actually did worse.
+while switching method added at most 6. Without the policy, though, the bigger model actually did worse.
 
 *(hand over)* Liang will now show it live.
 
@@ -91,7 +91,7 @@ usually answers first. The workflow agent is working through its fixed steps, an
 lookups one at a time.
 
 *(point at the stamps, and the tick or cross under each)* No-RAG says it doesn't have enough information. Simple RAG
-says covered, because it found the delay benefit and stopped. The agent says not covered, because it found the
+says covered, because it found the delay benefit and stopped. The workflow agent says not covered, because it found the
 exclusion for events already reported by the media. ReAct gets there too, by its own route, so both agents get
 a tick.
 
@@ -122,7 +122,7 @@ So, is the agent worth it? For accuracy, not yet. For safety, yes. Thank you, an
   after a cold start takes about 20 s per method).
 - Open `localhost:8502` in the browser before you start, with all four methods ticked. Click the "Typhoon already in the
   news" example instead of pasting: the wording then matches our test claim exactly, so the page shows the tick or
-  cross under each verdict. After "Check my claim" the banner shrinks, so all three verdicts fit on the first screen.
+  cross under each verdict. After "Check my claim" the banner shrinks, so all four verdicts fit on the first screen.
 - On the cover and the last slide, replace "[presentation date]" with **13 November 2026**.
 - Rehearse once with a timer. If you run long, cut the last sentence of slide 3 and the slide 8 "Without the policy"
   line first.
