@@ -77,6 +77,13 @@ def test_a0_searches_once_and_shows_section_ids():
     assert out.usage["reasoning_tokens"] == 5 and out.usage["latency_s"] >= out.usage["llm_latency_s"] >= 0
 
 
+def test_a0k10_is_a0_with_ten_passages():
+    llm, store = FakeLLM(GOOD), FakeStore()
+    out = REGISTRY["A0K10"](SCENARIO, llm, store)
+    assert store.queries == [(SCENARIO.scenario, "fwd", 10)]
+    assert out.steps[0]["top_k"] == 10 and out.usage["model_calls"] == 1
+
+
 def test_unparseable_answer_is_retried_once():
     llm = FakeLLM("not json", GOOD)
     out = REGISTRY["A0"](SCENARIO, llm, FakeStore())

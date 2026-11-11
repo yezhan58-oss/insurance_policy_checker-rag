@@ -7,9 +7,9 @@ from src.schema import Scenario, VerdictOutput
 APPROACH_ID = "A0"
 
 
-def run(scenario: Scenario, llm, store) -> VerdictOutput:
+def run(scenario: Scenario, llm, store, approach_id: str = APPROACH_ID) -> VerdictOutput:
     start = time.perf_counter()
-    top_k = approach_config(APPROACH_ID)["top_k"]
+    top_k = approach_config(approach_id)["top_k"]   # A0K10 reuses this code with its own top_k
     hits = store.search(scenario.scenario, scenario.policy, k=top_k)
     steps = [{"step": "search", "query": scenario.scenario, "top_k": top_k,
               "hits": [{"chunk_id": h.chunk_id, "section_id": h.section_id, "score": h.score} for h in hits]}]
