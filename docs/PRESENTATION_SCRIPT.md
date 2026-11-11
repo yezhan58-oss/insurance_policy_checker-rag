@@ -80,15 +80,17 @@ while switching method added about 2. Without the policy, though, the bigger mod
 ## [Slide 9: Live demo] Liang Than, 90 s (Ye Zhan switches to the browser and clicks the example)
 
 Let's see it live. This claim is from our test set: a typhoon heading to Manila was already in the news when the
-policy was bought, and the correct answer is **not covered**. We'll run all three methods at the same time on the
+policy was bought, and the correct answer is **not covered**. We'll run all four methods at the same time on the
 cluster.
 
 *(while it runs, about 15 s)* No-RAG never opens the policy, so watch for a guess. Simple RAG does one search and
-usually answers first. The agent is working through its steps: benefits, definitions, then exclusions.
+usually answers first. The workflow agent is working through its fixed steps, and ReAct is choosing its own
+lookups one at a time.
 
 *(point at the stamps, and the tick or cross under each)* No-RAG says it doesn't have enough information. Simple RAG
 says covered, because it found the delay benefit and stopped. The agent says not covered, because it found the
-exclusion for events already reported by the media, so it's the only one with a tick.
+exclusion for events already reported by the media. ReAct gets there too, by its own route, so both agents get
+a tick.
 
 *(scroll down to the "Which one wins?" panel)* This panel sums up the study: simple RAG is our best-value pick, and
 the agent is the safer one on exactly this kind of claim.
@@ -115,7 +117,7 @@ So, is the agent worth it? For accuracy, not yet. For safety, yes. Thank you, an
 
 - Start the server 30 to 60 minutes before the slot, open the tunnel, and ask one warm-up question (the first answer
   after a cold start takes about 20 s per method).
-- Open `localhost:8502` in the browser before you start, with all three methods ticked. Click the "Typhoon already in the
+- Open `localhost:8502` in the browser before you start, with all four methods ticked. Click the "Typhoon already in the
   news" example instead of pasting: the wording then matches our test claim exactly, so the page shows the tick or
   cross under each verdict. After "Check my claim" the banner shrinks, so all three verdicts fit on the first screen.
 - On the cover and the last slide, replace "[presentation date]" with **13 November 2026**.

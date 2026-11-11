@@ -37,9 +37,10 @@ METHODS = {   # sidebar and column order: reads nothing -> one search -> reads l
     "B0": ("No retrieval", "Reads no policy: answers from what it already knows"),
     "A0": ("Simple RAG", "Best value in our study: 1 search, about 5 s"),
     "A4": ("Workflow agent", "4 steps like a claims assessor, usually 7 to 20 s"),
+    "A3": ("ReAct agent", "Picks its own lookups, one at a time (added after the core runs)"),
 }
 TITLES = {aid: name for aid, (name, _) in METHODS.items()}
-SHORT = {"B0": "No-RAG", "A0": "RAG", "A4": "Agent"}   # report names; the IDs above stay as in the repo
+SHORT = {"B0": "No-RAG", "A0": "RAG", "A4": "Agent", "A3": "ReAct"}   # report names; the IDs above stay as in the repo
 MODELS = {"vllm_gptoss20b": "gpt-oss-20b", "vllm_llama8b": "Llama 3.1 8B"}   # gpt-oss first: only it has cached answers
 CACHE = ROOT / "app" / "demo_cache.json"
 VERDICT = {   # stamp text, line under it ({secs} = clause names), stamp colour (AA contrast on white)
@@ -60,7 +61,8 @@ ROUTE = """<svg viewBox="0 0 440 220" fill="none" aria-hidden="true">
 <text x="8" y="214" fill="#9FB0C2" font-size="11" font-family="sans-serif" letter-spacing="2">SIN</text>
 <text x="404" y="56" fill="#9FB0C2" font-size="11" font-family="sans-serif" letter-spacing="2">NRT</text>
 </svg>"""
-PLAN = {"B0": ["answer"], "A0": ["search", "answer"], "A4": ["benefits", "definitions", "exclusions", "answer"]}
+PLAN = {"B0": ["answer"], "A0": ["search", "answer"], "A4": ["benefits", "definitions", "exclusions", "answer"],
+        "A3": ["answer"]}   # ReAct's lookups are not known in advance: only its final answer is planned
 DOING = {   # what the active step is doing, shown while it runs
     "search": "Searching the policy with your words", "benefits": "Picking the benefit from the table of contents",
     "definitions": "Looking up the defined terms", "exclusions": "Checking which exclusions could apply",
@@ -69,7 +71,7 @@ DOING = {   # what the active step is doing, shown while it runs
 DOING_FLOOR = "Answering from what it already knows"   # B0's only step
 STEP_NAMES = {   # plain-words names for the trace steps of A0, A2 and A4
     "search": "Searched the policy", "grade": "Graded the passages", "rewrite": "Rewrote the search",
-    "decide": "Kept the relevant sections", "benefits": "Picked the benefit", "definitions": "Looked up defined terms",
+    "decide": "Gathered the sections to read", "stop": "Stopped looking", "benefits": "Picked the benefit", "definitions": "Looked up defined terms",
     "exclusions": "Checked the exclusions", "answer": "Wrote the verdict", "parse_failed": "Reply unusable, retried",
 }
 # Scripted questions, typed exactly as cached (any change misses the cache and calls the model live).
@@ -209,6 +211,7 @@ CSS = """
         border-radius: 999px; padding: 0.12rem 0.6rem; white-space: nowrap;}
 .badge.win {background: #FBE9DC; color: #8A3D10;}
 .badge.safe {background: #E2F0E7; color: #1B6B3A;}
+.badge.later {background: #E5ECF3; color: #1F3B57;}
 .st-key-res-A0 {box-shadow: inset 0 3px 0 var(--accent), 0 1px 2px rgba(18,38,58,0.05),
                 0 14px 30px -18px rgba(18,38,58,0.25) !important;}
 [data-testid="stColumn"] [class*="st-key-res-"] {padding: 1.15rem 1.15rem 1.25rem;}
@@ -314,9 +317,13 @@ def names(sids, limit: int = 6) -> str:
 def describe(step: dict) -> str:
     """One plain-words line for a trace step."""
     kind = step.get("step", "")
+    if kind == "stop":
+        return {"answer": "decided it had enough", "limit": "reached the 8-lookup limit",
+                "unusable": "reply unusable, answering now"}.get(step.get("reason"), "")
     if kind == "search":
         hits = [h["section_id"] for h in step.get("hits", [])]
-        return f"found {len(hits)} passages, from {names(hits)}"
+        asked = f"\"{html.escape(str(step['query']))}\": " if "thought" in step and step.get("query") else ""
+        return f"{asked}found {len(hits)} passages, from {names(hits)}"
     if kind == "rewrite":
         return f"new search: \"{html.escape(str(step.get('query', '')))}\""
     if kind == "grade":
@@ -326,8 +333,12 @@ def describe(step: dict) -> str:
     if kind == "benefits":
         return names(step.get("picked", []))
     if kind == "definitions":
+        if "term" in step and not step.get("fetched"):
+            return f"\"{html.escape(str(step['term']))}\" is not a defined term"
         return names(step.get("fetched", []))
     if kind == "exclusions":
+        if "candidates" not in step:   # ReAct: the exclusions of one benefit it chose
+            return f"for {html.escape(title_of(str(step.get('benefit', ''))))}: {names(step.get('picked', []))}"
         return (f"kept {names(step.get('picked', []))} out of {len(step.get('candidates', []))} that could apply")
     if kind == "answer":
         return str(step.get("verdict", "")).replace("_", " ")
@@ -348,6 +359,7 @@ def card(box) -> dict:
 BADGES = {   # from the 124-claim test: A0 won under the decision rule; A4 said covered wrongly less often than A0
     WINNER: '<span class="badge win">Best value</span>',
     BASELINE: '<span class="badge safe">Safer than simple RAG</span>',
+    "A3": '<span class="badge later">Added after the core runs</span>',
 }
 
 
@@ -426,6 +438,8 @@ def steps_html(aid: str, steps: list, seen: dict | None = None, running: bool = 
     for j, kind in enumerate(PLAN[aid][done:]):
         if running and j == 0:
             doing = DOING_FLOOR if aid == FLOOR else DOING[kind]
+            if aid == "A3" and not any(s.get("step") == "decide" for s in steps):
+                doing = "Choosing its next lookup"
             rows.append(f'<li class="active"><span class="name">{doing}...</span></li>')
         else:
             rows.append(f'<li class="todo"><span class="name">{STEP_NAMES[kind]}</span></li>')
@@ -520,7 +534,7 @@ def server_up(model: str) -> bool:
 
 
 def start_live(aid: str, policy: str, question: str, model: str) -> tuple[threading.Thread, list, dict]:
-    """Run B0, A0 or A4 on the cluster in a background thread. The returned `steps` list is the setup's own trace,
+    """Run B0, A0, A4 or A3 on the cluster in a background thread. The returned `steps` list is the setup's own trace,
     filled in by the setup as each step finishes, so the page can show it while the run is still going."""
     from src.llm import get_llm
     sc = Scenario(id="demo", policy=policy, scenario=question.strip(), category="single_section",
@@ -543,9 +557,20 @@ def start_live(aid: str, policy: str, question: str, model: str) -> tuple[thread
                  "usage": new_usage(), "start": time.perf_counter(), "output": None}
         return build_graph(llm, store).invoke(state)["output"]
 
+    def a3():   # A3's own graph (src/approaches/a3_react.py run()), with our list as its trace
+        from langchain_core.messages import HumanMessage, SystemMessage
+        from src.approaches import a3_react
+        cfg = approach_config("A3")
+        system = a3_react.REACT_PROMPT.format(top_k=cfg["top_k"], max_calls=cfg["max_tool_calls"])
+        claim = f"Policy: {POLICY_NAMES.get(policy, policy)}\n\nClaim: {sc.scenario}"
+        state = {"scenario": sc, "messages": [SystemMessage(system), HumanMessage(claim)], "seen": [], "calls": 0,
+                 "stop": None, "steps": steps, "usage": new_usage(), "start": time.perf_counter(), "output": None}
+        return a3_react.build_graph(llm, store).invoke(
+            state, {"recursion_limit": 2 * cfg["max_tool_calls"] + 10})["output"]
+
     def work():
         try:
-            result["out"] = {"B0": b0, "A0": a0, "A4": a4}[aid]()
+            result["out"] = {"B0": b0, "A0": a0, "A4": a4, "A3": a3}[aid]()
         except Exception as e:   # server down or tunnel closed
             result["error"] = e
     t = threading.Thread(target=work, daemon=True)
@@ -568,7 +593,7 @@ def run_live(aids: list, slots: dict, titles: dict) -> dict:
             if aid in finished:
                 continue
             running = thread.is_alive()
-            # LangGraph hands A4's last node a copy of the list, so the finished trace comes from the output
+            # LangGraph hands the last node of A4 and A3 a copy of the list, so the finished trace comes from the output
             now_steps = res["out"].steps if not running and "out" in res else list(steps)
             seen[aid]["now"] = now
             slots[aid]["head"].markdown(head_html(titles[aid], "working..." if running else "done", now, aid),
@@ -659,8 +684,8 @@ with st.container(key="ask"):
 
 def failed(e: Exception) -> None:
     if isinstance(e, NotSaved):
-        st.info("This question has no saved answer, and the model server is offline. Pick an example, or start "
-                "the server (scripts/demo_start.ps1) to ask new questions.")
+        st.info("No saved answer for this method on this question, and the model server is offline. Turn on "
+                "\"Run live\" with the server running (scripts/demo_start.ps1) to see it.")
     else:   # server down or tunnel closed: say so instead of a stack trace
         st.error(f"Could not reach {MODELS[model]} on the cluster ({type(e).__name__}). Start the server "
                  "(scripts/demo_start.ps1), or turn off live and pick an example.")
@@ -726,7 +751,7 @@ NOT_COVERED = 53   # not_covered claims in the 124-claim test set (REPORT sectio
 
 @st.cache_data(show_spinner=False)
 def study(model_name: str) -> dict:
-    """Test-set numbers for B0, A0 and A4 on one model, read from the leaderboard so they match the report."""
+    """Test-set numbers for B0, A0, A4 and A3 on one model, read from the leaderboard so they match the report."""
     import csv
     with open(BOARD, encoding="utf-8") as f:
         return {r["approach"]: r for r in csv.DictReader(f)
@@ -765,19 +790,20 @@ def summary(outs: dict) -> None:
             facts.append(("Time", '<div class="times">' + "".join(
                 f'<span><b>{SHORT[aid]}</b>{o.usage.get("shown_s", o.usage.get("latency_s", 0)):.1f} s</span>'
                 for aid, o in outs.items()) + "</div>"))
-            if WINNER in outs and BASELINE in outs:
-                found = [s for s in outs[BASELINE].cited_sections if s not in outs[WINNER].cited_sections]
+            agents = [a for a in (BASELINE, "A3") if a in outs]
+            if WINNER in outs and agents:   # clauses an agent cited that simple RAG did not
+                found = [s for a in agents for s in outs[a].cited_sections if s not in outs[WINNER].cited_sections]
                 if found:
-                    facts.append(("Only the agent found", names(found)))
+                    facts.append(("Simple RAG missed", names(found)))
             st.markdown('<dl class="facts">' + "".join(f"<dt>{k}</dt><dd>{v}</dd>" for k, v in facts) + "</dl>",
                         unsafe_allow_html=True)
         with right:
             body = "".join(
-                f'<tr class="{"win" if aid == WINNER else ""}"><td><span class="aid">{html.escape(TITLES[aid])}</span></td>'
+                f'<tr class="{"win" if aid == WINNER else ""}"><td><span class="aid">{html.escape(TITLES[aid])}</span>{'<span class="nm">added later</span>' if aid == "A3" else ""}</td>'
                 f'<td><div class="bar"><i style="width:{float(r["accuracy"]):.0%}"></i>'
                 f'<span>{float(r["accuracy"]):.0%}</span></div></td>'
                 f'<td>{wc[aid]} of {NOT_COVERED}</td><td>{float(r["latency_s"]):.1f} s</td></tr>'
-                for aid, r in rows.items())
+                for aid, r in ((a, rows[a]) for a in METHODS if a in rows))
             st.markdown('<table class="study"><thead><tr><th>Method</th><th>Right</th><th>Wrongly "covered"</th>'
                         f'<th>Time</th></tr></thead><tbody>{body}</tbody></table>', unsafe_allow_html=True)
             st.markdown(
