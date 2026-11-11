@@ -100,7 +100,7 @@ The call counts are measured means on the test set; a one-call setup can show sl
 1. **No retrieval (No-RAG):** The model sees only the claim, no policy text. This is the floor.
 2. **Simple RAG (RAG):** One search with the claim text; the top 5 chunks go to the answer call.
 3. **Corrective RAG (CRAG):** A LangGraph loop. It retrieves 5 chunks and the LLM grades which are relevant. If fewer than 2 are, the LLM rewrites the query in the policy's wording and searches again, at most twice. The answer uses only the relevant chunks. Exclusions always count as relevant, so the text that stops a payout is never thrown away.
-4. **Workflow agent (Agent):** Built on the idea that simple RAG misses the deciding definition or exclusion because it uses different words from the claim. A fixed four-step LangGraph graph (at most 3 model calls). The model makes the choices inside each step, but the steps always run in this order:
+4. **Workflow agent (Agent):** Built on the idea that simple RAG misses the deciding definition or exclusion because the clause uses different words from the claim. It is a fixed four-step LangGraph graph (at most 3 model calls) that reads the policy in the order a claims assessor would: benefit, then definitions, then exclusions. The model makes the choices inside each step, but the steps always run in this order:
    1. Pick up to 3 benefits from the list of benefit titles (the table of contents).
    2. Look up the defined terms used in the claim and those benefits (no model call).
    3. Collect the general exclusions and the exclusions specific to those benefits, and keep the ones that could apply.
@@ -113,7 +113,7 @@ The call counts are measured means on the test set; a one-call setup can show sl
 **Exploratory methods:**
 
 - **Whole policy (Full-context).** The whole policy goes in together with the user's prompt, every section with its ID. That is about 28k tokens for FWD and 45k for MSIG. It asks whether retrieval is needed at all on a corpus this small.
-- **Agent with term picking (Agent-Pick).** In step 2 the model also picks up to 3 more definitions from the policy's list of defined terms, to catch terms a claim implies without naming them. It costs one more call than the agent.
+- **Agent with term picking (Agent-Pick).** In step 2 the model also picks up to 3 more definitions from the policy's list of defined terms, to catch terms a claim implies without naming them. It costs one more call than the workflow agent.
 - **Simple RAG, 10 passages (RAG-10).** Simple RAG with the top 10 chunks instead of 5. We added it after seeing the test results, to check whether simple RAG just needed more text.
 - **Safe mode (RAG+Check).** Simple RAG answers every claim, and whenever it says covered or partially covered, the agent double-checks and its answer is used. We worked this out from the answers both setups had already given on the test set, so no new runs were needed.
 
