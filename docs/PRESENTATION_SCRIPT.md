@@ -90,8 +90,8 @@ lookups one at a time.
 
 *(point at the stamps, and the tick or cross under each)* No-RAG says it doesn't have enough information. Simple RAG
 says covered, because it found the delay benefit and stopped. The workflow agent says not covered, because it found the
-exclusion for events already reported by the media. ReAct gets there too, by its own route, so both agents get
-a tick.
+exclusion for events already reported by the media. ReAct chooses its own lookups, so it may or may not get there:
+point at its tick or cross either way.
 
 *(scroll down to the "Which one wins?" panel)* This panel sums up the study: simple RAG is our best-value pick, and
 the workflow agent is the safer one on exactly this kind of claim.
@@ -99,6 +99,8 @@ the workflow agent is the safer one on exactly this kind of claim.
 > If live fails, or the cluster is slow: untick "Run live" and say "here are the saved answers from the same run".
 > If simple RAG says not covered this time, say "simple RAG got this one right today, but in our test run it said
 > covered, and it made that mistake on 9 of the 53 not-covered claims."
+> If ReAct says covered, say "this is why we call the fixed workflow safer: ReAct picks its own route, and on this
+> claim it sometimes misses the exclusion. In our runs so far it got it right two times out of three"
 
 ## [Slide 10: What we would tell an insurer] Ye Zhan, 35 s
 
