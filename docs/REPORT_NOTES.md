@@ -179,6 +179,12 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   2 claims, exclusions on 5: its searches already bring back the needed sections. So the free agent rarely
   thinks of definitions; the small model loops (as the brief warned), the reasoning model stops early. Run on
   test as is (no tuning), since how the agent behaves untuned is the question.
+- **A0K10 on test (11 Nov, branch a/a0-k10 at bd31b05, L40S; exploratory, a test only, not merged)** [7]: A0 with
+  top_k 10. 124 claims each, 0 errors. Accuracy (wrong-covered): gpt-oss 0.70 (0.15) vs A0 0.69 (0.17), McNemar
+  p = 1.00 (13 vs 12); Llama 0.59 (0.13) vs A0 0.56 (0.13), p = 0.607 (9 vs 6). Evidence recall 0.66 to 0.75 on
+  both; tokens 1.7× (gpt-oss 3,247 to 5,382; Llama 2,635 to 4,573). So more passages find more evidence but do not
+  give more right answers; winner unchanged (A0). Ran on the L40S node `lucas` because the A40 node `avenue` was
+  drained, so seconds are not comparable. Not judged (no Haiku spend).
 - **A3 and A4D on test (6 Nov, main c184cad, A40; exploratory, never in the decision rule)** [7, 9]: 124 claims
   each, 0 errors, 0 duplicates. Winner unchanged: A0 on both models. Accuracy (wrong-covered):
   Llama A3 0.61 (0.11), A4D 0.58 (0.09) vs A4 0.61 (0.08), A0 0.56 (0.13); gpt-oss A3 0.76 (0.08), A4D 0.73
@@ -259,6 +265,7 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
       with A3). [x] Demo toggle (Member B, PR #60: A4 re-checks every A0 "covered"; fwd-010 cached as the
       catch: gold not_covered, A0 covered, A4 not_covered on gpt-oss test).
 - [x] A4D and A3 test runs (6 Nov, c184cad); report rebuilt. [x] Judge on the 248 new rows per model (7 Nov, US$0.076).
+- [x] A0K10 test runs (11 Nov, bd31b05, L40S); scores, traces and report rebuilt on branch a/a0-k10.
 - [ ] A0 plus structure lookups; A2 gpt-oss rerun with a larger reply limit (if time).
 
 ## G. Checks to run when the test results land (before writing any number)

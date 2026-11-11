@@ -206,7 +206,8 @@ guided go/no-go decisions.
 
 ## 7. Results
 
-All runs used commit b80d7c3. Each setup ran once on each model over the 124 test claims: 1,240 answers, of which 9
+The core setups and L0 ran at commit b80d7c3, A3 and A4D at c184cad, and A0K10 at bd31b05. Each of the 4 core
+setups and L0 ran once on each model over the 124 test claims: 1,240 answers, of which 9
 were parse errors (all gpt-oss: 8 L0, 1 A2), scored as wrong.
 
 ### 7.1 Leaderboard
@@ -324,6 +325,12 @@ looking them up by structure.
 gpt-oss 0.73 vs 0.71 (p = 0.839). Evidence recall barely moved (0.91 to 0.94 on Llama, 0.84 to 0.85 on gpt-oss), and on
 gpt-oss wrong-covered rose from 0.02 to 0.06, for one more call and 1.1–1.2× the tokens. Missing definitions were not
 what held A4 back.
+
+**A0K10 (exploratory): would simple RAG do better with 10 passages?** No. Added on 11 Nov after the test results,
+so it is outside the decision rule. Doubling k raised evidence recall from 0.66 to 0.75, but accuracy barely moved:
+gpt-oss 0.70 vs A0's 0.69 (87 vs 86 right; exploratory McNemar p = 1.00), Llama 0.59 vs 0.56 (73 vs 70; p = 0.607).
+Wrong-covered stayed about the same (8 vs 9 of 53 on gpt-oss, 7 vs 7 on Llama), for 1.7× the tokens. More passages
+do not close the gap to A4's safety. These runs used an L40S GPU, so their seconds are not comparable.
 
 ## 8. Demo: "Am I covered?"
 
