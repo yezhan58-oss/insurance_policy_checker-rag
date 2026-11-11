@@ -228,8 +228,16 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
 - **Agentic RAG naming (11 Nov)** [4.2]: No-RAG and RAG are the baselines; CRAG, the workflow agent and ReAct are all
   agentic RAG (the model makes retrieval decisions), so they are named "Agentic RAG: Corrective / Workflow agent /
   ReAct" in the report's setup list and table, the abstract and slide 3. Short names stay in charts and results
-  tables. Demo cards carry a small "Baseline" or "Agentic RAG" label above the name. Safe mode is not a sixth
+  tables. Demo columns sit under ruled "Baselines" and "Agentic RAG" headers. Safe mode is not a sixth
   method: it is simple RAG with the workflow agent re-checking each "covered".
+- **Demo look, round 3 (11 Nov)** [8]: YZ found the rounded cards generic. Now one flat page: no cards, shadows,
+  pills or gradient banner; a masthead with the policy, model and live/saved status; the four methods as plain
+  columns under two ruled headers ("Baselines", "Agentic RAG"); the verdict in large coloured serif type, with the
+  right/wrong mark straight under it; numbered steps (running step orange, steps to come grey); a ruled summary
+  table. All four verdicts and marks fit on the first screen at 1280 x 720; no sideways scroll at phone width.
+  Live run 6 on Manila (gpt-oss): no retrieval not covered (a guess, weather reason), simple RAG covered (wrong),
+  workflow agent not covered (right), ReAct covered (wrong). ReAct is now right in 4 of 6 live runs on this claim;
+  the script's fallback line says so.
 - **A0K10 on test (11 Nov, branch a/a0-k10 at bd31b05, L40S; exploratory, a test only; code merged in PR #71)** [7]: A0 with
   top_k 10. 124 claims each, 0 errors. Accuracy (wrong-covered): gpt-oss 0.70 (0.15) vs A0 0.69 (0.17), McNemar
   p = 1.00 (13 vs 12); Llama 0.59 (0.13) vs A0 0.56 (0.13), p = 0.607 (9 vs 6). Evidence recall 0.66 to 0.75 on

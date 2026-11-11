@@ -50,17 +50,7 @@ VERDICT = {   # stamp text, line under it ({secs} = clause names), stamp colour 
     "not_covered": ("Likely not covered", "Based on {secs}.", "#A3271B"),
     "insufficient_info": ("Need more detail", "A fact needed to decide is missing; see why below.", "#2F4A66"),
 }
-ROUTE = """<svg viewBox="0 0 440 220" fill="none" aria-hidden="true">
-<path d="M20 190 C 120 40, 300 20, 420 70" stroke="#F0B98D" stroke-width="2" stroke-dasharray="2 9"
-      stroke-linecap="round" opacity="0.75"/>
-<circle cx="20" cy="190" r="6" fill="#12263A" stroke="#F0B98D" stroke-width="2"/>
-<circle cx="420" cy="70" r="6" fill="#F0B98D"/>
-<g transform="translate(262 34) rotate(12)"><path d="M0 9 L34 0 L40 4 L12 13 L16 26 L10 27 L2 15 L-8 18 L-11 15
-   Z" fill="#F4EFE6" opacity="0.92"/></g>
-<text x="8" y="214" fill="#9FB0C2" font-size="11" font-family="sans-serif" letter-spacing="2">SIN</text>
-<text x="404" y="56" fill="#9FB0C2" font-size="11" font-family="sans-serif" letter-spacing="2">NRT</text>
-</svg>"""
-PLAN = {"B0": ["answer"], "A0": ["search", "answer"], "A4": ["benefits", "definitions", "exclusions", "answer"],
+PLAN ={"B0": ["answer"], "A0": ["search", "answer"], "A4": ["benefits", "definitions", "exclusions", "answer"],
         "A3": ["answer"]}   # ReAct's lookups are not known in advance: only its final answer is planned
 DOING = {   # what the active step is doing, shown while it runs
     "search": "Searching the policy with your words", "benefits": "Picking the benefit from the table of contents",
@@ -93,146 +83,137 @@ EXAMPLES = {
 
 CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap');
-:root {--ink:#1B2633; --navy:#12263A; --muted:#55606C; --line:#E4DCCD; --accent:#B4541A;
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap');
+/* One sheet of paper: no cards, no shadows. Hairline rules group things; serif type is the policy's voice and the
+   verdicts; burnt orange is kept for the one action (Check my claim) and for a step that is running. */
+:root {--ink:#1B2633; --muted:#59636E; --faint:#8A939C; --line:#E0D8C8; --rule:#1B2633; --accent:#B4541A;
+       --ok:#1B6B3A; --no:#A3271B;
        --display:"Fraunces","Source Serif Pro","Source Serif 4",Georgia,serif;}
-.block-container {max-width: 86rem; padding-top: 1.75rem; padding-bottom: 4rem;}
-::selection {background: #F3D7C2;}
-
-/* banner */
-.hero {position: relative; overflow: hidden; background: radial-gradient(120% 140% at 0% 0%, #1E3B58 0%, #12263A 55%,
-       #0C1B2A 100%); color: #F4EFE6; border-radius: 1.1rem; padding: 2.4rem 2.6rem 2.2rem; margin-bottom: 1.5rem;
-       box-shadow: 0 18px 40px -22px rgba(12,27,42,0.55);}
-.hero .t {font-family: var(--display); font-weight: 700; font-size: clamp(2.4rem, 5vw, 3.6rem); line-height: 1.02;
-          letter-spacing: -0.025em; margin: 0;}
-.hero .t em {font-style: italic; font-weight: 500; color: #F0B98D;}
-.hero p {color: #C9D3DD; font-size: 1.08rem; line-height: 1.55; max-width: 52ch; margin: 0.9rem 0 0;}
-.hero .facts {display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.3rem;}
-.hero .facts span {font-size: 0.82rem; color: #DCE4EC; border: 1px solid rgba(220,228,236,0.25);
-                   border-radius: 999px; padding: 0.25rem 0.7rem;}
-.hero svg {position: absolute; right: -10px; top: 50%; transform: translateY(-50%); width: 46%; max-width: 440px;
-           opacity: 0.9; pointer-events: none;}
-@media (max-width: 1100px) {.hero svg {display: none;}}
-@media (max-width: 760px) {.hero {padding: 1.8rem 1.4rem;}}
-
-/* cards */
-.st-key-summary {margin-top: 1.25rem;}
-.st-key-ask, .st-key-summary, [class*="st-key-res-"] {background: #FFFFFF; border: 1px solid var(--line); border-radius: 1rem;
-       padding: 1.5rem 1.7rem 1.6rem; box-shadow: 0 1px 2px rgba(18,38,58,0.05), 0 14px 30px -18px rgba(18,38,58,0.25);}
-[class*="st-key-res-"] {margin-top: 0.75rem;}
-.st-key-ask textarea {font-size: 1.02rem; line-height: 1.5;}
-.kicker-free {font-family: var(--display); font-size: 1.35rem; font-weight: 600; color: var(--ink); margin: 0 0 0.2rem;}
-.empty {color: var(--muted); font-size: 0.93rem; margin: 0.9rem 0 0;}
-
-/* result */
-.who {font-family: var(--display); font-size: 1.15rem; font-weight: 600; color: var(--muted); margin-bottom: 0.9rem;}
-/* verdict: a flat label the same width on every card, so the four verdicts line up and read at a glance */
-.stamp {display: block; font-family: var(--display); font-weight: 700; text-transform: uppercase; text-align: center;
-        letter-spacing: 0.05em; font-size: 1.05rem; line-height: 1.25; padding: 0.6rem 0.75rem;
-        border: 2px solid currentColor; border-radius: 0.55rem; background: color-mix(in srgb, currentColor 7%, #FFFFFF);
-        animation: land 0.3s ease-out both;}
-@keyframes land {from {opacity: 0; transform: translateY(4px);} to {opacity: 1; transform: none;}}
-@media (prefers-reduced-motion: reduce) {.stamp {animation: none;}}
-[data-testid="stColumn"] {container-type: inline-size;}
-[data-testid="stColumn"] .stamp {font-size: clamp(0.82rem, 5cqi, 1.02rem);}
+.block-container {max-width: 86rem; padding-top: 1.4rem; padding-bottom: 4rem;}
 @media (min-width: 900px) {.block-container {padding-left: 2.5rem; padding-right: 2.5rem;}}
-.stamp.pending {color: #8A939C; border: 2px dashed #C9BFAE; background: #FFFFFF; animation: breathe 1.6s ease-in-out infinite;}
-@keyframes breathe {50% {opacity: 0.45;}}
-@media (prefers-reduced-motion: reduce) {.stamp.pending {animation: none;}}
-.under {margin: 0.75rem 0 0.25rem !important; font-size: 0.9rem; line-height: 1.45; color: var(--ink);}
-.under b {font-weight: 650;}
-.meta {color: var(--muted); font-size: 0.78rem; font-variant-numeric: tabular-nums; margin: 0 0 0.9rem;
-       padding-bottom: 0.8rem; border-bottom: 1px solid var(--line);}
-.section-label {font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
-                color: var(--muted); margin: 1rem 0 0.4rem;}
+::selection {background: #F3D7C2;}
+b, strong {font-weight: 650;}
+/* Streamlit's top bar holds only the sidebar arrow: let the page show through it instead of covering the title */
+[data-testid="stHeader"] {background: transparent; pointer-events: none;}
+[data-testid="stHeader"] button, [data-testid="stHeader"] a, [data-testid="stToolbar"] {pointer-events: auto;}
+
+/* masthead: the title, and what the claim is checked against */
+.mast {display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.4rem 2rem;
+       border-bottom: 2px solid var(--rule); padding-bottom: 0.6rem;}
+.mast .t {font-family: var(--display); font-weight: 700; font-size: clamp(1.9rem, 3.2vw, 2.5rem); line-height: 1;
+          letter-spacing: -0.02em; color: var(--ink);}
+.mast .t em {font-style: italic; font-weight: 500;}
+.mast .ctx {font-size: 0.9rem; color: var(--muted);}
+.mast .ctx b {color: var(--ink);}
+.mast .sep {color: #C3B9A8; margin: 0 0.55rem;}
+.nw {white-space: nowrap;}
+.lede {font-size: 1.05rem; line-height: 1.55; color: var(--muted); max-width: 50rem; padding-top: 0.9rem; margin: 0;}
+.dot {display: inline-block; width: 0.5rem; height: 0.5rem; border-radius: 50%; margin-right: 0.4rem;
+      vertical-align: 0.06em;}
+
+/* the claim */
+.st-key-ask {max-width: 58rem; margin-top: 1.2rem;}
+.ask-h {font-family: var(--display); font-size: 1.3rem; font-weight: 600; color: var(--ink); margin: 0 0 0.2rem;}
+.st-key-ask textarea {font-size: 1.05rem; line-height: 1.5; background: #FFFFFF;}
+.st-key-ask [data-testid="stButtonGroup"] button[data-variant="pills"] {background: transparent; border: 0;
+    border-radius: 0; padding: 0.1rem 0; margin-right: 1.1rem; min-height: 0; color: var(--ink);
+    text-decoration: underline; text-decoration-color: #C3B9A8; text-underline-offset: 0.28em;}
+.st-key-ask [data-testid="stButtonGroup"] button[data-variant="pills"]:hover,
+.st-key-ask [data-testid="stButtonGroup"] button[data-variant="pills"]:focus-visible {color: var(--accent);
+    text-decoration-color: currentColor;}
+.empty {color: var(--muted); font-size: 0.93rem; margin: 0.6rem 0 0;}
+
+/* results: one column per method, straight on the page, under a ruled header per group */
+[data-testid="stColumn"] {container-type: inline-size; overflow: visible;}
+.grp {display: flex; align-items: baseline; gap: 0.6rem; min-height: 1.7rem; padding-bottom: 0.3rem;
+      margin: 1.8rem 0 1rem; border-bottom: 1.5px solid var(--rule); white-space: nowrap;}
+.grp.joined {margin-right: -2rem;}   /* = the column gap: the rule runs on over the group's next column */
+.grp .g {font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink);}
+.grp .d {font-size: 0.86rem; color: var(--muted);}
+@media (max-width: 640px) {.grp.joined {margin-right: 0;} .grp .d {white-space: normal;}}
+.mh-row {display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem;}
+.mh .who {font-family: var(--display); font-size: 1.25rem; font-weight: 600; color: var(--ink); min-width: 0;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.mh .clock {font-family: var(--display); font-size: 1.25rem; font-weight: 600; color: var(--ink);
+            font-variant-numeric: tabular-nums; white-space: nowrap;}
+.mh .sub {margin-top: 0.1rem; font-size: 0.8rem; min-height: 1.25rem;}
+.mh .tag {font-weight: 650; white-space: nowrap; flex-shrink: 0;}
+.tag.win {color: #8A3D10;} .tag.safe {color: var(--ok);} .tag.own {color: #2F4A66;} .tag.none {color: var(--muted); font-weight: 500;}
+.mh .status {color: var(--muted); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+/* the verdict: big, in its colour, the same place in every column so the answers read across in one line */
+.verdict {font-family: var(--display); font-weight: 600; font-size: clamp(1.1rem, 8cqi, 1.75rem); line-height: 1.15;
+          letter-spacing: -0.01em; margin-top: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          animation: land 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;}
+@keyframes land {from {opacity: 0; transform: translateY(6px);} to {opacity: 1; transform: none;}}
+.verdict.pending {color: var(--faint); animation: breathe 1.6s ease-in-out infinite;}
+@keyframes breathe {50% {opacity: 0.4;}}
+.mark {font-size: 0.95rem; font-weight: 700; margin: 0.3rem 0 0;}
+.mark.ok {color: var(--ok);}
+.mark.no {color: var(--no);}
+.under {margin: 0.4rem 0 0 !important; font-size: 0.92rem; line-height: 1.45; color: var(--ink);}
+.meta {color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; margin: 0.4rem 0 0;
+       padding-bottom: 0.9rem; border-bottom: 1px solid var(--line);}
+.note {color: #7A4A00; font-size: 0.86rem; line-height: 1.45; margin: 0.7rem 0 0;}
+.note b {color: #7A4A00;}
+.section-label {font-size: 0.8rem; font-weight: 650; color: var(--muted); margin: 1.1rem 0 0.35rem;}
+/* steps: numbered, a running step in orange, steps still to come in grey */
+.steps {margin: 0; padding: 0; list-style: none;}
+.steps li {display: grid; grid-template-columns: 1.1rem minmax(0, 1fr) auto; column-gap: 0.45rem; padding: 0.25rem 0;
+           font-size: 0.88rem; line-height: 1.4;}
+[data-testid="stMarkdownContainer"] :is(.steps, .clauses, .limits) li {margin: 0;}   /* Streamlit indents list items; these lists sit flush */
+.steps .n {font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums;}
+.steps .name {font-weight: 650; color: var(--ink);}
+.steps .what {display: block; color: var(--muted); font-size: 0.82rem; overflow-wrap: anywhere;}
+.steps .at {color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums;}
+.steps .active .n, .steps .active .name {color: var(--accent);}
+.steps .active .n {animation: breathe 1.1s ease-in-out infinite;}
+.steps .todo .n, .steps .todo .name, .steps .skip .n, .steps .skip .name {color: var(--faint); font-weight: 500;}
+.steps .skip .name {text-decoration: line-through;}
+@media (prefers-reduced-motion: reduce) {.verdict, .verdict.pending, .steps .active .n {animation: none;}}
+/* why, clauses, policy limit */
+.why {font-size: 0.92rem; line-height: 1.5; color: var(--ink); margin: 0;}
+.clauses, .limits {list-style: none; margin: 0; padding: 0;}
+.clauses li, .limits li {padding: 0.4rem 0; border-top: 1px solid var(--line); font-size: 0.9rem; line-height: 1.4;}
+.clauses li:first-child, .limits li:first-child {border-top: 0; padding-top: 0.05rem;}
+.ct {font-weight: 650; color: var(--ink);}
+.pg {color: var(--muted); font-size: 0.78rem; font-weight: 500; margin-left: 0.35rem; font-variant-numeric: tabular-nums;}
+.clauses .line {display: block; font-family: var(--display); font-size: 0.88rem; line-height: 1.5; color: #3D4853;
+                margin-top: 0.2rem;}
+.limits .ct {display: block;}
+.limits .amt {display: block; font-family: var(--display); font-size: 1.05rem; font-weight: 600; color: var(--ok);
+              font-variant-numeric: tabular-nums;}
+.limits .basis {display: block; color: var(--muted); font-size: 0.8rem;}
+.limit-note {color: var(--muted); font-size: 0.78rem; line-height: 1.4; margin: 0.3rem 0 0.5rem;}
 .clause {font-family: var(--display); font-size: 0.95rem; line-height: 1.6; white-space: pre-wrap; max-height: 22rem;
          overflow-y: auto; padding-right: 0.5rem; color: var(--ink);}
 .sid {font-size: 0.78rem; color: var(--muted); margin: 1rem 0 0.4rem;}
-.why {font-size: 0.92rem; line-height: 1.5; color: var(--ink); margin: 0 0 0.3rem;}
-.clauses {list-style: none; margin: 0 0 0.6rem; padding: 0;}
-.clauses li {padding: 0.45rem 0; border-top: 1px solid var(--line); font-size: 0.9rem; line-height: 1.4;}
-.clauses li:first-child {border-top: none; padding-top: 0.05rem;}
-.clauses .ct {font-weight: 650; color: var(--ink);}
-.clauses .pg {color: var(--muted); font-size: 0.76rem; margin-left: 0.35rem; font-variant-numeric: tabular-nums;}
-.clauses .line {display: block; font-size: 0.85rem; line-height: 1.45; color: #4A5560; margin-top: 0.15rem;
-                font-style: italic;}
-.limits {list-style: none; margin: 0; padding: 0;}
-.limits li {font-size: 0.88rem; line-height: 1.4; padding: 0.4rem 0; border-top: 1px solid var(--line);}
-.limits li:first-child {border-top: none; padding-top: 0.05rem;}
-.limits .ct {display: block; font-weight: 650; color: var(--ink);}
-.limits .amt {display: block; font-weight: 700; color: #1B6B3A; font-variant-numeric: tabular-nums;}
-.limits .basis {display: block; color: var(--muted); font-size: 0.8rem;}
-.trace {margin: 0; padding: 0; list-style: none; counter-reset: s;}
-.trace li {counter-increment: s; position: relative; padding: 0 0 0.85rem 2.2rem; line-height: 1.5;}
-.trace li::before {content: counter(s); position: absolute; left: 0; top: -0.05rem; width: 1.5rem; height: 1.5rem;
-                   border-radius: 50%; background: var(--navy); color: #fff; font-size: 0.78rem; font-weight: 700;
-                   display: grid; place-items: center;}
-.trace li:not(:last-child)::after {content: ""; position: absolute; left: 0.72rem; top: 1.55rem; bottom: 0.1rem;
-                   border-left: 2px dotted #C9BFAE;}
-.trace .what {color: var(--muted); font-size: 0.92rem;}
-/* live run */
-.live-head {margin-bottom: 0.9rem;}
-.live-head .who {margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-.live-head .kind {font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-                  color: var(--muted); min-height: 1rem; margin-bottom: 0.1rem;}
-.live-head .kind.agentic {color: var(--navy);}
-.live-sub {display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; min-height: 2rem;}
-.live-head .status {font-size: 0.82rem; color: var(--muted);}
-.badges {min-height: 1.55rem; margin: 0.3rem 0 0.1rem;}
-.badge {display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
-        border-radius: 999px; padding: 0.12rem 0.6rem; white-space: nowrap;}
-.badge.win {background: #FBE9DC; color: #8A3D10;}
-.badge.safe {background: #E2F0E7; color: #1B6B3A;}
-.badge.later {background: #E5ECF3; color: #1F3B57;}
-.limit-note {color: var(--muted); font-size: 0.76rem; line-height: 1.4; margin: 0.35rem 0 0.9rem;}
-[data-testid="stColumn"] [class*="st-key-res-"] {padding: 1.15rem 1.15rem 1.25rem;}
-/* summary under the cards: this claim, side by side */
-.cmp {width: 100%; border-collapse: collapse; font-size: 0.95rem; font-variant-numeric: tabular-nums;}
-.cmp th {text-align: left; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
-         font-weight: 700; padding: 0 0.75rem 0.55rem 0;}
-.cmp td {padding: 0.65rem 0.75rem 0.65rem 0; border-top: 1px solid var(--line); vertical-align: middle;}
-.cmp td.num, .cmp th.num {text-align: right;}
-.cmp .m {font-weight: 650; color: var(--ink);}
-.vpill {display: inline-block; font-weight: 700; font-size: 0.84rem; padding: 0.18rem 0.65rem; border-radius: 999px;
-        border: 1.5px solid currentColor; white-space: nowrap; background: color-mix(in srgb, currentColor 7%, #FFFFFF);}
-.cmp .ok {color: #1B6B3A; font-weight: 700;}
-.cmp .no {color: #A3271B; font-weight: 700;}
-.sum-pills {display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0 0 1rem;}
-.sum-pills span {font-size: 0.82rem; font-weight: 650; padding: 0.22rem 0.7rem; border-radius: 999px;
-                 background: #F3EEE5; color: var(--ink);}
-.sum-foot {color: var(--muted); font-size: 0.85rem; margin: 0.9rem 0 0;}
-.sum-foot b {color: var(--ink); font-weight: 650;}
-[data-testid="stColumn"] .who {font-size: 1.02rem;}
-[data-testid="stColumn"] .clock {font-size: 1.3rem;}
-.clock {font-family: var(--display); font-size: 1.6rem; font-weight: 700; color: var(--navy);
-        font-variant-numeric: tabular-nums;}
-.live {margin: 0; padding: 0; list-style: none;}
-.live li {position: relative; padding: 0 0 0.7rem 2rem; line-height: 1.4; font-size: 0.9rem;}
-.live li::before {content: ""; position: absolute; left: 0.3rem; top: 0.1rem; width: 1.05rem; height: 1.05rem;
-                  border-radius: 50%; box-sizing: border-box;}
-.live li:not(:last-child)::after {content: ""; position: absolute; left: 0.79rem; top: 1.35rem; bottom: 0.15rem;
-                  border-left: 2px dotted #C9BFAE;}
-.live .done::before {background: var(--navy);}
-.live .active::before {border: 3px solid var(--accent); animation: pulse 1.1s ease-in-out infinite;}
-.live .todo::before {border: 2px solid #C9BFAE;}
-.live .todo {color: #8A939C;}
-.live .skip::before {border: 2px dashed #C9BFAE;}
-.live .skip {color: #8A939C;}
-.live .skip .name {text-decoration: line-through;}
-.live .name {font-weight: 650;}
-.live .at {float: right; color: var(--muted); font-size: 0.82rem; font-variant-numeric: tabular-nums;}
-.live .what {display: block; color: var(--muted); font-size: 0.82rem;}
-.live .active .name {color: var(--accent);}
-@keyframes pulse {50% {transform: scale(0.75); opacity: 0.55;}}
-@media (prefers-reduced-motion: reduce) {.live .active::before {animation: none;}}
-.dot {display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; margin-right: 0.4rem;}
-.mark {font-size: 0.95rem; font-weight: 700; margin: 0 0 0.55rem;}
-.mark.ok {color: #1B6B3A;}
-.mark.no {color: #A3271B;}
-.hero.slim {padding: 0.85rem 1.6rem; margin-bottom: 1rem; border-radius: 0.9rem;}
-.hero.slim .t {font-size: 1.7rem;}
-.note {color: #7A4A00; background: #FBF1E2; font-size: 0.88rem; border-radius: 0.5rem; padding: 0.55rem 0.8rem;
-       margin: 0 0 0.9rem;}
+/* fold-outs: a ruled line with a label, not a box */
+[data-testid="stExpander"] details {border: 0; border-top: 1px solid var(--line); border-radius: 0;
+                                    background: transparent;}
+[data-testid="stExpander"] summary {padding: 0.6rem 0; color: var(--muted);}
+[data-testid="stExpander"] summary p {font-size: 0.86rem;}
+[data-testid="stExpander"] summary:hover {color: var(--ink);}
+[data-testid="stExpander"] [data-testid="stExpanderDetails"] {padding: 0.2rem 0 1rem;}
+/* this claim, side by side */
+.st-key-summary {margin-top: 2.6rem; padding-top: 0.8rem; border-top: 2px solid var(--rule);}
+.sum-h {font-family: var(--display); font-size: 1.35rem; font-weight: 600; color: var(--ink); margin: 0;}
+.sum-line {color: var(--muted); font-size: 0.95rem; margin: 0.15rem 0 0.9rem;}
+.sum-line b {color: var(--ink);}
+.tbl {overflow-x: auto;}
+.cmp {width: 100%; max-width: 62rem; border-collapse: collapse; font-size: 0.95rem; font-variant-numeric: tabular-nums;}
+/* Streamlit draws a full grid on markdown tables; rows only here */
+[data-testid="stMarkdownContainer"] .cmp th {border: 0; border-bottom: 1px solid var(--rule);}
+[data-testid="stMarkdownContainer"] .cmp td {border: 0; border-bottom: 1px solid var(--line);}
+.cmp th {text-align: left; font-size: 0.8rem; font-weight: 650; color: var(--muted); padding: 0 1.2rem 0.45rem 0;
+         border-bottom: 1px solid var(--rule); white-space: nowrap;}
+.cmp td {padding: 0.6rem 1.2rem 0.6rem 0; border-bottom: 1px solid var(--line); vertical-align: baseline;}
+.cmp td.num, .cmp th.num {text-align: right; padding-right: 0; padding-left: 1.2rem;}
+.cmp .m {font-weight: 650; color: var(--ink); white-space: nowrap;}
+.cmp .v {font-family: var(--display); font-weight: 600; font-size: 1.05rem; white-space: nowrap;}
+.cmp .ok {color: var(--ok); font-weight: 700;}
+.cmp .no {color: var(--no); font-weight: 700;}
+.sum-foot {color: var(--muted); font-size: 0.88rem; margin: 0.8rem 0 1.2rem;}
+.sum-foot b {color: var(--ink);}
 </style>
 """
 
@@ -334,36 +315,53 @@ def describe(step: dict) -> str:
 
 
 def note_html(text: str) -> str:
-    return f'<div class="note">{html.escape(text)}</div>'
+    """A safe-mode or quote-check note: the check's name in bold, then what it did."""
+    lead, _, rest = text.partition(": ")
+    if not rest:
+        return f'<p class="note">{html.escape(text)}</p>'
+    return f'<p class="note"><b>{html.escape(lead)}:</b> {html.escape(rest)}</p>'
 
 
-def card(box) -> dict:
-    """One method's card, top to bottom: name and clock, verdict stamp, steps; the explanation and clauses follow.
-    The stamp sits above the steps so the verdicts line up across the columns whatever the number of steps."""
+def card(box, group: str = "") -> dict:
+    """One method's column, top to bottom: its group's ruled header, name and clock, verdict, steps; the explanation
+    and clauses follow. The verdict sits above the steps so the verdicts line up across the columns whatever the
+    number of steps."""
     with box:
+        if group:
+            st.markdown(group, unsafe_allow_html=True)
         return {"head": st.empty(), "stamp": st.empty(), "steps": st.empty()}
 
 
-BADGES = {   # from the 124-claim test: A0 won under the decision rule; A4 said covered wrongly less often than A0
-    WINNER: '<span class="badge win">Best value</span>',
-    BASELINE: '<span class="badge safe">Safer than simple RAG</span>',
-    "A3": '<span class="badge later">Picks its own steps</span>',   # "added later" stays in the results table
+TAGS = {   # one line under each name. From the 124-claim test: A0 won under the decision rule; A4 said covered
+    FLOOR: ("none", "Reads no policy"),   # wrongly less often than A0; A3's "added later" stays in the results table
+    WINNER: ("win", "Best value"),
+    BASELINE: ("safe", "Safer than simple RAG"),
+    "A3": ("own", "Picks its own steps"),
+}
+GROUPS = {   # as in the report, 4.2: the baselines, and agentic RAG (the model makes the retrieval decisions)
+    "B0": ("Baselines", "no search, or one search"), "A0": ("Baselines", "no search, or one search"),
+    "A4": ("Agentic RAG", "the model decides what to look up"), "A3": ("Agentic RAG", "the model decides what to look up"),
 }
 
 
-KINDS = {"B0": "Baseline", "A0": "Baseline", "A4": "Agentic RAG", "A3": "Agentic RAG"}   # as in the report, 4.2
+def group_html(aids: list, i: int) -> str:
+    """The ruled header over a group of columns: its name (and what it means, when the group has room for it) on the
+    group's first column; the rule runs on over the group's other columns."""
+    name, what = GROUPS[aids[i]]
+    first = i == 0 or GROUPS[aids[i - 1]][0] != name
+    joined = i + 1 < len(aids) and GROUPS[aids[i + 1]][0] == name
+    label = (f'<span class="g">{name}</span>' + (f'<span class="d">{what}</span>' if joined else "")) if first else ""
+    return f'<div class="grp{" joined" if joined else ""}">{label}</div>'
 
 
 def head_html(title: str, status: str, secs: float | None, aid: str | None = None) -> str:
-    """Card header: kind (baseline or agentic RAG), method name, its study badge (main cards only), status and clock.
-    The badge row keeps its height on every card, so the verdict stamps below still line up."""
+    """Column header: method name and clock, then its one-line study tag (main columns only) and status. Both lines
+    keep their height in every column, so the verdicts below still line up."""
     clock = f"{secs:.1f} s" if secs is not None else ""
-    badge = BADGES.get(aid, "") if aid and title == TITLES.get(aid) else ""
-    kind = KINDS.get(aid, "")
-    return (f'<div class="live-head"><div class="kind {"agentic" if kind == "Agentic RAG" else ""}">{kind}</div>'
-            f'<div class="who">{html.escape(title)}</div>'
-            f'<div class="badges">{badge}</div><div class="live-sub">'
-            f'<span class="status">{html.escape(status)}</span><span class="clock">{clock}</span></div></div>')
+    cls, tag = TAGS.get(aid, ("none", "")) if aid and title == TITLES.get(aid) else ("none", "")
+    return (f'<div class="mh"><div class="mh-row"><span class="who">{html.escape(title)}</span>'
+            f'<span class="clock">{clock}</span></div><div class="mh-row sub"><span class="tag {cls}">{tag}</span>'
+            f'<span class="status">{html.escape(status)}</span></div></div>')
 
 
 @st.cache_data(show_spinner=False)
@@ -394,7 +392,7 @@ def mark_html(verdict: str, gold: str | None) -> str:
     return f'<div class="mark no">&#10007; Wrong (correct: {plain(gold)})</div>'
 
 
-PENDING = '<div class="stamp pending">Deciding</div><p class="under">&nbsp;</p>'
+PENDING = '<div class="verdict pending">Deciding…</div><p class="under">&nbsp;</p>'
 
 
 def stamp_html(out: VerdictOutput, aid: str, notes: list[str] = (), gold: str | None = None) -> str:
@@ -413,8 +411,8 @@ def stamp_html(out: VerdictOutput, aid: str, notes: list[str] = (), gold: str | 
         meta += " in total (simple RAG + the agent's check)"
     if out.usage.get("cached"):
         meta += " &middot; saved run"
-    return (f'<div class="stamp" style="color:{ink}">{label}</div>'
-            f'<p class="under">{under}</p>{mark_html(out.verdict, gold)}<div class="meta">{meta}</div>' + "".join(note_html(n) for n in notes))
+    return (f'<div class="verdict" style="color:{ink}">{label}</div>{mark_html(out.verdict, gold)}'
+            f'<p class="under">{under}</p><div class="meta">{meta}</div>' + "".join(note_html(n) for n in notes))
 
 
 def steps_html(aid: str, steps: list, seen: dict | None = None, running: bool = False) -> str:
@@ -423,24 +421,27 @@ def steps_html(aid: str, steps: list, seen: dict | None = None, running: bool = 
     if seen is not None:
         for i in range(len(steps)):
             seen.setdefault(i, seen.get("now", 0.0))
+    def row(cls: str, n: str, name: str, what: str = "", at: str = "") -> str:
+        what = f'<span class="what">{what}</span>' if what else ""
+        return (f'<li class="{cls}"><span class="n">{n}</span><span><span class="name">{name}</span>{what}</span>'
+                f'<span class="at">{at}</span></li>')
     rows = []
     if aid == FLOOR:
-        rows.append('<li class="skip"><span class="name">Policy search</span>'
-                    '<span class="what">skipped: this method reads no policy</span></li>')
+        rows.append(row("skip", "–", "Policy search", "skipped: reads no policy"))
     for i, s in enumerate(steps):
-        at = f'<span class="at">{seen[i]:.1f} s</span>' if seen is not None else ""
-        rows.append(f'<li class="done">{at}<span class="name">{STEP_NAMES.get(s.get("step"), s.get("step"))}</span>'
-                    f'<span class="what">{describe(s)}</span></li>')
+        rows.append(row("done", str(i + 1), STEP_NAMES.get(s.get("step"), s.get("step")), describe(s),
+                        f"{seen[i]:.1f} s" if seen is not None else ""))
     done = sum(s.get("step") in PLAN[aid] for s in steps)
     for j, kind in enumerate(PLAN[aid][done:]):
+        n = str(len(steps) + j + 1)
         if running and j == 0:
             doing = DOING_FLOOR if aid == FLOOR else DOING[kind]
             if aid == "A3" and not any(s.get("step") == "decide" for s in steps):
                 doing = "Choosing its next lookup"
-            rows.append(f'<li class="active"><span class="name">{doing}...</span></li>')
+            rows.append(row("active", n, f"{doing}…"))
         else:
-            rows.append(f'<li class="todo"><span class="name">{STEP_NAMES[kind]}</span></li>')
-    return f'<div class="section-label">What it did</div><ol class="live">{"".join(rows)}</ol>'
+            rows.append(row("todo", n, STEP_NAMES[kind]))
+    return f'<div class="section-label">What it did</div><ol class="steps">{"".join(rows)}</ol>'
 
 
 QUOTE = re.compile(r'"([^"]+)"|“([^”]+)”')
@@ -453,13 +454,13 @@ def sentences(text: str) -> list[str]:
 
 def clip(text: str, n: int) -> str:
     text = " ".join(text.split())
-    return text if len(text) <= n else text[:n].rsplit(" ", 1)[0].rstrip(",;:") + "…"
+    return text if len(text) <= n else text[:n].rsplit(" ", 1)[0].rstrip(",;:.") + "…"
 
 
 def short_why(explanation: str) -> str:
     """The reasoning in the model's own words, in one sentence: the last sentence that quotes no policy wording (the
     deciding quote is shown under the clause instead). Section IDs become clause titles."""
-    text = SECTION_ID.sub(lambda m: title_of(m.group(0)), explanation)
+    text = SECTION_ID.sub(lambda m: title_of(m.group(0)), explanation).strip().rstrip("}").strip()   # JSON leftovers
     sents = sentences(text)
     plain = [s for s in sents if not re.search(r'["“”]', s)] or sents
     if not plain:
@@ -729,17 +730,17 @@ def go_slim() -> None:
     st.session_state.slim = True
 
 
-if st.session_state.get("slim"):
-    st.markdown('<div class="hero slim"><div class="t">Am I <em>covered?</em></div></div>', unsafe_allow_html=True)
-else:
-    st.markdown(f'<div class="hero">{ROUTE}<div class="t">Am I <em>covered?</em></div>'
-            '<p>Tell us what happened on your trip. We read the '
-            f'{html.escape(POLICY_NAMES[policy])} wording and show the clauses that decide it.</p>'
-            '<div class="facts"><span>Real policy wording</span><span>Every verdict cites its clause</span>'
-            '<span>Never promises a payout</span></div></div>', unsafe_allow_html=True)
+source = ("Live on the cluster", "#3E9B63") if live else ("Saved answers", "#8A939C")
+st.markdown(f'<div class="mast"><div class="t">Am I <em>covered?</em></div><div class="ctx">'
+            f'<b>{html.escape(POLICY_NAMES[policy])}</b><span class="sep">/</span>{MODELS[model]}<span class="sep">/</span>'
+            f'<span class="nw"><span class="dot" style="background:{source[1]}"></span>{source[0]}</span></div></div>', unsafe_allow_html=True)
+if not st.session_state.get("slim"):   # before the first question only, so the answers fit on the first screen
+    st.markdown(f'<p class="lede">Describe what happened on your trip. Each method reads the '
+                f'{html.escape(POLICY_NAMES[policy])} wording its own way, gives a likely verdict and cites the clauses '
+                "behind it. None of them promises a payout.</p>", unsafe_allow_html=True)
 
 with st.container(key="ask"):
-    st.markdown('<div class="kicker-free">What happened?</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ask-h">What happened?</div>', unsafe_allow_html=True)
     st.pills("Try an example" + ("" if live else " (saved answers, instant)"), list(EXAMPLES[policy]),
              key=f"ex-{policy}", on_change=use_example, args=(policy,))
     question = st.text_area("Your claim", key="question", height=80 if st.session_state.get("slim") else 120,
@@ -805,7 +806,7 @@ def finish(aid: str, out, box, outs: dict, slot: dict) -> None:
         out = check.model_copy(update={"usage": {
             **check.usage, "model_calls": out.usage.get("model_calls", 0) + check.usage.get("model_calls", 0),
             "shown_s": round(secs, 1), "safe_mode": True, "cached": out.usage.get("cached")}})
-        slot["head"].markdown(head_html(TITLES[aid], "simple RAG, then the agent's check", secs, aid),
+        slot["head"].markdown(head_html(TITLES[aid], "+ agent's check", secs, aid),
                               unsafe_allow_html=True)
     bad = (unsupported_quotes(out.explanation, policy)
            if aid != FLOOR and out.verdict in ("covered", "partially_covered") else [])
@@ -843,14 +844,13 @@ def summary(outs: dict) -> None:
     order = [a for a in METHODS if a in outs]
     verdicts = {a: outs[a].verdict for a in order}
     with st.container(key="summary"):
-        pills = []
+        line = ""
         if len(order) > 1:
-            pills.append("All agree" if len(set(verdicts.values())) == 1 else "They disagree")
+            line = "All the methods agree." if len(set(verdicts.values())) == 1 else "The methods disagree."
         if GOLD:
-            pills.append(f"Correct answer: {plain(GOLD)}")
-        st.markdown('<div class="kicker-free">This claim, side by side</div>'
-                    + ('<div class="sum-pills">' + "".join(f"<span>{html.escape(p)}</span>" for p in pills) + "</div>"
-                       if pills else ""), unsafe_allow_html=True)
+            line += f" The correct answer is <b>{plain(GOLD)}</b>."
+        st.markdown('<div class="sum-h">This claim, side by side</div>'
+                    + (f'<p class="sum-line">{line.strip()}</p>' if line else ""), unsafe_allow_html=True)
         head = ("<th>Method</th><th>Verdict</th>" + ("<th>Result</th>" if GOLD else "")
                 + '<th class="num">Time</th><th class="num">Model calls</th><th class="num">Clauses cited</th>')
         body = ""
@@ -862,11 +862,11 @@ def summary(outs: dict) -> None:
             cited = len(dict.fromkeys(title_of(s) for s in o.cited_sections))
             label = TITLES[a] + (" + safe mode" if o.usage.get("safe_mode") else "")
             body += (f'<tr><td class="m">{html.escape(label)}</td>'
-                     f'<td><span class="vpill" style="color:{VERDICT[v][2]}">{VERDICT[v][0]}</span></td>{result}'
+                     f'<td class="v" style="color:{VERDICT[v][2]}">{VERDICT[v][0]}</td>{result}'
                      f'<td class="num">{secs:.1f} s</td><td class="num">{o.usage.get("model_calls", 0)}</td>'
                      f'<td class="num">{cited}</td></tr>')
-        st.markdown(f'<table class="cmp"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>',
-                    unsafe_allow_html=True)
+        st.markdown(f'<div class="tbl"><table class="cmp"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>'
+                    "</div>", unsafe_allow_html=True)
         agents = [a for a in (BASELINE, "A3") if a in outs]
         if WINNER in outs and agents:   # clauses an agent cited that simple RAG did not (not the limits tables)
             missed = [s for a in agents for s in outs[a].cited_sections
@@ -887,9 +887,9 @@ def study_results() -> None:
                    f'<td class="num">{float(rows[a]["accuracy"]):.0%}</td><td class="num">{wc[a]} of {NOT_COVERED}</td>'
                    f'<td class="num">{float(rows[a]["latency_s"]):.1f} s</td></tr>' for a in METHODS if a in rows)
     with st.expander(f"How each method did on our 124 test claims ({name})"):
-        st.markdown('<table class="cmp"><thead><tr><th>Method</th><th class="num">Right</th>'
+        st.markdown('<div class="tbl"><table class="cmp"><thead><tr><th>Method</th><th class="num">Right</th>'
                     '<th class="num">Wrongly "covered"</th><th class="num">Time per claim</th></tr></thead>'
-                    f'<tbody>{body}</tbody></table><p class="sum-foot"><b>Best value:</b> simple RAG &middot; '
+                    f'<tbody>{body}</tbody></table></div><p class="sum-foot"><b>Best value:</b> simple RAG &middot; '
                     "<b>Safer:</b> workflow agent &middot; <b>Our advice:</b> simple RAG, with the workflow agent "
                     'checking every "covered".</p>', unsafe_allow_html=True)
 
@@ -902,7 +902,7 @@ if asked:
     # one method: a narrower column keeps lines readable; two or three: equal columns
     cols = st.columns(len(aids), gap="medium") if len(aids) > 1 else st.columns([5, 2])[:1]
     boxes = {aid: col.container(key=f"res-{aid}") for col, aid in zip(cols, aids)}
-    slots = {aid: card(boxes[aid]) for aid in aids}
+    slots = {aid: card(boxes[aid], group_html(aids, i)) for i, aid in enumerate(aids)}
     if live:
         outs = run_live(aids, slots, TITLES)
     else:

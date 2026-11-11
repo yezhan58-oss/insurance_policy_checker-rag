@@ -1,5 +1,5 @@
 # Look of the "Am I covered?" demo (app/streamlit_app.py). Streamlit reads this when started from the repo root.
-# Navy sidebar and banner, warm paper page, white cards, one burnt-orange accent for the main action.
+# Navy sidebar, warm paper page with hairline rules (no cards), one burnt-orange accent for the main action.
 [theme]
 base = "light"
 primaryColor = "#B4541A"            # burnt orange: the Check button, toggles, focus
@@ -10,7 +10,7 @@ borderColor = "#E4DCCD"
 font = "sans-serif"                 # Source Sans, bundled with Streamlit, so it works offline
 headingFont = "serif"
 codeFont = "monospace"              # only for clause IDs
-baseRadius = "0.6rem"
+baseRadius = "0.2rem"               # near-square widgets, to match the ruled, flat page
 showWidgetBorder = true
 
 [theme.sidebar]

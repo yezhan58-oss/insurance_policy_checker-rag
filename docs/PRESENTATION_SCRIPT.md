@@ -88,12 +88,12 @@ cluster.
 usually answers first. The workflow agent is working through its fixed steps, and ReAct is choosing its own
 lookups one at a time.
 
-*(point at the stamps, and the tick or cross under each)* No-RAG says it doesn't have enough information. Simple RAG
+*(point at the big verdicts, and the tick or cross under each)* No-RAG says it doesn't have enough information. Simple RAG
 says covered, because it found the delay benefit and stopped. The workflow agent says not covered, because it found the
 exclusion for events already reported by the media. ReAct chooses its own lookups, so it may or may not get there:
 point at its tick or cross either way.
 
-*(scroll down to the table under the cards)* Here are the four answers side by side, with the time and model calls
+*(scroll down to the table under the four columns)* Here are the four answers side by side, with the time and model calls
 each took. It matches our test results: simple RAG is the best value, and the workflow agent is the safer one on
 exactly this kind of claim.
 
@@ -104,7 +104,7 @@ exactly this kind of claim.
 > If simple RAG says not covered this time, say "simple RAG got this one right today, but in our test run it said
 > covered, and it made that mistake on 9 of the 53 not-covered claims."
 > If ReAct says covered, say "this is why we call the fixed workflow safer: ReAct picks its own route, and on this
-> claim it sometimes misses the exclusion. In our runs so far it got it right four times out of five"
+> claim it sometimes misses the exclusion. In our live runs so far it got it right four times out of six"
 
 ## [Slide 10: What we would tell an insurer] Ye Zhan, 35 s
 
@@ -126,7 +126,7 @@ So, is the agent worth it? For accuracy, not yet. For safety, yes. Thank you, an
   after a cold start takes about 20 s per method).
 - Open `localhost:8502` in the browser before you start, with all four methods ticked. Click the "Typhoon already in the
   news" example instead of pasting: the wording then matches our test claim exactly, so the page shows the tick or
-  cross under each verdict. After "Check my claim" the banner shrinks, so all four verdicts fit on the first screen.
+  cross under each verdict. After "Check my claim" the intro line goes away, so all four verdicts fit on the first screen (checked at 1280 x 720).
 - Rehearse once with a timer. If you run long, cut in this order: the "Without the policy" line on slide 8, the
   limits sentence on slide 10, then "We ran all of it on two models" on slide 3 (the slide still shows it).
 - Say one number per point; the slides hold the rest. Avoid "McNemar", "Holm" and "kappa" unless asked.
