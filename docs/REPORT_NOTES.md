@@ -252,6 +252,10 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   The 124-claim results fold-out is now its own panel. Its wrong-"covered" column is renamed "Said 'covered' on a
   not-covered claim (of 53)" (YZ asked why only 53: that mistake is only possible on the 53 test claims whose answer
   is not covered; "Right" is over all 124), and the three takeaways (best value, safer, our advice) are separate blocks.
+  Reverted (12 Nov, YZ's call): the demo look is back to the 11 Nov card version (commit 92489df: navy banner,
+  rounded cards with Baseline / Agentic RAG labels, flat verdict stamps). Kept from rounds 3-4: the renamed
+  columns ("Right (of 124)", "Said 'covered' on a not-covered claim (of 53)"), the clean-up of stray "}" and ".…"
+  in the one-line reasons, and the live-run counts and script fallback for ReAct.
 - **A0K10 on test (11 Nov, branch a/a0-k10 at bd31b05, L40S; exploratory, a test only; code merged in PR #71)** [7]: A0 with
   top_k 10. 124 claims each, 0 errors. Accuracy (wrong-covered): gpt-oss 0.70 (0.15) vs A0 0.69 (0.17), McNemar
   p = 1.00 (13 vs 12); Llama 0.59 (0.13) vs A0 0.56 (0.13), p = 0.607 (9 vs 6). Evidence recall 0.66 to 0.75 on

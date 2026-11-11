@@ -123,10 +123,10 @@ streamlit run app/streamlit_app.py                                  (app only: s
 
 Pick a policy and a model, describe what happened, and tick the methods to compare: no retrieval (B0) and simple RAG
 (A0, the winner) as the baselines, the workflow agent (A4) and the ReAct agent (A3) as agentic RAG. Ticked methods
-run at the same time in side-by-side columns; with the model server up, each column shows its steps live and its
-verdict as soon as it finishes. Each column gives a hedged verdict (with a tick or cross when the claim is one of our
+run at the same time in side-by-side cards; with the model server up, each card shows its steps live and its
+verdict as soon as it finishes. Each card gives a hedged verdict (with a tick or cross when the claim is one of our
 labelled claims), a short "why", the cited clauses with the deciding wording (full text one click away), the policy
-limit for a covered verdict, and the step trace. Under the columns, "This claim, side by side" compares the answers,
+limit for a covered verdict, and the step trace. Under the cards, "This claim, side by side" compares the answers,
 times and model calls, with the study's test results for the chosen model folded below. Two exploratory toggles,
 both off by default: safe mode (A4 re-checks every covered or partially covered from A0) and the quote check (a
 covered answer that quotes wording not in the policy becomes insufficient_info). The example questions are cached in
