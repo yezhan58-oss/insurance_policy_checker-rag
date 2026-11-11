@@ -498,7 +498,7 @@ tested and documented the SMU GPU cluster setup (vLLM servers and batch scripts)
 the shared contracts (output schema, model client, store). They also wrote the ingestion of both policies into
 sections with stable IDs, and the search over them. They switched the study to the two free cluster models when the
 planned API credits turned out not to cover API calls. They built B0, A0 and A2 (including its dev trials), tuned the
-shared base prompt on dev, and added the exploratory L0 and the retrieval-only comparison. On evaluation, they wrote
+shared base prompt on dev, and added the exploratory L0 and the retrieval-only comparison. They also built the safe-mode analysis (A0 re-checked by A4 on every ‘covered’), simulated from the stored test answers. On evaluation, they wrote
 the run and scoring pipeline (resumable runs, bootstrap confidence intervals, Holm-corrected McNemar tests, the
 decision rule, the trace metrics), the leaderboard and charts, the agreement script, and the rule that splits the
 human "other" error type. They blind-labelled 40 test claims (kappa 0.46), submitted the final test runs on both
@@ -511,11 +511,12 @@ that defines the four verdicts and how to choose gold sections, the drafting hel
 They drafted 156 claim scenarios from specific clauses of both policies and reviewed every draft against the policy
 text. They removed 12 redundant claims and made the seeded split (20 dev, 124 test), then resolved the
 blind-labelling disagreements with Member A and updated the guide where a rule was unclear. They built the policy
-look-up tools and A4, the claims-workflow agent that is our domain-specific setup, including its dev trials. On
+look-up tools and A4, the claims-workflow agent that is our domain-specific setup, including its dev trials, and the exploratory A4D variant, in which the model picks up to 3 extra defined terms on top of the ones matched by name. On
 evaluation, they wrote the Claude Haiku faithfulness judge with a cost dry-run and an agreement check, and
 hand-checked 30 judgments per model. They also labelled the error type of all 176 wrong A0 and A4 test answers and
-hand-checked 10 agent traces. They built the "Am I covered?" demo with its guardrails, an offline answer cache and a
-prompt-injection check. In the report they wrote data and labelling, the A4 design, faithfulness, the demo, the
+hand-checked 10 agent traces. They built the "Am I covered?" demo with its guardrails, an offline answer cache, a prompt-injection check, and two exploratory
+safeguards: a safe mode in which A4 double-checks every "covered" from A0, and a quote check that rejects a
+"covered" quoting wording not in the policy. In the report they wrote data and labelling, the A4 design, faithfulness, the demo, the
 discussion (including the minimum detectable gap and the safety gap in the decision rule), related work and the
 architecture diagram.
 

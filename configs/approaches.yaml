@@ -24,6 +24,8 @@ A4D:                    # exploratory, 5 Nov: A4 + LLM picks definitions from th
   max_definitions: 6
   pick_definitions: true
   max_picked_definitions: 3   # added on top of the name matches
+A0K10:                  # exploratory, 11 Nov: A0 with twice the passages (src/approaches/a0k10_simple.py)
+  top_k: 10
 # Optional, not built
 A1:
   top_k: 15
