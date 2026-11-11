@@ -10,7 +10,7 @@ YZ set up the shared infrastructure that the whole study ran on. They tested and
 client, store). They also wrote the ingestion of both policies (FWD and MSIG) into sections with stable IDs, and the
 search over them. They switched the study to the two free cluster models when the planned API credits turned out not
 to cover API calls. They built three of the five setups: B0 (no retrieval), A0 (simple RAG) and A2 (corrective RAG,
-including its dev trials), and tuned the shared base prompt on dev
+including its dev trials), plus A3 (ReAct agent), and tuned the shared base prompt on dev
 (PROMPT_TUNING.md). They also added the exploratory long-context baseline L0 and the retrieval-only comparison
 (dense, BM25, hybrid). They also built the safe-mode analysis (A0 re-checked by A4 on every ‘covered’), simulated from the stored test answers. On evaluation, they wrote the run and scoring pipeline: resumable runs, bootstrap confidence
 intervals, Holm-corrected McNemar tests, the decision rule, and the trace metrics, including the split between sound
