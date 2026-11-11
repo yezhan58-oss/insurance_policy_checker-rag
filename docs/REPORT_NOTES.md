@@ -179,7 +179,7 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   2 claims, exclusions on 5: its searches already bring back the needed sections. So the free agent rarely
   thinks of definitions; the small model loops (as the brief warned), the reasoning model stops early. Run on
   test as is (no tuning), since how the agent behaves untuned is the question.
-- **A0K10 on test (11 Nov, branch a/a0-k10 at bd31b05, L40S; exploratory, a test only, not merged)** [7]: A0 with
+- **A0K10 on test (11 Nov, branch a/a0-k10 at bd31b05, L40S; exploratory, a test only; code merged in PR #71)** [7]: A0 with
   top_k 10. 124 claims each, 0 errors. Accuracy (wrong-covered): gpt-oss 0.70 (0.15) vs A0 0.69 (0.17), McNemar
   p = 1.00 (13 vs 12); Llama 0.59 (0.13) vs A0 0.56 (0.13), p = 0.607 (9 vs 6). Evidence recall 0.66 to 0.75 on
   both; tokens 1.7× (gpt-oss 3,247 to 5,382; Llama 2,635 to 4,573). So more passages find more evidence but do not
