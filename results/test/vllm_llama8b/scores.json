@@ -27,6 +27,33 @@
    "completion_tokens": 110.11290322580645,
    "reasoning_tokens": 0.0
   },
+  "A0K10": {
+   "n": 124,
+   "errors": 0,
+   "verdict_accuracy": 0.5887096774193549,
+   "verdict_accuracy_lo": 0.5,
+   "verdict_accuracy_hi": 0.6693548387096774,
+   "binary_accuracy": 0.6935483870967742,
+   "binary_accuracy_lo": 0.6048387096774194,
+   "binary_accuracy_hi": 0.7741935483870968,
+   "wrong_covered_rate": 0.1320754716981132,
+   "wrong_covered_rate_lo": 0.03773584905660377,
+   "wrong_covered_rate_hi": 0.22641509433962265,
+   "clause_recall": 0.6397849462365592,
+   "clause_recall_lo": 0.5725806451612904,
+   "clause_recall_hi": 0.7097110215053763,
+   "faithfulness": NaN,
+   "faithfulness_lo": NaN,
+   "faithfulness_hi": NaN,
+   "faith_yes": 0,
+   "faith_partly": 0,
+   "faith_no": 0,
+   "latency_s": 2.764511583448057,
+   "model_calls": 1.0,
+   "prompt_tokens": 4462.491935483871,
+   "completion_tokens": 110.95967741935483,
+   "reasoning_tokens": 0.0
+  },
   "A2": {
    "n": 124,
    "errors": 0,
@@ -225,6 +252,44 @@
      "not_covered": 4,
      "covered": 4,
      "insufficient_info": 3
+    }
+   }
+  },
+  "A0K10": {
+   "covered": {
+    "n": 46,
+    "right": 29,
+    "predicted": {
+     "covered": 29,
+     "not_covered": 14,
+     "insufficient_info": 3
+    }
+   },
+   "not_covered": {
+    "n": 53,
+    "right": 40,
+    "predicted": {
+     "not_covered": 40,
+     "covered": 7,
+     "insufficient_info": 6
+    }
+   },
+   "partially_covered": {
+    "n": 14,
+    "right": 1,
+    "predicted": {
+     "not_covered": 12,
+     "covered": 1,
+     "partially_covered": 1
+    }
+   },
+   "insufficient_info": {
+    "n": 11,
+    "right": 3,
+    "predicted": {
+     "not_covered": 6,
+     "insufficient_info": 3,
+     "covered": 2
     }
    }
   },
@@ -543,6 +608,24 @@
    "only_b_right": 8,
    "p": 0.3876953125,
    "label": "exploratory: A4D vs best agent"
+  },
+  {
+   "a": "A0K10",
+   "b": "A0",
+   "n": 124,
+   "only_a_right": 9,
+   "only_b_right": 6,
+   "p": 0.6072387695312499,
+   "label": "exploratory: A0K10 vs A0"
+  },
+  {
+   "a": "A0K10",
+   "b": "A4",
+   "n": 124,
+   "only_a_right": 11,
+   "only_b_right": 14,
+   "p": 0.6900379657745361,
+   "label": "exploratory: A0K10 vs best agent"
   }
  ],
  "decision": {
@@ -559,9 +642,10 @@
  },
  "model": "vllm_llama8b",
  "split": "test",
- "rows": 868,
+ "rows": 992,
  "commits": [
   "b80d7c3",
-  "c184cad"
+  "c184cad",
+  "c64d688"
  ]
 }
