@@ -49,9 +49,9 @@ This report contributes 4 things:
 
 **LLM as a ****judge.** Strong LLMs can grade open-ended answers almost as consistently as human raters, though with known biases such as favouring their own outputs (Zheng et al., 2023). Our judge is **Claude Haiku 5.5**, which comes from a different company than both tested models, and we checked its grades against human labels.
 
-## 3. Data and Policy used
+## 3. Data and labelling
 
-We used two public Singapore travel policy wordings, **FWD Travel Insurance **(April 2024, 45 pages) and **MSIG TravelEasy** (70 pages, 52 benefit sections). We downloaded them on 16 and 17 Oct 2026 and committed them with their SHA-256 hashes. The two are laid out differently. FWD keeps its definitions at the back and prints its benefit tables as images, which we transcribed by hand, while MSIG points from each benefit to its general exclusions by number.
+We used two public Singapore travel policy wordings, **FWD Travel Insurance** (April 2024, 45 pages) and **MSIG TravelEasy** (70 pages, 52 benefit sections). We downloaded them on 16 and 17 Oct 2026 and committed them with their SHA-256 hashes. The two are laid out differently. FWD keeps its definitions at the back and prints its benefit tables as images, which we transcribed by hand, while MSIG points from each benefit to its general exclusions by number.
 
 **Ingestion.** Each policy is split along its own headings. This gives 284 sections (FWD 131, MSIG 153), each with a stable ID such as `fwd:travel_delay` and a type: benefit (93), definition (66), condition (56), exclusion (46) or other (23). Sections longer than 500 words are cut into chunks of about 400 words with a 50-word overlap, which gives 323 chunks that all keep their section ID. Defined terms also go into a lookup table. Ingestion is deterministic, so every machine builds the same index.
 
@@ -65,9 +65,7 @@ We used two public Singapore travel policy wordings, **FWD Travel Insurance **(A
 | covered / not\_covered / partially / insufficient | 5 / 6 / 4 / 5 | 46 / 53 / 14 / 11 |
 | single\_section / definition / exclusion / tricky | 8 / 3 / 5 / 4 | 65 / 20 / 25 / 14 |
 
-**Blind check.** We labelled 40 random test claims without seeing each other's drafts or labels. Agreement was moderate: 25 of 40 on the four-way verdict (Cohen's kappa 0.46, 95% CI 0.24 to 0.64) and 30 of 40 on covered versus not (kappa 0.50). 
-
-In 39 of the 40 cases both of us picked at least one gold section in common, so the disagreement was about how to read a clause and not about which clause applies. We went through the 15 disagreements together against the policy text, added two rules to the guide, and froze the test set on 28 Oct.
+**Blind check.** Member A labelled 40 random test claims blind, without seeing the drafts or Member B's labels. Agreement was moderate: 25 of 40 on the four-way verdict (Cohen's kappa 0.46, 95% CI 0.24 to 0.64) and 30 of 40 on covered versus not (kappa 0.50). In 39 of the 40 cases both of us picked at least one gold section in common, so the disagreement was about how to read a clause and not about which clause applies. We went through the 15 disagreements together against the policy text, added two rules to the guide, and froze the test set on 28 Oct.
 
 ## 4. Methods
 
