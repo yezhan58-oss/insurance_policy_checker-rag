@@ -401,6 +401,8 @@ def stamp_html(out: VerdictOutput, aid: str, notes: list[str] = (), gold: str | 
         under = line.format(secs=secs)
     calls = out.usage.get("model_calls", 0)
     meta = f'{calls} model call{"" if calls == 1 else "s"}'
+    if out.usage.get("safe_mode"):
+        meta += " in total (simple RAG + the agent's check)"
     if out.usage.get("cached"):
         meta += " &middot; saved run"
     return (f'<div class="stamp" style="color:{ink}">{label}</div>'
@@ -789,7 +791,14 @@ def finish(aid: str, out, box, outs: dict, slot: dict) -> None:
             return
         notes.append(f"Safe mode: simple RAG said {said}; the workflow agent checked it and says "
                      f"{check.verdict.replace('_', ' ')}, so that is the answer shown.")
-        out = check
+        # the cost is both runs, one after the other: simple RAG's call, then the agent's
+        secs = (out.usage.get("shown_s", out.usage.get("latency_s", 0))
+                + check.usage.get("shown_s", check.usage.get("latency_s", 0)))
+        out = check.model_copy(update={"usage": {
+            **check.usage, "model_calls": out.usage.get("model_calls", 0) + check.usage.get("model_calls", 0),
+            "shown_s": round(secs, 1), "safe_mode": True, "cached": out.usage.get("cached")}})
+        slot["head"].markdown(head_html(TITLES[aid], "simple RAG, then the agent's check", secs, aid),
+                              unsafe_allow_html=True)
     bad = (unsupported_quotes(out.explanation, policy)
            if aid != FLOOR and out.verdict in ("covered", "partially_covered") else [])
     if quotes and bad:
@@ -802,7 +811,7 @@ def finish(aid: str, out, box, outs: dict, slot: dict) -> None:
     slot["stamp"].markdown(stamp_html(out, aid, notes, GOLD), unsafe_allow_html=True)
     with box:
         show_body(out, aid)
-
+    return out   # what the card shows, after safe mode and the quote check: the summary table uses the same
 
 BOARD = ROOT / "results" / "test" / "report" / "leaderboard.csv"
 BOARD_MODEL = {"vllm_gptoss20b": "gpt-oss-20b", "vllm_llama8b": "Llama 8B"}   # model names in leaderboard.csv
@@ -843,7 +852,8 @@ def summary(outs: dict) -> None:
                       if GOLD else "")
             secs = o.usage.get("shown_s", o.usage.get("latency_s", 0))
             cited = len(dict.fromkeys(title_of(s) for s in o.cited_sections))
-            body += (f'<tr><td class="m">{html.escape(TITLES[a])}</td>'
+            label = TITLES[a] + (" + safe mode" if o.usage.get("safe_mode") else "")
+            body += (f'<tr><td class="m">{html.escape(label)}</td>'
                      f'<td><span class="vpill" style="color:{VERDICT[v][2]}">{VERDICT[v][0]}</span></td>{result}'
                      f'<td class="num">{secs:.1f} s</td><td class="num">{o.usage.get("model_calls", 0)}</td>'
                      f'<td class="num">{cited}</td></tr>')
@@ -903,6 +913,9 @@ if asked:
             slots[aid]["head"].markdown(head_html(TITLES[aid], status, o.usage.get("latency_s", 0), aid),
                                         unsafe_allow_html=True)
             slots[aid]["steps"].markdown(steps_html(aid, o.steps), unsafe_allow_html=True)
+    shown = {}
     for aid in aids:
-        finish(aid, outs[aid], boxes[aid], outs, slots[aid])
-    summary({aid: o for aid, o in outs.items() if not isinstance(o, Exception)})
+        final = finish(aid, outs[aid], boxes[aid], outs, slots[aid])
+        if final is not None:
+            shown[aid] = final
+    summary(shown)
