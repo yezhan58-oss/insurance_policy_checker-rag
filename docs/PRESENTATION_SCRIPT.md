@@ -1,24 +1,27 @@
 # IS469 presentation script (7 minutes, live demo included)
 
 Deck: `docs/IS469_presentation.pptx`, 11 slides. The split follows the brief: Ye Zhan presents the comparison and
-results, and Liang Than presents the agent and runs the live demo. Target is **6:15 spoken**, which leaves about 45 s of buffer for
+results, and Liang Than presents the agent and runs the live demo. Target is **6:30 spoken**, which leaves about 30 s of buffer for
 slide changes and a slow first model answer. At a normal pace of about 140 words a minute, each timing below matches
 its word count.
 
 | Slides | Speaker | Time | Running total |
 |---|---|---|---|
-| 1–4: problem, methods, fair test | Ye Zhan | 2:00 | 2:00 |
-| 5: how the agent reads the policy | Liang Than | 0:35 | 2:35 |
-| 6–8: results, cost, the model | Ye Zhan | 1:25 | 4:00 |
-| 9: live demo | Liang Than (Ye Zhan drives the laptop) | 1:30 | 5:30 |
-| 10–11: advice, close | Ye Zhan | 0:45 | 6:15 |
+| 1–4: why it matters, problem, methods, fair test | Ye Zhan | 2:15 | 2:15 |
+| 5: how the agent reads the policy | Liang Than | 0:35 | 2:50 |
+| 6–8: results, cost, the model | Ye Zhan | 1:25 | 4:15 |
+| 9: live demo | Liang Than (Ye Zhan drives the laptop) | 1:30 | 5:45 |
+| 10–11: advice, close | Ye Zhan | 0:45 | 6:30 |
 
 ---
 
-## [Slide 1: Is the agent worth it?] Ye Zhan, 10 s
+## [Slide 1: Is the agent worth it?] Ye Zhan, 25 s
 
-Hi, we're Ye Zhan and Liang Than. Agents are the hot thing in RAG right now, so we asked a simple question: for
-checking travel insurance claims, is an agent actually worth what it costs?
+Hi, we're Ye Zhan and Liang Than. When something goes wrong on a trip, people want to know straight away whether
+they're covered. Insurers' chatbots today mostly follow scripts to sell a policy or file a claim, and we didn't find
+one that reads your policy and tells you whether your situation is covered, with the clause to back it up. So we
+tested how an LLM should read the policy, looking at how accurate, how safe and how costly each way is, and asked
+a simple question: is an agent worth what it costs?
 
 ## [Slide 2: One claim, three clauses, pages apart] Ye Zhan, 35 s
 
