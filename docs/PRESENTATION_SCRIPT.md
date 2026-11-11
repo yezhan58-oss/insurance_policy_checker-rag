@@ -28,7 +28,7 @@ public transport", which is defined all the way back on page 44. Then the exclus
 event that was already in the news before you bought the policy. A normal search with the claim's own words finds
 the first clause, but the other two use words the claim never says.
 
-## [Slide 3: Four ways to read the policy] Ye Zhan, 45 s
+## [Slide 3: Five ways to read the policy] Ye Zhan, 45 s
 
 So we compared four ways of reading the policy. No-RAG reads nothing and answers from what the model already knows.
 Simple RAG does one search that returns the top five passages. Corrective RAG grades what it found and rewrites the
