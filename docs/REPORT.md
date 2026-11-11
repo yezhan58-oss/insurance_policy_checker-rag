@@ -91,7 +91,7 @@ All setups finish with the same answer call. What differs is which policy text t
 | ReAct agent (ReAct) | The model chooses its own lookups, one at a time | 7.9 / 3.4 | A3 |
 | Agent with term picking (Agent-Pick) | The workflow agent, plus extra definitions the model picks | 4.0 / 4.0 | A4D |
 | Simple RAG, 10 passages (RAG-10) | Simple RAG with 10 chunks instead of 5 | 1.0 / 1.0 | A0K10 |
-| Safe mode (RAG + Check) | Simple RAG first; the agent re-checks any covered or partially covered answer | simple RAG's call + the agent's on 39 / 50 of 124 claims | none  (simulated) |
+| Safe mode (RAG + Check) | Simple RAG first; the agent re-checks any covered or partially covered answer | simple RAG's call + the agent's on 39 / 50 of 124 claims | none (simulated) |
 
 The call counts are measured means on the test set; a one-call setup can show slightly more than 1.0 because of retries. The first four setups were fixed before the test run. **ReAct was added on 4 Nov, after the core runs, and joins the main comparison; we report the decision rule both as planned and with ReAct included.** The other exploratory setups are scored but never compete.
 
@@ -103,7 +103,7 @@ The call counts are measured means on the test set; a one-call setup can show sl
 4. **Workflow agent (Agent):** Built on the idea that simple RAG misses the deciding definition or exclusion because it uses different words from the claim. A fixed four-step LangGraph graph (at most 3 model calls). The model makes the choices inside each step, but the steps always run in this order:
    1. Pick up to 3 benefits from the list of benefit titles (the table of contents).
    2. Look up the defined terms used in the claim and those benefits (no model call).
-   3. Collect the exclusions for those benefits and keep the ones that could apply.
+   3. Collect the general exclusions and the exclusions specific to those benefits, and keep the ones that could apply.
    4. Answer from everything gathered.
 
 **Added to the main comparison after the core runs:**
@@ -115,7 +115,7 @@ The call counts are measured means on the test set; a one-call setup can show sl
 - **Whole policy (Full-context).** The whole policy goes in together with the user's prompt, every section with its ID. That is about 28k tokens for FWD and 45k for MSIG. It asks whether retrieval is needed at all on a corpus this small.
 - **Agent with term picking (Agent-Pick).** In step 2 the model also picks up to 3 more definitions from the policy's list of defined terms, to catch terms a claim implies without naming them. It costs one more call than the agent.
 - **Simple RAG, 10 passages (RAG-10).** Simple RAG with the top 10 chunks instead of 5. We added it after seeing the test results, to check whether simple RAG just needed more text.
-- **Safe mode (RAG+Check).** Simple RAG answers every claim, and whenever it says covered, the agent double-checks and its answer is used. We worked this out from the answers both setups had already given on the test set, so no new runs were needed.
+- **Safe mode (RAG+Check).** Simple RAG answers every claim, and whenever it says covered or partially covered, the agent double-checks and its answer is used. We worked this out from the answers both setups had already given on the test set, so no new runs were needed.
 
 ### 4.3 Models and infrastructure
 
