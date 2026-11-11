@@ -39,7 +39,7 @@ This report contributes 4 things:
 
 ## 2. Related work
 
-**Retrieval-augmented generation.** RAG gives a language model passages fetched from an outside corpus when it answers (Lewis et al., 2020). Our simple RAG setup is the plainest version of this: one search with the claim text, five chunks, one answer. Policy wordings are a hard case for it, because the text that decides a claim is spread out and a single search rarely brings back the benefit, the definition and the exclusion together.
+**Retrieval-augmented generation.** RAG gives a language model passages fetched from an outside corpus when it answers (Lewis et al., 2020). Our simple RAG setup is the plainest version of this: one search with the claim text, five chunks, then one answer. Policy wordings are hard cases for this technology, because like other legal texts, the text that decides a claim is spread throughout the policy and a single search doesn't usually bring back the benefit, the definition and the exclusion together. A typhoon delay claim needs three separate pieces of the policy: the travel delay benefit, the definition of scheduled public transport, and the exclusions. In our tests simple RAG's single search found none of the needed definitions (section 7.6).
 
 **Corrective and self-reflective retrieval.** Corrective RAG (CRAG; Yan et al., 2024) grades the passages it retrieves and, when they look weak, rewrites the query or falls back to web search. Self-RAG (Asai et al., 2024) goes further and trains the model to decide when to retrieve and to critique its own output. Our corrective RAG setup follows CRAG, with two changes: an LLM does the grading in place of the fine-tuned evaluator, and there is no web search because our corpus is closed.
 
