@@ -179,6 +179,41 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   2 claims, exclusions on 5: its searches already bring back the needed sections. So the free agent rarely
   thinks of definitions; the small model loops (as the brief warned), the reasoning model stops early. Run on
   test as is (no tuning), since how the agent behaves untuned is the question.
+- **ReAct (A3) in the main comparison (11 Nov, after the test results; disclosed in the report)** [4.2, 7.2, 9]:
+  shown next to the four core setups in every table, chart, slide and the demo, marked "added later". score.py
+  also reports the decision rule with A3 as a full candidate (`with_react` in scores.json); the planned result is
+  unchanged. As planned: A0 wins on both models. With A3: the top two become A3 and A4, not separated (p = 1.00
+  Llama, 0.43 gpt-oss), so A4 wins as the cheaper. A3 vs A0: p = 0.36 / 0.18 (Holm 0.23 on gpt-oss as best agent).
+  Finding: the top-two tie-break makes the formal winner depend on which setups are in the race; what holds either
+  way is that no agent is significantly more accurate than A0. Headline: "simple RAG is the best value, the
+  workflow agent the safest". YZ built A3 (b93b856, 4 Nov); the Contributions paragraph does not say so yet.
+- **Advice to an insurer, refined (11 Nov)** [9]: simple RAG as the main engine, workflow agent re-checks every
+  "covered" (0 of 53 wrong, 66% accuracy, about 1.8x tokens, simulated). ReAct only for open-ended questions
+  (comparing plans, multi-part questions), with a strong model and a lookup cap: claim checking is well-structured,
+  where Topic 7 slide 36 (ReAct vs Plan-and-Execute) favours a fixed plan, and A3 was less safe (4 of 53 vs 1) with
+  unpredictable cost (7.9 calls on Llama). Invest in the model first (+13 points vs at most +6 from method). At
+  about 70% accuracy, point customers to the deciding clauses and leave the claim decision to a person.
+- **Power** [9]: with the observed discordance (32 to 42 of 124 claims), a 5-point gap needs about 800 to 1,100
+  claims for 80% power (McNemar, two-sided 5%); about 230 to 290 for a 10-point gap.
+- **Course links** [1, 2]: Topic 7 slides 18-19 (ReAct loop), 36 (ReAct vs Plan-and-Execute: the workflow agent is
+  Plan-and-Execute), 38 (planning ladder); Topic 8 slides 10-12 (long context, lost in the middle: Full-context),
+  13 (RAG pipeline), 28 (BM25 hybrid: retrieval-only check), 32 and 43-44 (query rewriting, judge and re-query:
+  corrective RAG), 46 (faithfulness, trajectory metrics), 47 (cap retrieval calls).
+- **Why these two models** [4.3]: largest that fit one 48 GB student GPU. Shared models on the cluster
+  (/common/public/llm-models, checked 11 Nov): Llama 3.1 8B/70B/405B, Llama 3.3 70B, gpt-oss-20b/120b,
+  DeepSeek-R1 and its 7B/8B/14B/32B/70B distills, Qwen2.5-VL 7B/72B, NVLM-D-72B, Janus, whisper; several folders
+  locked. Only the R1 distills (7B to 14B) were real alternatives, and they are reasoning models like gpt-oss.
+- **Names and presentation (11 Nov)**: report, slides, script, demo and charts use names instead of codes
+  (B0 No-RAG, A0 RAG, A2 CRAG, A4 Agent, L0 Full-context, A3 ReAct, A4D Agent-Pick, A0K10 RAG-10); code and
+  results files keep the IDs. Report cut toward 10 pages; slides cut to short cue phrases; slide 3 has a ReAct row,
+  slide 6 a ReAct bar, slide 9 a ReAct line. Demo: ReAct card (live, plus saved test-run answers for fwd-010 and
+  fwd-003; not covered on fwd-010, like A4). Charts: scatter plots show the core setups, ReAct and Full-context.
+- **A0K10 on test (11 Nov, branch a/a0-k10 at bd31b05, L40S; exploratory, a test only; code merged in PR #71)** [7]: A0 with
+  top_k 10. 124 claims each, 0 errors. Accuracy (wrong-covered): gpt-oss 0.70 (0.15) vs A0 0.69 (0.17), McNemar
+  p = 1.00 (13 vs 12); Llama 0.59 (0.13) vs A0 0.56 (0.13), p = 0.607 (9 vs 6). Evidence recall 0.66 to 0.75 on
+  both; tokens 1.7× (gpt-oss 3,247 to 5,382; Llama 2,635 to 4,573). So more passages find more evidence but do not
+  give more right answers; winner unchanged (A0). Ran on the L40S node `lucas` because the A40 node `avenue` was
+  drained, so seconds are not comparable. Not judged (no Haiku spend).
 - **A3 and A4D on test (6 Nov, main c184cad, A40; exploratory, never in the decision rule)** [7, 9]: 124 claims
   each, 0 errors, 0 duplicates. Winner unchanged: A0 on both models. Accuracy (wrong-covered):
   Llama A3 0.61 (0.11), A4D 0.58 (0.09) vs A4 0.61 (0.08), A0 0.56 (0.13); gpt-oss A3 0.76 (0.08), A4D 0.73
@@ -259,6 +294,7 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
       with A3). [x] Demo toggle (Member B, PR #60: A4 re-checks every A0 "covered"; fwd-010 cached as the
       catch: gold not_covered, A0 covered, A4 not_covered on gpt-oss test).
 - [x] A4D and A3 test runs (6 Nov, c184cad); report rebuilt. [x] Judge on the 248 new rows per model (7 Nov, US$0.076).
+- [x] A0K10 test runs (11 Nov, bd31b05, L40S); scores, traces and report rebuilt on branch a/a0-k10.
 - [ ] A0 plus structure lookups; A2 gpt-oss rerun with a larger reply limit (if time).
 
 ## G. Checks to run when the test results land (before writing any number)
@@ -293,3 +329,53 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
    - Keep the report about 10 pages: simple, concise sentences; only the numbers that matter.
 6. Final check: every number traces to a results file; dev numbers appear only as development checks; no promise of
    payout anywhere (demo guardrail wording).
+7. (8 Nov) REPORT.md: Section 5 now has three "what we measure" tables (answer, process, cost: question, how
+   computed, better) and the decision rule as a 3-step table; 7.2 shows the rule step by step per model; 7.3 has a
+   cost table vs A0 (calls, tokens ×A0, seconds ×A0, hours per 1,000 claims). A2's gpt-oss latency ratio is 4.7×
+   (27.65 / 5.83 s from leaderboard.csv), not 4.8× (the old figure divided rounded numbers).
+8. (8 Nov) Demo UI: disclaimer removed at YZ's request (REPORT 8 and DEMO_SECTION now cite the hedged headlines
+   instead); redesigned (navy sidebar and title banner with a flight-path drawing, white cards on warm paper, burnt-orange
+   button, Fraunces display font) with the verdict as a rubber stamp; theme in .streamlit/config.toml; plus a
+   verdict card; example-question pills fill the exact cached text; saved answers are labelled as saved. The search
+   model now loads in the background when the app starts (the first new question used to wait about 20 s for it).
+   One-command start/stop: scripts/demo_start.ps1 (-Offline for cached only) and scripts/demo_stop.ps1.
+   Second pass (impeccable critique): the step trace is now a numbered plain-words list (raw JSON kept below it),
+   the verdict card names clauses by title, clause text is readable serif (not monospace), compare columns are
+   titled "Simple RAG (A0)" / "Claims workflow (A4)", and an empty-state line says what an answer contains.
+9. (8 Nov) Demo live mode: with the model server up, "Run live on the cluster" runs A0 and/or A4 now (Both = at the
+   same time, side by side) and redraws each setup's own step trace four times a second, with a running clock and the
+   second each step finished. A4 runs B's unchanged graph (build_graph) with a shared steps list; A0 repeats its 3-line
+   run() so the search step shows before the model call. Live answers are not written to the demo cache.
+10. (9 Nov) REPORT 4.2 now explains every setup: a summary table (how each finds policy text, measured calls per
+    claim, pre-registered or exploratory) plus a bullet each, with A3, A4D and safe mode added. Related work no longer
+    says the ReAct agent was not built. Demo safe mode now re-checks partially covered as well as covered, matching
+    report.py safe_mode (POSITIVE), so the demo and the reported safe-mode numbers use the same trigger.
+    Live timing (9 Nov, gpt-oss, 6 new questions): A0 3.2–7.6 s; A4 7.2–19.5 s (1 of 6 over 15 s). On test, A4 is
+    over 15 s on 49 of 124 claims (median 13.7 s); the time follows gpt-oss's reasoning tokens. reasoning_effort=low
+    cut A4 to 3.0–4.6 s but changed 5 of 6 verdicts, so it is not used.
+11. (9 Nov) Demo three-way view: the sidebar's Method radio is now tick boxes for B0, A0 and A4 (all ticked by
+    default); ticked methods run at the same time in equal columns (B0 left, A4 right). Each card: name and clock,
+    verdict stamp (above the steps, so the verdicts line up), "What it did" step list (live or saved), then the
+    explanation and clauses. B0 keeps its own verdict (no citation guard, since it reads no policy) and is labelled a
+    guess; made-up clause IDs are still dropped. Safe mode reuses A4's answer when A4 is ticked; the quote check
+    skips B0. For the presentation, the Manila example splits the methods (saved: A0 covered, A4 not covered).
+    Each verdict stamp lands as soon as its own method finishes. B0 answers saved for all 7 examples (gpt-oss).
+    Live Manila, all three at once (9 Nov, 4 runs): B0 insufficient_info every time (3.9–7.1 s); A4 not_covered
+    every time, citing the "events that happen before you book" exclusion (15.0–20.0 s); A0 covered in 3 of 4
+    (5.7–9.5 s) and insufficient_info once (17.7 s). vLLM is not fully deterministic, so A0's split is not guaranteed.
+    Card body shortened for the projector: "Why" shows at most 2 sentences of the model's reasoning (the sentences
+    that quote nothing; section IDs replaced by clause titles), "The clauses behind it" shows one line per cited
+    clause (the wording the answer quoted from it, else its first sentence, max 150 characters). The full explanation
+    and clause text are one click away; nothing is changed in the stored answers.
+    "Which one wins?" panel under the cards: left, this claim (agree/disagree, verdict chips, the time on each card's
+    clock, clauses only A4 found); right, the test results for the chosen model from leaderboard.csv (accuracy bars,
+    wrong "covered" of 53, time) and three takeaways (Best value A0, Safer A4, advice: A0 with A4 checking "covered").
+    Live check (9 Nov, gpt-oss, the page end to end): Manila B0 need more detail 6.0 s, A0 covered 11.8 s, A4 not
+    covered 13.1 s; Osaka phone theft, all three need more detail (7.4 / 10.1 / 21.0 s). The first question after the
+    server starts is slower (about 20 s per method), so ask one warm-up question before presenting.
+    Demo fixes (11 Nov): the verdict stamp no longer overlaps the line under it; after "Check my claim" the banner
+    shrinks so all three verdicts fit on the first screen; when the claim is word for word a labelled dev or test claim
+    (e.g. Manila = fwd-010), each card shows a tick or cross against our gold label and the panel names the correct
+    answer. Labels are only displayed, not changed.
+    Card badges: "Best value" on A0 (was "Study winner"; renamed 11 Nov to match slide 10) (orange line along the top of its card) and "Safer than A0" on A4 (wrong
+    covered 1 vs 9 of 53 on gpt-oss, 4 vs 7 on Llama, so true on both models); B0 has none.

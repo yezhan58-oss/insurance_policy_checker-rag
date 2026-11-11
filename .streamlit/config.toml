@@ -1,0 +1,24 @@
+# Look of the "Am I covered?" demo (app/streamlit_app.py). Streamlit reads this when started from the repo root.
+# Navy sidebar and banner, warm paper page, white cards, one burnt-orange accent for the main action.
+[theme]
+base = "light"
+primaryColor = "#B4541A"            # burnt orange: the Check button, toggles, focus
+backgroundColor = "#F6F2EA"         # warm paper
+secondaryBackgroundColor = "#F1ECE2"
+textColor = "#1B2633"
+borderColor = "#E4DCCD"
+font = "sans-serif"                 # Source Sans, bundled with Streamlit, so it works offline
+headingFont = "serif"
+codeFont = "monospace"              # only for clause IDs
+baseRadius = "0.6rem"
+showWidgetBorder = true
+
+[theme.sidebar]
+backgroundColor = "#12263A"
+secondaryBackgroundColor = "#1D3651"
+textColor = "#E8EEF4"
+borderColor = "#2E4A68"
+primaryColor = "#F0B98D"
+
+[client]
+toolbarMode = "minimal"

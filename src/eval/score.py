@@ -92,10 +92,10 @@ def mcnemar_p(df: pd.DataFrame, a: str, b: str) -> dict:
             "p": float(mcnemar(table, exact=True).pvalue)}
 
 
-def preregistered_tests(df: pd.DataFrame, overall: dict) -> list[dict]:
+def preregistered_tests(df: pd.DataFrame, overall: dict, agent_pool: tuple = AGENTS) -> list[dict]:
     """(1) best agent vs A0, (2) A0 vs B0, (3) A2 vs A4, plus best agent vs A1 if A1 ran; Holm-corrected."""
     have = set(overall)
-    agents = [a for a in AGENTS if a in have]
+    agents = [a for a in agent_pool if a in have]
     best = max(agents, key=lambda a: overall[a]["verdict_accuracy"]) if agents else None
     pairs = [(best, "A0", "best agent vs A0"), ("A0", "B0", "A0 vs B0"), ("A2", "A4", "A2 vs A4"),
              (best, "A1", "best agent vs A1")]
@@ -118,12 +118,12 @@ def exploratory_tests(df: pd.DataFrame, overall: dict) -> list[dict]:
             for b, label in (("A0", "A0"), (best, "best agent")) if b in have]
 
 
-def decide(df: pd.DataFrame, overall: dict) -> dict:
+def decide(df: pd.DataFrame, overall: dict, exploratory: tuple = EXPLORATORY) -> dict:
     """Brief section 9: highest verdict accuracy whose wrong_covered_rate is no worse than A0's; if McNemar does
     not separate the top two, the cheaper and faster one wins (fewer mean model calls, then lower latency).
     Exploratory setups (L0, A3, A4D, A0K10) are never candidates."""
     a0_wc = overall.get("A0", {}).get("wrong_covered_rate")
-    eligible = [a for a, s in overall.items() if a not in EXPLORATORY
+    eligible = [a for a, s in overall.items() if a not in exploratory
                 and (a0_wc is None or np.isnan(a0_wc) or not s["wrong_covered_rate"] > a0_wc)]
     ranked = sorted(eligible, key=lambda a: -overall[a]["verdict_accuracy"])
     if not ranked:
@@ -150,6 +150,9 @@ def score(rows: list[dict], gold: dict, judged: dict | None = None) -> tuple[dic
                for a, g in df.groupby("approach")}
     result = {"overall": overall, "by_gold_verdict": by_gold, "tests": preregistered_tests(df, overall),
               "exploratory_tests": exploratory_tests(df, overall), "decision": decide(df, overall)}
+    if "A3" in overall:   # robustness check added 11 Nov, after the test results; reported next to the planned result
+        result["with_react"] = {"tests": preregistered_tests(df, overall, AGENTS + ("A3",)),
+                                "decision": decide(df, overall, tuple(x for x in EXPLORATORY if x != "A3"))}
     return result, by_cat
 
 
@@ -200,6 +203,12 @@ def main() -> None:
     d = result["decision"]
     print(f"\nDecision rule: {d['winner']} ({d['reason']})"
           + ("" if args.split == "test" else "  [dev split: for tuning only, not the reported result]"))
+    if "with_react" in result:
+        w = result["with_react"]
+        print(f"With ReAct (A3) as a full candidate (added after the test results): {w['decision']['winner']} "
+              f"({w['decision']['reason']})")
+        for t in w["tests"]:
+            print(f"    McNemar {t['label']:18} {t['a']} vs {t['b']}: p={t['p']:.3f}, Holm p={t['p_holm']:.3f}")
 
 
 if __name__ == "__main__":

@@ -27,6 +27,33 @@
    "completion_tokens": 669.741935483871,
    "reasoning_tokens": 509.2258064516129
   },
+  "A0K10": {
+   "n": 124,
+   "errors": 0,
+   "verdict_accuracy": 0.7016129032258065,
+   "verdict_accuracy_lo": 0.6209677419354839,
+   "verdict_accuracy_hi": 0.782258064516129,
+   "binary_accuracy": 0.7903225806451613,
+   "binary_accuracy_lo": 0.717741935483871,
+   "binary_accuracy_hi": 0.8629032258064516,
+   "wrong_covered_rate": 0.1509433962264151,
+   "wrong_covered_rate_lo": 0.05660377358490566,
+   "wrong_covered_rate_hi": 0.24528301886792453,
+   "clause_recall": 0.7029569892473118,
+   "clause_recall_lo": 0.6397849462365592,
+   "clause_recall_hi": 0.7675067204301075,
+   "faithfulness": NaN,
+   "faithfulness_lo": NaN,
+   "faithfulness_hi": NaN,
+   "faith_yes": 0,
+   "faith_partly": 0,
+   "faith_no": 0,
+   "latency_s": 5.4136765685097705,
+   "model_calls": 1.0241935483870968,
+   "prompt_tokens": 4596.951612903225,
+   "completion_tokens": 784.6370967741935,
+   "reasoning_tokens": 555.6451612903226
+  },
   "A2": {
    "n": 124,
    "errors": 1,
@@ -227,6 +254,45 @@
      "insufficient_info": 8,
      "covered": 2,
      "not_covered": 1
+    }
+   }
+  },
+  "A0K10": {
+   "covered": {
+    "n": 46,
+    "right": 33,
+    "predicted": {
+     "covered": 33,
+     "insufficient_info": 6,
+     "not_covered": 6,
+     "partially_covered": 1
+    }
+   },
+   "not_covered": {
+    "n": 53,
+    "right": 42,
+    "predicted": {
+     "not_covered": 42,
+     "covered": 8,
+     "insufficient_info": 3
+    }
+   },
+   "partially_covered": {
+    "n": 14,
+    "right": 6,
+    "predicted": {
+     "partially_covered": 6,
+     "covered": 5,
+     "not_covered": 3
+    }
+   },
+   "insufficient_info": {
+    "n": 11,
+    "right": 6,
+    "predicted": {
+     "insufficient_info": 6,
+     "covered": 3,
+     "not_covered": 2
     }
    }
   },
@@ -557,6 +623,24 @@
    "only_b_right": 11,
    "p": 0.8388197422027588,
    "label": "exploratory: A4D vs best agent"
+  },
+  {
+   "a": "A0K10",
+   "b": "A0",
+   "n": 124,
+   "only_a_right": 13,
+   "only_b_right": 12,
+   "p": 1.0,
+   "label": "exploratory: A0K10 vs A0"
+  },
+  {
+   "a": "A0K10",
+   "b": "A4",
+   "n": 124,
+   "only_a_right": 21,
+   "only_b_right": 22,
+   "p": 1.0,
+   "label": "exploratory: A0K10 vs best agent"
   }
  ],
  "decision": {
@@ -571,11 +655,61 @@
    "p": 0.8776143287523154
   }
  },
+ "with_react": {
+  "tests": [
+   {
+    "a": "A3",
+    "b": "A0",
+    "n": 124,
+    "only_a_right": 18,
+    "only_b_right": 10,
+    "p": 0.1849333420395851,
+    "label": "best agent vs A0",
+    "p_holm": 0.2345504119148245,
+    "significant": false
+   },
+   {
+    "a": "A0",
+    "b": "B0",
+    "n": 124,
+    "only_a_right": 45,
+    "only_b_right": 16,
+    "p": 0.0002642786618272985,
+    "label": "A0 vs B0",
+    "p_holm": 0.0007928359854818955,
+    "significant": true
+   },
+   {
+    "a": "A2",
+    "b": "A4",
+    "n": 124,
+    "only_a_right": 15,
+    "only_b_right": 26,
+    "p": 0.11727520595741225,
+    "label": "A2 vs A4",
+    "p_holm": 0.2345504119148245,
+    "significant": false
+   }
+  ],
+  "decision": {
+   "winner": "A4",
+   "reason": "A3 and A4 not separated (McNemar p=0.430); A4 is cheaper/faster",
+   "test": {
+    "a": "A3",
+    "b": "A4",
+    "n": 124,
+    "only_a_right": 23,
+    "only_b_right": 17,
+    "p": 0.42959050784338615
+   }
+  }
+ },
  "model": "vllm_gptoss20b",
  "split": "test",
- "rows": 868,
+ "rows": 992,
  "commits": [
   "b80d7c3",
+  "bd31b05",
   "c184cad"
  ]
 }
