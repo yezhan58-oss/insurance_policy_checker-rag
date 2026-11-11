@@ -35,7 +35,8 @@ Simple RAG does one search that returns the top five passages. Corrective RAG gr
 search if the passages are weak. Our workflow agent works like a claims assessor and goes benefits first, then
 definitions, then exclusions. Everything else stays the same in all four (the index, the prompt
 and the final answer step), so only the reading strategy changes. We ran all of it on two models, Llama 3.1 8B and
-gpt-oss-20b. We also tried three extra setups after the plan was fixed, but they were never allowed to win.
+gpt-oss-20b. After the core runs we also added a ReAct agent, which picks its own lookups, and compared it
+alongside the four; a few smaller extras were scored but never allowed to win.
 
 ## [Slide 4: How we kept the comparison fair] Ye Zhan, 30 s
 
@@ -55,12 +56,12 @@ claim, compared with 66% for simple RAG.
 
 *(hand back)* Ye Zhan will take you through the results.
 
-## [Slide 6: The agent was most accurate, but not by enough] Ye Zhan, 35 s
+## [Slide 6: The agents led, but not by enough] Ye Zhan, 35 s
 
-The agent was the most accurate method on both models, but only just. On gpt-oss it got 88 claims right against
-simple RAG's 86, and on Llama it got 76 against 70. Neither gap is statistically significant, with p-values of 0.88
-and 0.38. On 124 claims the two are too close to call, so our pre-registered rule picks the cheaper one, which is
-simple RAG.
+The two agents were the most accurate, but only just. On gpt-oss the workflow agent got 88 claims right and ReAct 94,
+against simple RAG's 86; on Llama both got 76 against 70. None of these gaps is statistically significant, so on 124
+claims they are too close to call, and the best value is simple RAG. (If asked: our planned rule picks simple RAG;
+with ReAct added later, its tie-break picks the workflow agent. Either way, no agent is significantly better.)
 
 ## [Slide 7: What the agent costs, and what it buys] Ye Zhan, 35 s
 

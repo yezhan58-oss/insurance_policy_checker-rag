@@ -169,6 +169,13 @@ def write_markdown(df: pd.DataFrame, data: dict, split: str, path) -> None:
                          f"only {t['a']} right {t['only_a_right']}, only {t['b']} right {t['only_b_right']}")
         dec = d["result"]["decision"]
         lines.append(f"- Decision rule: **{dec['winner']}** ({dec['reason']})")
+        if "with_react" in d["result"]:
+            w = d["result"]["with_react"]
+            best = next((t for t in w["tests"] if t["label"] == "best agent vs A0"), None)
+            lines.append(f"- Decision rule with ReAct (A3) as a full candidate (added after the test results): "
+                         f"**{w['decision']['winner']}** ({w['decision']['reason']})"
+                         + (f"; best agent {best['a']} vs A0 p = {best['p']:.3f}, Holm p = {best['p_holm']:.3f}"
+                            if best else ""))
     lines += ["", "_Cites in context: share of cited section IDs that exist in the policy and were in the model's "
               "context (checked in code, no judge)._"]
     lines += ["", "_Sound rate: share of all claims answered right with every gold section in the model's context. "
@@ -202,8 +209,8 @@ def write_markdown(df: pd.DataFrame, data: dict, split: str, path) -> None:
         lines += ["", "_L0 (whole policy in the prompt, no retrieval) is exploratory: added after pre-registration, "
                   "so it is outside the Holm-corrected tests and the decision rule._"]
     if (df.approach == "A3").any():
-        lines += ["", "_A3 (ReAct tool agent) is exploratory: added after the test results, so it is outside the "
-                  "Holm-corrected tests and the decision rule._"]
+        lines += ["", "_A3 (ReAct tool agent) was added after the test results. It is outside the planned "
+                  "Holm-corrected tests and decision rule; the rule is also reported with A3 as a full candidate._"]
     if (df.approach == "A0K10").any():
         lines += ["", "_A0K10 (A0 with top_k=10 instead of 5) is exploratory: added on 11 Nov after the test results, "
                   "so it is outside the Holm-corrected tests and the decision rule._"]

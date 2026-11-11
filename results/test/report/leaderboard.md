@@ -33,6 +33,7 @@
 - McNemar exploratory: A0K10 vs A0: p = 0.607 (not corrected, not pre-registered); only A0K10 right 9, only A0 right 6
 - McNemar exploratory: A0K10 vs best agent: p = 0.690 (not corrected, not pre-registered); only A0K10 right 11, only A4 right 14
 - Decision rule: **A0** (A4 and A0 not separated (McNemar p=0.377); A0 is cheaper/faster)
+- Decision rule with ReAct (A3) as a full candidate (added after the test results): **A4** (A3 and A4 not separated (McNemar p=1.000); A4 is cheaper/faster); best agent A4 vs A0 p = 0.377, Holm p = 1.000
 
 ## gpt-oss-20b (commits b80d7c3, bd31b05, c184cad)
 
@@ -48,6 +49,7 @@
 - McNemar exploratory: A0K10 vs A0: p = 1.000 (not corrected, not pre-registered); only A0K10 right 13, only A0 right 12
 - McNemar exploratory: A0K10 vs best agent: p = 1.000 (not corrected, not pre-registered); only A0K10 right 21, only A4 right 22
 - Decision rule: **A0** (A4 and A0 not separated (McNemar p=0.878); A0 is cheaper/faster)
+- Decision rule with ReAct (A3) as a full candidate (added after the test results): **A4** (A3 and A4 not separated (McNemar p=0.430); A4 is cheaper/faster); best agent A3 vs A0 p = 0.185, Holm p = 0.235
 
 _Cites in context: share of cited section IDs that exist in the policy and were in the model's context (checked in code, no judge)._
 
@@ -75,6 +77,6 @@ _Simulated from the A0 and A4 answers above, no new model calls. Cost = A0 on ev
 
 _L0 (whole policy in the prompt, no retrieval) is exploratory: added after pre-registration, so it is outside the Holm-corrected tests and the decision rule._
 
-_A3 (ReAct tool agent) is exploratory: added after the test results, so it is outside the Holm-corrected tests and the decision rule._
+_A3 (ReAct tool agent) was added after the test results. It is outside the planned Holm-corrected tests and decision rule; the rule is also reported with A3 as a full candidate._
 
 _A0K10 (A0 with top_k=10 instead of 5) is exploratory: added on 11 Nov after the test results, so it is outside the Holm-corrected tests and the decision rule._

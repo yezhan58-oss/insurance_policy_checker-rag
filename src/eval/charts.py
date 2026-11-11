@@ -17,7 +17,8 @@ NAMES = {"B0": "No-RAG", "A0": "RAG", "A2": "CRAG", "A4": "Agent", "L0": "Full-c
 # Hand-placed labels (points from the dot, alignment) where the defaults collide; key (approach, model index), model 0 =
 # the first model in the leaderboard. Everything else sits above its dot.
 LABEL_AT = {"tokens": {("A0", 0): (0, -20, "center"), ("A2", 0): (0, -44, "center"), ("A4", 0): (-6, -16, "right"),
-                       ("B0", 1): (0, -20, "center"), ("A2", 1): (12, 4, "left")},
+                       ("B0", 1): (0, -20, "center"), ("A2", 1): (12, 4, "left"),
+                       ("A4", 1): (12, -3, "left")},
             "latency_s": {("A0", 0): (0, -20, "center"), ("L0", 0): (0, -20, "center"), ("B0", 1): (0, -20, "center"),
                           ("A4", 1): (-10, -3, "right")}}
 MARKERS = ["o", "s", "^", "D"]
@@ -87,9 +88,9 @@ def heat_leaderboard(df: pd.DataFrame, path) -> None:
 
 def frontier(df: pd.DataFrame, x: str, xlabel: str, path) -> None:
     """Accuracy against cost; each model's approaches joined in order of cost, so the trade-off reads as a path.
-    Only the pre-registered setups and Full-context (L0), the ones section 7.3 compares; the later exploratory
-    variants are reported in the tables, and their labels made the middle of the chart unreadable."""
-    df = df[df.approach.isin(["B0", "L0", "A0", "A2", "A4"])]
+    The main comparison (B0, A0, A2, A4, ReAct) plus Full-context (L0); the smaller exploratory variants are
+    reported in the tables, and their labels made the middle of the chart unreadable."""
+    df = df[df.approach.isin(["B0", "L0", "A0", "A2", "A4", "A3"])]
     models = list(dict.fromkeys(df.model))
     fig, ax = plt.subplots(figsize=(6.6, 4.2), dpi=200)
     style(ax)

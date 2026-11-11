@@ -655,6 +655,55 @@
    "p": 0.8776143287523154
   }
  },
+ "with_react": {
+  "tests": [
+   {
+    "a": "A3",
+    "b": "A0",
+    "n": 124,
+    "only_a_right": 18,
+    "only_b_right": 10,
+    "p": 0.1849333420395851,
+    "label": "best agent vs A0",
+    "p_holm": 0.2345504119148245,
+    "significant": false
+   },
+   {
+    "a": "A0",
+    "b": "B0",
+    "n": 124,
+    "only_a_right": 45,
+    "only_b_right": 16,
+    "p": 0.0002642786618272985,
+    "label": "A0 vs B0",
+    "p_holm": 0.0007928359854818955,
+    "significant": true
+   },
+   {
+    "a": "A2",
+    "b": "A4",
+    "n": 124,
+    "only_a_right": 15,
+    "only_b_right": 26,
+    "p": 0.11727520595741225,
+    "label": "A2 vs A4",
+    "p_holm": 0.2345504119148245,
+    "significant": false
+   }
+  ],
+  "decision": {
+   "winner": "A4",
+   "reason": "A3 and A4 not separated (McNemar p=0.430); A4 is cheaper/faster",
+   "test": {
+    "a": "A3",
+    "b": "A4",
+    "n": 124,
+    "only_a_right": 23,
+    "only_b_right": 17,
+    "p": 0.42959050784338615
+   }
+  }
+ },
  "model": "vllm_gptoss20b",
  "split": "test",
  "rows": 992,
