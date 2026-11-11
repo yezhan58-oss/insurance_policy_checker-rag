@@ -33,12 +33,12 @@ the first clause, but the other two use words the claim never says.
 
 ## [Slide 3: Five ways to read the policy] Ye Zhan, 45 s
 
-So we compared five ways of reading the policy. No-RAG reads nothing and answers from what the model already knows.
-Simple RAG does one search that returns the top five passages. Corrective RAG grades what it found and rewrites the
-search if the passages are weak. Our workflow agent works like a claims assessor and goes benefits first, then
-definitions, then exclusions. ReAct, which we added after the first four had run, picks its own lookups one at a
-time. Everything else stays the same in all five (the index, the prompt and the final answer step), so only the
-reading strategy changes. We ran all of it on two models, Llama 3.1 8B and gpt-oss-20b.
+So we compared five ways of reading the policy. No-RAG reads nothing and answers from what the model already knows,
+and simple RAG does one search that returns the top five passages; these two are our baselines. The other three are
+agentic RAG, where the model decides what to retrieve. Corrective RAG grades what it found and rewrites the search if
+the passages are weak. Our workflow agent works like a claims assessor and goes benefits first, then definitions, then
+exclusions. ReAct, which we added after the first four had run, picks its own lookups one at a time. Everything else
+stays the same, so only the reading strategy changes. We ran all of it on two models, Llama 3.1 8B and gpt-oss-20b.
 
 ## [Slide 4: How we kept the comparison fair] Ye Zhan, 30 s
 

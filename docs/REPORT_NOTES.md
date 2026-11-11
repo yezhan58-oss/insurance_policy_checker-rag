@@ -225,6 +225,11 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   or wrong, time, calls, clauses cited); the static 124-claim results are folded below it. Live run 3 on Manila: ReAct
   right again (4 of 5 runs), and no retrieval guessed not covered for a wrong reason (weather), so the script has a
   fallback line for that.
+- **Agentic RAG naming (11 Nov)** [4.2]: No-RAG and RAG are the baselines; CRAG, the workflow agent and ReAct are all
+  agentic RAG (the model makes retrieval decisions), so they are named "Agentic RAG: Corrective / Workflow agent /
+  ReAct" in the report's setup list and table, the abstract and slide 3. Short names stay in charts and results
+  tables. Demo cards carry a small "Baseline" or "Agentic RAG" label above the name. Safe mode is not a sixth
+  method: it is simple RAG with the workflow agent re-checking each "covered".
 - **A0K10 on test (11 Nov, branch a/a0-k10 at bd31b05, L40S; exploratory, a test only; code merged in PR #71)** [7]: A0 with
   top_k 10. 124 claims each, 0 errors. Accuracy (wrong-covered): gpt-oss 0.70 (0.15) vs A0 0.69 (0.17), McNemar
   p = 1.00 (13 vs 12); Llama 0.59 (0.13) vs A0 0.56 (0.13), p = 0.607 (9 vs 6). Evidence recall 0.66 to 0.75 on

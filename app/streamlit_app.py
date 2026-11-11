@@ -36,8 +36,8 @@ FLOOR = "B0"             # no retrieval: shows what the model says without readi
 METHODS = {   # sidebar and column order: reads nothing -> one search -> reads like an assessor
     "B0": ("No retrieval", "Reads no policy: answers from what it already knows"),
     "A0": ("Simple RAG", "Best value in our study: 1 search, about 5 s"),
-    "A4": ("Workflow agent", "4 steps like a claims assessor, usually 7 to 20 s"),
-    "A3": ("ReAct agent", "Picks its own lookups, one at a time (added later)"),
+    "A4": ("Workflow agent", "Agentic RAG: fixed steps like a claims assessor, usually 7 to 20 s"),
+    "A3": ("ReAct agent", "Agentic RAG: picks its own lookups, one at a time (added later)"),
 }
 TITLES = {aid: name for aid, (name, _) in METHODS.items()}
 SHORT = {"B0": "No-RAG", "A0": "RAG", "A4": "Agent", "A3": "ReAct"}   # report names; the IDs above stay as in the repo
@@ -173,6 +173,9 @@ CSS = """
 /* live run */
 .live-head {margin-bottom: 0.9rem;}
 .live-head .who {margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.live-head .kind {font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+                  color: var(--muted); min-height: 1rem; margin-bottom: 0.1rem;}
+.live-head .kind.agentic {color: var(--navy);}
 .live-sub {display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; min-height: 2rem;}
 .live-head .status {font-size: 0.82rem; color: var(--muted);}
 .badges {min-height: 1.55rem; margin: 0.3rem 0 0.1rem;}
@@ -348,12 +351,17 @@ BADGES = {   # from the 124-claim test: A0 won under the decision rule; A4 said 
 }
 
 
+KINDS = {"B0": "Baseline", "A0": "Baseline", "A4": "Agentic RAG", "A3": "Agentic RAG"}   # as in the report, 4.2
+
+
 def head_html(title: str, status: str, secs: float | None, aid: str | None = None) -> str:
-    """Card header: method name, its study badge (main cards only), status and clock. The badge row keeps its height
-    on every card, so the verdict stamps below still line up."""
+    """Card header: kind (baseline or agentic RAG), method name, its study badge (main cards only), status and clock.
+    The badge row keeps its height on every card, so the verdict stamps below still line up."""
     clock = f"{secs:.1f} s" if secs is not None else ""
     badge = BADGES.get(aid, "") if aid and title == TITLES.get(aid) else ""
-    return (f'<div class="live-head"><div class="who">{html.escape(title)}</div>'
+    kind = KINDS.get(aid, "")
+    return (f'<div class="live-head"><div class="kind {"agentic" if kind == "Agentic RAG" else ""}">{kind}</div>'
+            f'<div class="who">{html.escape(title)}</div>'
             f'<div class="badges">{badge}</div><div class="live-sub">'
             f'<span class="status">{html.escape(status)}</span><span class="clock">{clock}</span></div></div>')
 
