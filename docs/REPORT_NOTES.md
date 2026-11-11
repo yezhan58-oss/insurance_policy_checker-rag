@@ -235,9 +235,17 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   columns under two ruled headers ("Baselines", "Agentic RAG"); the verdict in large coloured serif type, with the
   right/wrong mark straight under it; numbered steps (running step orange, steps to come grey); a ruled summary
   table. All four verdicts and marks fit on the first screen at 1280 x 720; no sideways scroll at phone width.
-  Live run 6 on Manila (gpt-oss): no retrieval not covered (a guess, weather reason), simple RAG covered (wrong),
-  workflow agent not covered (right), ReAct covered (wrong). ReAct is now right in 4 of 6 live runs on this claim;
+  Another live run on Manila (gpt-oss): no retrieval not covered (a guess, weather reason), simple RAG covered (wrong),
+  workflow agent not covered (right), ReAct covered (wrong). ReAct is now right in 4 of 6 runs on this claim (the test run and 5 live);
   the script's fallback line says so.
+- **Demo look, round 4 (12 Nov)** [8]: round 3 was too flat (the four methods ran together). Now the results are one
+  white panel with a line between methods: a band per group (slate "Baselines", navy "Agentic RAG"), the name
+  and time on a tint, the verdict as a solid colour block (green covered, red not covered, slate need more
+  detail), the right/wrong mark under it, and ruled, labelled sections (what it did, why, clauses, policy limit).
+  The summary table is a white panel too. Checked at 1280 x 720 (all verdicts on the first screen) and phone width.
+  Another live run on Manila: no retrieval need more detail, simple RAG covered (wrong), workflow agent not covered
+  (right, 13.4 s), ReAct need more detail (wrong). The workflow agent has been right in every run, ReAct in 4 of 7
+  (the test run and 6 live); the script's ReAct fallback now covers "need more detail" too.
 - **A0K10 on test (11 Nov, branch a/a0-k10 at bd31b05, L40S; exploratory, a test only; code merged in PR #71)** [7]: A0 with
   top_k 10. 124 claims each, 0 errors. Accuracy (wrong-covered): gpt-oss 0.70 (0.15) vs A0 0.69 (0.17), McNemar
   p = 1.00 (13 vs 12); Llama 0.59 (0.13) vs A0 0.56 (0.13), p = 0.607 (9 vs 6). Evidence recall 0.66 to 0.75 on

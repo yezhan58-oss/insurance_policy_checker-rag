@@ -88,7 +88,7 @@ cluster.
 usually answers first. The workflow agent is working through its fixed steps, and ReAct is choosing its own
 lookups one at a time.
 
-*(point at the big verdicts, and the tick or cross under each)* No-RAG says it doesn't have enough information. Simple RAG
+*(point at the coloured verdict blocks, and the tick or cross under each)* No-RAG says it doesn't have enough information. Simple RAG
 says covered, because it found the delay benefit and stopped. The workflow agent says not covered, because it found the
 exclusion for events already reported by the media. ReAct chooses its own lookups, so it may or may not get there:
 point at its tick or cross either way.
@@ -103,8 +103,8 @@ exactly this kind of claim.
 > excluded) is wrong; the real reason is the news exclusion the workflow agent found"
 > If simple RAG says not covered this time, say "simple RAG got this one right today, but in our test run it said
 > covered, and it made that mistake on 9 of the 53 not-covered claims."
-> If ReAct says covered, say "this is why we call the fixed workflow safer: ReAct picks its own route, and on this
-> claim it sometimes misses the exclusion. In our live runs so far it got it right four times out of six"
+> If ReAct says covered or need more detail, say "this is why we call the fixed workflow safer: ReAct picks its own
+> route, and on this claim it sometimes misses the exclusion. Across our runs on this claim it got it right four times out of seven"
 
 ## [Slide 10: What we would tell an insurer] Ye Zhan, 35 s
 

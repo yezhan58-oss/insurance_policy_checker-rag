@@ -86,7 +86,7 @@ CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap');
 /* One sheet of paper: no cards, no shadows. Hairline rules group things; serif type is the policy's voice and the
    verdicts; burnt orange is kept for the one action (Check my claim) and for a step that is running. */
-:root {--ink:#1B2633; --muted:#59636E; --faint:#8A939C; --line:#E0D8C8; --rule:#1B2633; --accent:#B4541A;
+:root {--ink:#1B2633; --muted:#59636E; --faint:#8A939C; --line:#E6DFD2; --frame:#D3CAB8; --rule:#1B2633; --accent:#B4541A;
        --ok:#1B6B3A; --no:#A3271B;
        --display:"Fraunces","Source Serif Pro","Source Serif 4",Georgia,serif;}
 .block-container {max-width: 86rem; padding-top: 1.4rem; padding-bottom: 4rem;}
@@ -123,39 +123,54 @@ b, strong {font-weight: 650;}
     text-decoration-color: currentColor;}
 .empty {color: var(--muted); font-size: 0.93rem; margin: 0.6rem 0 0;}
 
-/* results: one column per method, straight on the page, under a ruled header per group */
-[data-testid="stColumn"] {container-type: inline-size; overflow: visible;}
-.grp {display: flex; align-items: baseline; gap: 0.6rem; min-height: 1.7rem; padding-bottom: 0.3rem;
-      margin: 1.8rem 0 1rem; border-bottom: 1.5px solid var(--rule); white-space: nowrap;}
-.grp.joined {margin-right: -2rem;}   /* = the column gap: the rule runs on over the group's next column */
-.grp .g {font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink);}
-.grp .d {font-size: 0.86rem; color: var(--muted);}
-@media (max-width: 640px) {.grp.joined {margin-right: 0;} .grp .d {white-space: normal;}}
+/* results: one white panel, a column per method with a line between them. Top of each column: its group's band
+   (slate: baselines, navy: agentic RAG), then the name and time on a tint, then the verdict as a solid colour block,
+   so the four answers read across as one row. Each section below starts with a rule and a label. */
+[data-testid="stHorizontalBlock"]:has([class*="st-key-res-"]) {gap: 0 !important; margin-top: 1.4rem;}
+[data-testid="stColumn"]:has([class*="st-key-res-"]) {background: #FFFFFF; border: 1px solid var(--frame);
+                                                      container-type: inline-size;}
+[data-testid="stColumn"]:has([class*="st-key-res-"]) + [data-testid="stColumn"]:has([class*="st-key-res-"]) {border-left: 0;}
+[class*="st-key-res-"] {gap: 0.85rem; padding: 0 1.1rem 1rem;}
+.grp {display: flex; align-items: baseline; gap: 0.55rem; margin: 0 -1.1rem; padding: 0.45rem 1.1rem; min-height: 2rem;
+      background: #12263A; color: #FFFFFF; white-space: nowrap; overflow: hidden;}
+.grp.base {background: #4A5664;}
+.grp.cont {margin-left: calc(-1.1rem - 1px);}   /* covers the line between two columns of one group */
+.grp .g {font-size: 0.74rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;}
+.grp .d {font-size: 0.8rem; color: #D3DBE3; overflow: hidden; text-overflow: ellipsis;}
+.grp.cont .g, .grp.cont .d {visibility: hidden;}
+@media (max-width: 640px) {
+  [data-testid="stColumn"]:has([class*="st-key-res-"]) + [data-testid="stColumn"]:has([class*="st-key-res-"]) {
+      border-left: 1px solid var(--frame); border-top: 0;}
+  .grp.cont {margin-left: -1.1rem;}
+  .grp.cont .g, .grp.cont .d {visibility: visible;}
+}
+.mh {margin: 0 -1.1rem; padding: 0.65rem 1.1rem 0.75rem; background: #F7F3EC;}
 .mh-row {display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem;}
-.mh .who {font-family: var(--display); font-size: 1.25rem; font-weight: 600; color: var(--ink); min-width: 0;
+.mh .who {font-family: var(--display); font-size: 1.2rem; font-weight: 600; color: var(--ink); min-width: 0;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-.mh .clock {font-family: var(--display); font-size: 1.25rem; font-weight: 600; color: var(--ink);
+.mh .clock {font-family: var(--display); font-size: 1.2rem; font-weight: 600; color: var(--ink);
             font-variant-numeric: tabular-nums; white-space: nowrap;}
 .mh .sub {margin-top: 0.1rem; font-size: 0.8rem; min-height: 1.25rem;}
 .mh .tag {font-weight: 650; white-space: nowrap; flex-shrink: 0;}
 .tag.win {color: #8A3D10;} .tag.safe {color: var(--ok);} .tag.own {color: #2F4A66;} .tag.none {color: var(--muted); font-weight: 500;}
 .mh .status {color: var(--muted); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-/* the verdict: big, in its colour, the same place in every column so the answers read across in one line */
-.verdict {font-family: var(--display); font-weight: 600; font-size: clamp(1.1rem, 8cqi, 1.75rem); line-height: 1.15;
-          letter-spacing: -0.01em; margin-top: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-          animation: land 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;}
-@keyframes land {from {opacity: 0; transform: translateY(6px);} to {opacity: 1; transform: none;}}
-.verdict.pending {color: var(--faint); animation: breathe 1.6s ease-in-out infinite;}
-@keyframes breathe {50% {opacity: 0.4;}}
-.mark {font-size: 0.95rem; font-weight: 700; margin: 0.3rem 0 0;}
+/* the verdict: a solid block straight under the header (Streamlit's text blocks end in a -1rem margin, which already
+   closes the gap between the two) */
+.verdict {margin: 0 -1.1rem; padding: 0.7rem 1.1rem; color: #FFFFFF; font-family: var(--display);
+          font-weight: 600; font-size: clamp(1.05rem, 6.6cqi, 1.4rem); line-height: 1.2; white-space: nowrap;
+          overflow: hidden; text-overflow: ellipsis; animation: land 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;}
+@keyframes land {from {opacity: 0;} to {opacity: 1;}}
+.verdict.pending {background: #ECE6DA; color: var(--muted); animation: breathe 1.6s ease-in-out infinite;}
+@keyframes breathe {50% {opacity: 0.45;}}
+.mark {font-size: 1rem; font-weight: 700; margin: 0.7rem 0 0;}
 .mark.ok {color: var(--ok);}
 .mark.no {color: var(--no);}
-.under {margin: 0.4rem 0 0 !important; font-size: 0.92rem; line-height: 1.45; color: var(--ink);}
-.meta {color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; margin: 0.4rem 0 0;
-       padding-bottom: 0.9rem; border-bottom: 1px solid var(--line);}
+.under {margin: 0.45rem 0 0 !important; font-size: 0.92rem; line-height: 1.45; color: var(--ink);}
+.meta {color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; margin: 0.4rem 0 0;}
 .note {color: #7A4A00; font-size: 0.86rem; line-height: 1.45; margin: 0.7rem 0 0;}
 .note b {color: #7A4A00;}
-.section-label {font-size: 0.8rem; font-weight: 650; color: var(--muted); margin: 1.1rem 0 0.35rem;}
+.section-label {font-size: 0.72rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: #12263A;
+                margin: 0 -1.1rem 0.45rem; padding: 0.75rem 1.1rem 0; border-top: 1px solid var(--line);}
 /* steps: numbered, a running step in orange, steps still to come in grey */
 .steps {margin: 0; padding: 0; list-style: none;}
 .steps li {display: grid; grid-template-columns: 1.1rem minmax(0, 1fr) auto; column-gap: 0.45rem; padding: 0.25rem 0;
@@ -195,7 +210,7 @@ b, strong {font-weight: 650;}
 [data-testid="stExpander"] summary:hover {color: var(--ink);}
 [data-testid="stExpander"] [data-testid="stExpanderDetails"] {padding: 0.2rem 0 1rem;}
 /* this claim, side by side */
-.st-key-summary {margin-top: 2.6rem; padding-top: 0.8rem; border-top: 2px solid var(--rule);}
+.st-key-summary {margin-top: 1.5rem; background: #FFFFFF; border: 1px solid var(--frame); padding: 1.1rem 1.3rem 0.4rem;}
 .sum-h {font-family: var(--display); font-size: 1.35rem; font-weight: 600; color: var(--ink); margin: 0;}
 .sum-line {color: var(--muted); font-size: 0.95rem; margin: 0.15rem 0 0.9rem;}
 .sum-line b {color: var(--ink);}
@@ -323,13 +338,16 @@ def note_html(text: str) -> str:
 
 
 def card(box, group: str = "") -> dict:
-    """One method's column, top to bottom: its group's ruled header, name and clock, verdict, steps; the explanation
-    and clauses follow. The verdict sits above the steps so the verdicts line up across the columns whatever the
-    number of steps."""
+    """One method's column, top to bottom: its group's band, name and clock, verdict, steps; the explanation and
+    clauses follow. The verdict sits above the steps so the verdicts line up across the columns whatever the number
+    of steps."""
     with box:
-        if group:
-            st.markdown(group, unsafe_allow_html=True)
-        return {"head": st.empty(), "stamp": st.empty(), "steps": st.empty()}
+        return {"group": group, "head": st.empty(), "stamp": st.empty(), "steps": st.empty()}
+
+
+def set_head(slot: dict, title: str, status: str, secs: float | None, aid: str | None = None) -> None:
+    """Draw (or redraw, while live) a column's group band and header."""
+    slot["head"].markdown(slot.get("group", "") + head_html(title, status, secs, aid), unsafe_allow_html=True)
 
 
 TAGS = {   # one line under each name. From the 124-claim test: A0 won under the decision rule; A4 said covered
@@ -339,19 +357,19 @@ TAGS = {   # one line under each name. From the 124-claim test: A0 won under the
     "A3": ("own", "Picks its own steps"),
 }
 GROUPS = {   # as in the report, 4.2: the baselines, and agentic RAG (the model makes the retrieval decisions)
-    "B0": ("Baselines", "no search, or one search"), "A0": ("Baselines", "no search, or one search"),
-    "A4": ("Agentic RAG", "the model decides what to look up"), "A3": ("Agentic RAG", "the model decides what to look up"),
+    "B0": ("Baselines", "no search, or one"), "A0": ("Baselines", "no search, or one"),
+    "A4": ("Agentic RAG", "model picks what to read"), "A3": ("Agentic RAG", "model picks what to read"),
 }
 
 
 def group_html(aids: list, i: int) -> str:
-    """The ruled header over a group of columns: its name (and what it means, when the group has room for it) on the
-    group's first column; the rule runs on over the group's other columns."""
+    """The band at the top of a column: its group's name and what it means on the group's first column; the band runs
+    on unbroken over the group's other columns (their label is hidden, and shown again when columns stack on a phone)."""
     name, what = GROUPS[aids[i]]
     first = i == 0 or GROUPS[aids[i - 1]][0] != name
-    joined = i + 1 < len(aids) and GROUPS[aids[i + 1]][0] == name
-    label = (f'<span class="g">{name}</span>' + (f'<span class="d">{what}</span>' if joined else "")) if first else ""
-    return f'<div class="grp{" joined" if joined else ""}">{label}</div>'
+    tone = "base" if name == "Baselines" else "agentic"
+    return (f'<div class="grp {tone}{"" if first else " cont"}"><span class="g">{name}</span>'
+            f'<span class="d">{what}</span></div>')
 
 
 def head_html(title: str, status: str, secs: float | None, aid: str | None = None) -> str:
@@ -411,7 +429,7 @@ def stamp_html(out: VerdictOutput, aid: str, notes: list[str] = (), gold: str | 
         meta += " in total (simple RAG + the agent's check)"
     if out.usage.get("cached"):
         meta += " &middot; saved run"
-    return (f'<div class="verdict" style="color:{ink}">{label}</div>{mark_html(out.verdict, gold)}'
+    return (f'<div class="verdict" style="background:{ink}">{label}</div>{mark_html(out.verdict, gold)}'
             f'<p class="under">{under}</p><div class="meta">{meta}</div>' + "".join(note_html(n) for n in notes))
 
 
@@ -670,8 +688,7 @@ def run_live(aids: list, slots: dict, titles: dict) -> dict:
             # LangGraph hands the last node of A4 and A3 a copy of the list, so the finished trace comes from the output
             now_steps = res["out"].steps if not running and "out" in res else list(steps)
             seen[aid]["now"] = now
-            slots[aid]["head"].markdown(head_html(titles[aid], "working..." if running else "done", now, aid),
-                                        unsafe_allow_html=True)
+            set_head(slots[aid], titles[aid], "working..." if running else "done", now, aid)
             slots[aid]["steps"].markdown(steps_html(aid, now_steps, seen[aid], running), unsafe_allow_html=True)
             if not running:
                 finished.add(aid)
@@ -806,8 +823,7 @@ def finish(aid: str, out, box, outs: dict, slot: dict) -> None:
         out = check.model_copy(update={"usage": {
             **check.usage, "model_calls": out.usage.get("model_calls", 0) + check.usage.get("model_calls", 0),
             "shown_s": round(secs, 1), "safe_mode": True, "cached": out.usage.get("cached")}})
-        slot["head"].markdown(head_html(TITLES[aid], "+ agent's check", secs, aid),
-                              unsafe_allow_html=True)
+        set_head(slot, TITLES[aid], "+ agent's check", secs, aid)
     bad = (unsupported_quotes(out.explanation, policy)
            if aid != FLOOR and out.verdict in ("covered", "partially_covered") else [])
     if quotes and bad:
@@ -915,11 +931,10 @@ if asked:
                     outs[aid] = e
             o = outs[aid]
             if isinstance(o, Exception):
-                slots[aid]["head"].markdown(head_html(TITLES[aid], "not run", None, aid), unsafe_allow_html=True)
+                set_head(slots[aid], TITLES[aid], "not run", None, aid)
                 continue
             status = "saved answer" if o.usage.get("cached") else "done"
-            slots[aid]["head"].markdown(head_html(TITLES[aid], status, o.usage.get("latency_s", 0), aid),
-                                        unsafe_allow_html=True)
+            set_head(slots[aid], TITLES[aid], status, o.usage.get("latency_s", 0), aid)
             slots[aid]["steps"].markdown(steps_html(aid, o.steps), unsafe_allow_html=True)
     shown = {}
     for aid in aids:
