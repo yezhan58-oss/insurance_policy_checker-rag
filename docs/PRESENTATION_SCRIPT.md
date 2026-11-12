@@ -94,7 +94,7 @@ gets it wrong: it found the delay benefit but never saw the exclusion, so it say
 exclusion for events already reported by the media. ReAct chooses its own lookups, so it may or may not get there:
 point at its tick or cross either way.
 
-*(scroll down to the table under the cards)* Here are the four answers side by side, with the time and model calls
+*(scroll down to the table under the cards)* Here are the four answers side by side, with the time, tokens and model calls
 each took. It matches our test results: simple RAG is the best value, and the workflow agent is the safer one on
 exactly this kind of claim.
 

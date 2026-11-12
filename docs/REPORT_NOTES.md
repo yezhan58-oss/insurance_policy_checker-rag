@@ -238,6 +238,10 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   Still hard to match labels to dots, so Figure 2 became two aligned dot plots (charts.accuracy_cost): one row per
   setup, named once; accuracy (with CI) on the left, tokens on the right; one sub-row per model with its value printed;
   agentic RAG rows shaded. report.py draws accuracy_vs_tokens.png with it. Doc rev 558.
+- **Tokens in the demo (12 Nov)** [8]: each card's line under the verdict and the side-by-side table now show tokens
+  (prompt + completion, as in the study's cost figures) next to time and model calls; the 124-claim table adds tokens
+  per claim. Safe mode adds both runs (Manila, saved: 3,167 + 5,326 = 8,493). Manila saved answers: No-RAG 1,364,
+  RAG 3,167, Agent 5,326, ReAct 15,524 tokens. Script slide 9 now says time, tokens and model calls.
 - **Power** [9]: with the observed discordance (32 to 42 of 124 claims), a 5-point gap needs about 800 to 1,100
   claims for 80% power (McNemar, two-sided 5%); about 230 to 290 for a 10-point gap.
 - **Course links** [1, 2]: Topic 7 slides 18-19 (ReAct loop), 36 (ReAct vs Plan-and-Execute: the workflow agent is
