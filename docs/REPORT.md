@@ -238,7 +238,7 @@ The four core setups and Full-context ran once per model over the 124 test claim
 - **Simple RAG was often right without the evidence:** over a third of its right answers (27 of 70 on Llama, 32 of 86 on gpt-oss). Counting only sound answers, the workflow agent's lead grows from 5 and 2 points to 19 and 18.
 - **Corrective RAG's grader worked, its rewrites did not.** Precision rose from about 0.2 to 0.53 (Llama) and 0.72 (gpt-oss), but a rewrite brought in a needed section only 2 and 5 times.
 - **Typical errors** (hand-labelled): simple RAG retrieved the wrong section; the workflow agent was over-cautious, or gave all-or-nothing answers to partly covered claims. Its definitions step also misses terms a claim implies but never names.
-- **A claim no setup got right (fwd-030):** S$800 in cash stolen. The S$300 cash limit sits in a separate table of limits, not in the benefit text, so all 14 answers were wrong.
+- **A claim no setup got right (fwd-030):** S$800 in cash stolen. The S$300 cash limit sits in a separate table of limits, not in the benefit text, so all 16 answers were wrong.
 - **Citations:** no answer cited a real section it had not been shown. Bad citations were made-up IDs, almost all from Llama.
 
 **Tool calls, step by step.** We also scored each step of the agentic setups against the gold sections: how many of the needed sections it found, and how much of what it kept was needed (precision).
