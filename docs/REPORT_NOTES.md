@@ -235,6 +235,9 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   six colours, crowded labels). charts.frontier now draws one panel per model on shared axes, no connecting lines,
   colour by group (baselines, agentic RAG, Full-context; palette checked with the dataviz validator, every dot labelled)
   and labels placed so none overlap. The latency chart uses the same code and gets 2/5/10/20/50 ticks. Doc rev 557.
+  Still hard to match labels to dots, so Figure 2 became two aligned dot plots (charts.accuracy_cost): one row per
+  setup, named once; accuracy (with CI) on the left, tokens on the right; one sub-row per model with its value printed;
+  agentic RAG rows shaded. report.py draws accuracy_vs_tokens.png with it. Doc rev 558.
 - **Power** [9]: with the observed discordance (32 to 42 of 124 claims), a 5-point gap needs about 800 to 1,100
   claims for 80% power (McNemar, two-sided 5%); about 230 to 290 for a 10-point gap.
 - **Course links** [1, 2]: Topic 7 slides 18-19 (ReAct loop), 36 (ReAct vs Plan-and-Execute: the workflow agent is

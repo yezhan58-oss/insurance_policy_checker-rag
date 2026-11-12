@@ -236,7 +236,7 @@ def main() -> None:
     write_markdown(df, data, args.split, out / "leaderboard.md")
     charts.heat_leaderboard(df, out / "leaderboard.png")
     charts.frontier(df, "latency_s", "Mean seconds per claim", out / "accuracy_vs_latency.png")
-    charts.frontier(df, "tokens", "Mean tokens per claim (prompt + completion)", out / "accuracy_vs_tokens.png")
+    charts.accuracy_cost(df, "tokens", "Tokens per claim", out / "accuracy_vs_tokens.png")
     charts.category_heat({SHORT.get(m, m): d["by_cat"] for m, d in data.items()}, out / "accuracy_by_category.png")
     charts.failures(df, out / "failures.png")
     charts.process_outcomes(df, out / "process_outcomes.png")

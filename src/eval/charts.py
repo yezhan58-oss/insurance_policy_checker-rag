@@ -141,7 +141,7 @@ def frontier(df: pd.DataFrame, x: str, xlabel: str, path) -> None:
         if log:
             ax.set_xscale("log")
             ax.set_xlim(lo / 2.2, hi * 2.6)
-            if hi / lo < 100:          # under two decades (e.g. seconds): label 1, 2, 5 steps, not just the tens
+            if hi / lo < 30:           # a short range (e.g. seconds): label 1, 2, 5 steps, not just the tens
                 ax.xaxis.set_major_locator(matplotlib.ticker.LogLocator(subs=(1, 2, 5)))
             ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:,.0f}"))
             ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
@@ -158,6 +158,70 @@ def frontier(df: pd.DataFrame, x: str, xlabel: str, path) -> None:
         sub = df[df.model == model].sort_values("accuracy", ascending=False)
         place_labels(fig, ax, [(getattr(r, x), r.accuracy, f"{NAMES.get(r.approach, r.approach)} {r.accuracy:.2f}")
                                for r in sub.itertuples()])
+    fig.savefig(path)
+    plt.close(fig)
+
+
+MODEL_COLORS = ["#2a78d6", "#eb6834"]   # one per model, in leaderboard order (validated categorical slots 1 and 2)
+ROWS = ["B0", "A0", "A2", "A4", "A3", "L0"]   # baselines, agentic RAG, then the exploratory whole-policy setup
+ROW_NAMES = {"L0": "Full-context\n(exploratory)"}
+
+
+def compact(v: float) -> str:
+    return f"{v:,.0f}" if v < 1000 else f"{v / 1000:.1f}k" if v < 10000 else f"{v / 1000:.0f}k"
+
+
+def accuracy_cost(df: pd.DataFrame, x: str, xlabel: str, path) -> None:
+    """Accuracy and cost per setup as two aligned dot plots: one row per setup (named once, on the left), one sub-row
+    per model with its value printed beside the dot, so no label can be read as another dot's. The agentic RAG rows
+    sit on a light band. Replaces the accuracy-vs-cost scatter for the report, where labels crowded."""
+    df = df[df.approach.isin(ROWS)]
+    models = list(dict.fromkeys(df.model))
+    fig, (acc_ax, cost_ax) = plt.subplots(1, 2, figsize=(7.4, 4.3), dpi=200, sharey=True,
+                                          gridspec_kw={"width_ratios": [1.15, 1]})
+    rows = [a for a in ROWS if a in set(df.approach)]
+    off = {m: (k - (len(models) - 1) / 2) * 0.34 for k, m in enumerate(models)}
+    lo, hi = df[x].min(), df[x].max()
+    for ax in (acc_ax, cost_ax):
+        style(ax)
+        ax.grid(axis="y", visible=False)
+        ax.grid(axis="x", color=GRID, linewidth=0.8)
+        agentic = [i for i, a in enumerate(rows) if a in ("A2", "A4", "A3")]
+        if agentic:
+            ax.axhspan(min(agentic) - 0.5, max(agentic) + 0.5, color="#f3f2ef", zorder=0)
+        for i in range(1, len(rows)):
+            ax.axhline(i - 0.5, color=GRID, lw=0.8, zorder=0)
+    for k, m in enumerate(models):
+        for i, a in enumerate(rows):
+            r = df[(df.model == m) & (df.approach == a)]
+            if r.empty:
+                continue
+            r = r.iloc[0]
+            y = i + off[m]
+            acc_ax.hlines(y, r.acc_lo, r.acc_hi, color=MODEL_COLORS[k], lw=2, alpha=0.3, zorder=1)
+            acc_ax.scatter(r.accuracy, y, s=46, color=MODEL_COLORS[k], edgecolor="white", linewidth=1.2, zorder=3)
+            acc_ax.text(r.acc_hi + 0.012, y, f"{r.accuracy:.2f}", va="center", fontsize=7.5, color=INK)
+            cost_ax.scatter(r[x], y, s=46, color=MODEL_COLORS[k], edgecolor="white", linewidth=1.2, zorder=3)
+            cost_ax.text(r[x] * 1.18, y, compact(r[x]), va="center", fontsize=7.5, color=INK)
+    acc_ax.set_xlim(0.2, 0.95)
+    acc_ax.set_ylim(len(rows) - 0.5, -0.5)
+    acc_ax.set_yticks(range(len(rows)))
+    acc_ax.set_yticklabels([ROW_NAMES.get(a, NAMES.get(a, a)) for a in rows], fontsize=8.5, color=INK)
+    acc_ax.tick_params(axis="y", length=0)
+    acc_ax.set_xlabel("Verdict accuracy (faint lines: 95% CI)", color=MUTED, fontsize=8.5)
+    if agentic:
+        acc_ax.text(0.205, min(agentic) - 0.42, "AGENTIC RAG", fontsize=6.5, color=MUTED, fontweight="bold", va="top")
+    cost_ax.set_xscale("log")
+    cost_ax.set_xlim(lo / 1.6, hi * 3.2)
+    cost_ax.xaxis.set_major_locator(matplotlib.ticker.LogLocator(subs=(1,)))
+    cost_ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v / 1000:.0f}k" if v >= 1000
+                                                                      else f"{v:.0f}"))
+    cost_ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+    cost_ax.tick_params(axis="y", length=0)
+    cost_ax.set_xlabel(xlabel + " (log scale)", color=MUTED, fontsize=8.5)
+    handles = [plt.Line2D([], [], marker="o", ls="", ms=7, color=MODEL_COLORS[k], label=m) for k, m in enumerate(models)]
+    fig.legend(handles=handles, frameon=False, fontsize=8.5, ncol=len(models), loc="upper center", bbox_to_anchor=(0.5, 1.0))
+    fig.tight_layout(rect=(0, 0, 1, 0.94))
     fig.savefig(path)
     plt.close(fig)
 
