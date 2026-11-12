@@ -4,19 +4,19 @@ IS469 Generative and Agentic AI, group project. Member A: Ye Zhan. Member B: Lia
 
 ## Abstract
 
-A travel insurance claim is rarely decided by one clause. The benefit is in one place, the definition it depends on is at the back of the policy, and the exclusion that cancels it can be many pages away. We wanted to know whether agentic retrieval handles this better than simple RAG, and whether any improvement is worth what it costs.&#32;
+A travel insurance claim is rarely decided by one clause. The benefit is in one place, the definition it depends on is at the back of the policy, and the exclusion that cancels it can be many pages away. We wanted to know whether agentic retrieval handles this better than simple RAG, and whether any improvement is worth what it costs.
 
-We took two real Singapore policies (FWD and MSIG), wrote 124 test claims with human-checked labels, and compared these setups on Llama 3.1 8B and gpt-oss-20b:&#32;
+We took two real Singapore policies (FWD and MSIG), wrote 124 test claims with human-checked labels, and compared these setups on Llama 3.1 8B and gpt-oss-20b:
 
 1. No retrieval (No-RAG)
 2. simple RAG (RAG)
-3. agentic RAG: **C****orrective (CRAG) **
-4. agentic RAG: **W****orkflow Agent (Agent)**
+3. agentic RAG: **Corrective (CRAG)**
+4. agentic RAG: **Workflow Agent (Agent)**
 5. agentic RAG: **ReAct**, which chooses its own lookups, added after the core runs; plus a whole-policy baseline (Full-context) as an exploratory extra
 
 On both models, the two strongest agentic setups, the workflow agent and ReAct, got slightly more claims right than simple RAG (at best 76% against 69%, on gpt-oss-20b), and the workflow agent got far more of the deciding clauses in front of the model (84–91%, against 66%).
 
-None of these gaps was statistically significant, so on accuracy alone the agents are not worth their extra cost. What the workflow agent did change was the kind of mistake: its errors moved from retrieval to reasoning, and on gpt-oss it called a "not\_covered" claim covered **only once** in 53, where simple RAG did so **9 times. **
+None of these gaps was statistically significant, so on accuracy alone the agents are not worth their extra cost. What the workflow agent did change was the kind of mistake: its errors moved from retrieval to reasoning, and on gpt-oss it called a "not\_covered" claim covered **only once** in 53, where simple RAG did so **9 times.**
 
 For an insurer, we recommend the workflow agent: it is as accurate as simple RAG and far less likely to wrongly tell a customer they are covered, for about twice the tokens. Simple RAG is the budget option. Our pre-set rule picked simple RAG because it weighed only accuracy and cost; the safety gap was an exploratory finding and should be confirmed on more claims. A small web demo runs the methods side by side on a user's claim.
 
@@ -35,7 +35,7 @@ This report contributes 4 things:
 1. **A controlled comparison of five setups** (no retrieval, simple RAG, corrective RAG, a domain workflow agent and, added after the core runs, a ReAct agent) on two models that differ in size and style. All five share one index, one prompt and one answer call. The rule for picking a winner was fixed before the test run, and the paired tests are Holm-corrected.
 2. **A trace evaluation** that scores every step an agent takes against the gold sections. It sorts each wrong answer into a retrieval failure or a reasoning failure, and it reports a "sound rate" that only counts a right answer when the evidence was actually there.
 3. A dataset of 144 claims, drafted by an LLM from specific clauses and then hand checked by us.
-4. A **brief demo webpage **built on the winning setup, with guardrails in place.
+4. A **brief demo webpage** built on the winning setup, with guardrails in place.
 
 ## 2. Related work
 
@@ -57,7 +57,7 @@ We found and used two public Singapore travel policy wordings, **FWD Travel Insu
 
 **Claims.** The actual claims aren't public, so we made our own 156 claims. An LLM was given one clause at a time and asked to write a short first-person claim for a verdict, and to write the intended verdict and the sections that decide it. The claims come in sets around one clause, so that a small change changes the answer completely: a 7-hour delay is covered, a 5-hour delay isn't, and "my flight was delayed" is "insufficient\_info". Every claim has a verdict ("covered", "not\_covered", "partially\_covered" or "insufficient\_info") and a category (single\_section, needs\_definition, needs\_exclusion or tricky).
 
-**Labelling.** Grading models against an LLM's own drafts would introduce **bias **in the results, so no draft became a gold label until **one of us reviewed it**.&#32;
+**Labelling.** Grading models against an LLM's own drafts would introduce **bias** in the results, so no draft became a gold label until **one of us reviewed it**.
 
 We wrote a one-page labelling guide covering the verdict definitions, the default assumptions and tie-break rules such as "an exclusion that clearly applies beats a benefit". We then checked every draft against the clause text: 143 were accepted, 1 was corrected and 12 were deleted as repeats, leaving 144 claims. A fixed-seed split put 20 claims into a dev set for tuning and 124 into a test set that we scored once.
 
@@ -67,7 +67,7 @@ We wrote a one-page labelling guide covering the verdict definitions, the defaul
 | covered / not\_covered / partially / insufficient | 5 / 6 / 4 / 5 | 46 / 53 / 14 / 11 |
 | single\_section / definition / exclusion / tricky | 8 / 3 / 5 / 4 | 65 / 20 / 25 / 14 |
 
-**Blind check.** To test whether the labels would be affected by how a person reads a clause, Member A (Ye Zhan) labelled 40 random test claims blind, without seeing the drafts or Member B's (Liang Than) labels. Agreement was moderate: 25 of 40 on the four-way verdict (Cohen's kappa 0.46, 95% CI 0.24 to 0.64). On the simpler covered-or-not question it was 30 of 40 (kappa 0.50).&#32;
+**Blind check.** To test whether the labels would be affected by how a person reads a clause, Member A (Ye Zhan) labelled 40 random test claims blind, without seeing the drafts or Member B's (Liang Than) labels. Agreement was moderate: 25 of 40 on the four-way verdict (Cohen's kappa 0.46, 95% CI 0.24 to 0.64). On the simpler covered-or-not question it was 30 of 40 (kappa 0.50).
 
 In 39 of the 40 cases both of us picked at least one gold section in common, so the disagreement was about how to read a clause and not about which clause applies. We went through the 15 disagreements together against the policy text, added two rules to the guide (an add-on the claim doesn't mention buying means insufficient\_info; a fact the claim states beats a default assumption), and froze the test set on 28 Oct.
 
@@ -97,7 +97,7 @@ All setups finish with the same answer call. What differs is which policy text t
 | Agentic RAG: ReAct | The model chooses its own lookups, one at a time | 7.9 / 3.4 | A3 |
 | Agent with term picking (Agent-Pick) | The workflow agent, plus extra definitions the model picks | 4.0 / 4.0 | A4D |
 | Simple RAG, 10 passages (RAG-10) | Simple RAG with 10 chunks instead of 5 | 1.0 / 1.0 | A0K10 |
-| Safe mode (RAG + Check) | Simple RAG first; the agent re-checks any covered or partially covered answer | simple RAG's call + the agent's on 39 / 50 of 124 claims | none&#32; (simulated) |
+| Safe mode (RAG + Check) | Simple RAG first; the agent re-checks any covered or partially covered answer | simple RAG's call + the agent's on 39 / 50 of 124 claims | none (simulated) |
 
 The call counts are measured means on the test set; a one-call setup can show slightly more than 1.0 because of retries. The first four setups were fixed before the test run. **ReAct was added on 4 Nov, after the core runs, and joins the main comparison; we report the decision rule both as planned and with ReAct included.** The other exploratory setups are scored but never compete.
 
@@ -125,7 +125,7 @@ The call counts are measured means on the test set; a one-call setup can show sl
 
 ### 4.3 Models and infrastructure
 
-We compare a small instruction model, **Llama 3.1 8B Instruct (16-bit)**, with a larger open reasoning model, **gpt-oss-20b (4-bit expert weights)**.&#32;
+We compare a small instruction model, **Llama 3.1 8B Instruct (16-bit)**, with a larger open reasoning model, **gpt-oss-20b (4-bit expert weights)**.
 
 Both are served with vLLM on A40 GPUs on the SMU cluster through SLURM batch jobs. They run free on SMU's hardware, so we measure cost in model calls, tokens and seconds per claim rather than dollars. Calls are made one at a time, so seconds are measured the same way for every setup.
 
@@ -314,7 +314,7 @@ The demo is a Streamlit app that runs no retrieval, simple RAG, the workflow age
 - **The formal winner depends on which setups are in the race.** Our tie-break only compares the top two, so adding ReAct afterwards switched the winner from simple RAG to the workflow agent without changing either one's results. A rule that compares every setup against the cheapest would be more stable.
 - **Safety is where the workflow agent earns its cost.** On gpt-oss it wrongly said "covered" on 1 of 53 claims labelled "not covered", against 9 for simple RAG and 4 for ReAct (exploratory, p = 0.021 against simple RAG; not significant on Llama). That is the costliest error if customers were told they're covered and the insurer then refused the claim. Our rule only checked safety against simple RAG, so it could not reward this; a real deployment should break ties on safety.
 
-**Our a****dvice to an insurance company:**&#32;
+**Our advice to an insurance company:**
 
 Use the workflow agent. It is as accurate as simple RAG (no setup was significantly more accurate), and far less likely to wrongly tell a customer they are covered: on gpt-oss once in 53 claims, against 9 times for simple RAG (Llama: 4 against 7), for about twice the tokens and 2.6× the time. Simple RAG, with one model call, is the budget option. The rule we fixed before testing picked simple RAG because it weighed only accuracy and cost; the safety gap was an exploratory finding (p = 0.021 on gpt-oss, not significant on Llama), so an insurer should confirm it on its own claims. We also tried a cheaper mix, safe mode, where the agent re-checks only simple RAG's "covered" or "partially covered" answers (simulated from the stored answers, exploratory). On gpt-oss it stopped every wrong "covered" (0 of 53), but it got fewer claims right than the agent alone (66% against 71%) for 91% of its tokens, because simple RAG's other answers go unchecked (Llama: 2 of 53 wrong, 56% right, 72% of the agent's tokens). So we do not recommend it over the agent. Keep ReAct for open-ended questions, such as comparing plans, and only with a strong model and a cap on lookups: claim checking is a well-structured task, where Topic 7's rule of thumb favours a fixed plan over ReAct, and our results agree (more calls, less safe). Invest in the model before the method, and at about 70% accuracy let the tool point customers to the deciding clauses while a person decides the claim.
 
@@ -333,7 +333,7 @@ Use the workflow agent. It is as accurate as simple RAG (no setup was significan
 
 ## 10. Conclusion
 
-Is agentic RAG, where the model decides what to look up, worth its extra cost over simple RAG for checking travel insurance claims?&#32;
+Is agentic RAG, where the model decides what to look up, worth its extra cost over simple RAG for checking travel insurance claims?
 
 **Not for accuracy, yes for safety.** On two real policies and 124 human-checked claims, none of the agentic setups (corrective RAG, the workflow agent, ReAct) was significantly more accurate than simple RAG, which needs one model call. But the workflow agent, which reads a policy the way a claims assessor does, found the definitions and exclusions a single search misses, and wrongly told a customer "you're covered" once in 53 claims, against nine times for simple RAG.
 
