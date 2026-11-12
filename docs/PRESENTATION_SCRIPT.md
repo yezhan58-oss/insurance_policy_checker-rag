@@ -1,28 +1,33 @@
 # IS469 presentation script (7 minutes, live demo included)
 
-Deck: `docs/IS469_presentation.pptx`, 11 slides. Ye Zhan presents the problem, the comparison, the model finding and the
-advice; Liang Than presents the workflow agent, its results and cost, and runs the live demo. Target is **6:40 spoken**, which leaves about 20 s of buffer for
-slide changes and a slow first model answer. At a normal pace of about 140 words a minute, each timing below matches
-its word count.
+Deck: 10 slides (the Canva deck is the one presented; `docs/IS469_presentation.pptx` is the repo copy). Ye Zhan
+presents the problem, the methods, the fair test and the advice; Liang Than presents the workflow agent, its results
+and cost, and runs the live demo. Target is **6:45 spoken**, which leaves about 15 s of buffer for slide changes and a
+slow first model answer. At a normal pace of about 140 words a minute, each timing below matches its word count.
 
 | Slides | Speaker | Time | Running total |
 |---|---|---|---|
-| 1–4: why it matters, problem, methods, fair test | Ye Zhan | 2:15 | 2:15 |
-| 5–7: the workflow agent, results, cost | Liang Than | 1:45 | 4:00 |
-| 8: the model | Ye Zhan | 0:25 | 4:25 |
-| 9: live demo | Liang Than (Ye Zhan drives the laptop) | 1:30 | 5:55 |
-| 10–11: advice, close | Ye Zhan | 0:45 | 6:40 |
+| 1–4: the idea, one claim, five methods, fair test | Ye Zhan | 2:50 | 2:50 |
+| 5–7: the workflow agent, results, cost | Liang Than | 1:45 | 4:35 |
+| 8: live demo | Liang Than (Ye Zhan drives the laptop) | 1:30 | 6:05 |
+| 9–10: advice, close | Ye Zhan | 0:40 | 6:45 |
 
 ---
 
-## [Slide 1: Is the agent worth it?] Ye Zhan, 25 s
+## [Slide 1: Is agentic RAG worth it?] Ye Zhan, 30 s
 
-Hi, we're Ye Zhan and Liang Than. When something goes wrong on a trip, people want to know straight away whether
-they're covered, but the answer sits in a policy of 45 to 70 pages, and the clauses that decide it can be pages
-apart. So we tested how an LLM should read the policy, looking at how accurate, how safe and how costly each way is, and asked
-a simple question: is an agent worth what it costs?
+Hi, we're Group 5. I'm Ye Zhan, and this is Liang Than.
 
-## [Slide 2: One claim, three clauses, pages apart] Ye Zhan, 35 s
+Our project idea came from travelling. When something goes wrong overseas, the first thing someone wants to know is
+whether they're covered for their particular situation.
+
+For this project, we used the FWD and MSIG travel policies. The answer to a customer's question sits in a policy of
+45 to 70 pages, and the clauses that decide it can be pages apart.
+
+So we tested how an AI should read the policy, using different AI methods, and whether an agent is worth the extra
+cost.
+
+## [Slide 2: One claim needs three clauses, pages apart] Ye Zhan, 35 s
 
 Take this claim: a flight to Tokyo delayed seven hours by a typhoon. To answer it properly, you need three clauses
 from a 45-page FWD policy. The delay benefit on page 12 says six continuous hours is enough, but only for "scheduled
@@ -39,13 +44,18 @@ the passages are weak. Our workflow agent works like a claims assessor and goes 
 exclusions. ReAct, which we added after the first four had run, picks its own lookups one at a time. Everything else
 stays the same, so only the reading strategy changes. We ran all of it on two models, Llama 3.1 8B and gpt-oss-20b.
 
-## [Slide 4: How we kept the comparison fair] Ye Zhan, 30 s
+## [Slide 4: How we kept the test fair] Ye Zhan, 60 s
 
-We wrote 144 claims against two real policies, FWD and MSIG. We tuned on 20 of them and froze the other 124 as a test
-set before any test run. A second person re-labelled 40 claims blind: we matched on 25, and settled the other 15
-together against the policy text. We also wrote the winner rule before testing:
-first, a method must not wrongly say "covered" more often than simple RAG; then the most accurate one wins; and if the
-gap isn't statistically significant, the cheaper, faster method wins.
+We wrote 144 claims against two real policies, FWD and MSIG. We used only 20 of them to adjust our prompts, and kept
+the other 124 locked away until the final test, so we couldn't tweak our methods to fit them.
+
+To check our answer key, I re-labelled 40 claims without seeing Liang's answers. We matched on 25, and settled the
+other 15 together by going back to the policy.
+
+Before seeing any results, we also fixed how we'd pick the best method, so we couldn't change the rules afterwards. A
+method first has to be at least as safe as simple RAG, meaning it doesn't tell customers "you're covered" when they're
+not any more often. Among the safe ones, the most accurate wins. But if two methods are so close that the difference
+could just be luck, we pick the cheaper one.
 
 *(hand over)* Liang will show you how the workflow agent works, and how it did.
 
@@ -58,27 +68,21 @@ claim, compared with 66% for simple RAG.
 
 ## [Slide 6: The agents led, but not by enough] Liang Than, 35 s
 
-So did all that extra reading pay off? The two agents were the most accurate, but only just: on gpt-oss, ReAct got 94 of 124 right against simple RAG's 86.
-None of these gaps is statistically significant: with 124 claims, differences this small could just be luck. So they are too close to call, and the best value is simple RAG. (If asked: our planned rule picks simple RAG;
-with ReAct added later, its tie-break picks the workflow agent. Either way, no agent is significantly better.)
+So did all that extra reading pay off? The two agents were the most accurate, but only just: on gpt-oss, ReAct got
+76% right against simple RAG's 69%. None of these gaps is statistically significant: with 124 claims, differences this
+small could just be luck. So they are too close to call, and the best value is simple RAG. (If asked: our planned rule
+picks simple RAG; with ReAct added later, its tie-break picks the workflow agent. Either way, no agent is
+significantly better.)
 
-## [Slide 7: What the workflow agent costs, and what it buys] Liang Than, 35 s
+## [Slide 7: The agent costs more, but it's safer] Liang Than, 35 s
 
 The workflow agent takes 2.6 times as long per claim, and for that you get two more right answers, which isn't a
 real difference. Where it does matter is safety: on the claims that are not covered, simple RAG wrongly told the
 customer "you're covered" 9 times, the workflow agent only once.
 
-*(hand back)* Ye Zhan has one more surprise for you.
+*(Ye Zhan switches to the browser)*
 
-## [Slide 8: The model mattered more than the method] Ye Zhan, 25 s
-
-The model mattered more than the method. Switching to the bigger model lifted simple RAG by 13 points,
-while switching method added at most 6. Without the policy, the bigger model actually did worse, but given the whole
-policy in one prompt it got 76% right against the small model's 32%, at thirteen times the tokens.
-
-*(hand over)* Liang will now show it live.
-
-## [Slide 9: Live demo] Liang Than, 90 s (Ye Zhan switches to the browser and clicks the example)
+## [Slide 8: Live demo] Liang Than, 90 s (Ye Zhan drives the laptop and clicks the example)
 
 Let's see it live. This claim is from our test set: a typhoon heading to Manila was already in the news when the
 policy was bought, and the correct answer is **not covered**. We'll run all four methods at the same time on the
@@ -97,6 +101,8 @@ point at its tick or cross either way.
 each took. It matches our test results: simple RAG is the best value, and the workflow agent is the safer one on
 exactly this kind of claim.
 
+*(hand back)* Ye Zhan will wrap up.
+
 > If live fails, or the cluster is slow: open the sidebar (arrow at the top left), untick "Run live" and say "here are
 > the saved answers from the same run".
 > If No-RAG says not covered, say "No-RAG got lucky: it never read the policy, and its reason (weather delays are
@@ -106,18 +112,21 @@ exactly this kind of claim.
 > If ReAct says covered or need more detail, say "this is why we call the fixed workflow safer: ReAct picks its own
 > route, and on this claim it sometimes misses the exclusion. Across our runs on this claim it got it right four times out of seven"
 
-## [Slide 10: What we would tell an insurer] Ye Zhan, 35 s
+## [Slide 9: What we'd tell an insurer] Ye Zhan, 30 s
 
-So here's what we'd tell an insurer. For best value, use simple RAG: it's as accurate as the agents with one model call
-instead of three or more. If wrongly telling a customer "you're covered" is the error you can't afford, run the
-workflow agent on every claim, because it's the safer one. We also tried a cheaper mix, safe mode, where the agent only
-re-checks simple RAG's "covered" answers: it stopped every wrong "covered", but got fewer claims right and cost almost
-as much as the agent. The limits are that we wrote these claims ourselves from two policies, and 124 claims can only
-detect fairly large gaps.
+So what would we tell an insurer?
 
-## [Slide 11: Thank you. Questions?] Ye Zhan, 10 s
+If you want the best value, use simple RAG. It's just as accurate, and it's much cheaper.
 
-So, is the agent worth it? For accuracy, not yet. For safety, yes. Thank you, and we're happy to take questions.
+But if telling a customer "you're covered" by mistake is a big problem for you, use the workflow agent. It's the
+safest.
+
+We also tried mixing the two. It was safe, but it got fewer claims right, and it cost almost the same as the agent.
+So it's not worth it.
+
+## [Slide 10: Thank you] Ye Zhan, 10 s
+
+So, is agentic RAG worth it? For accuracy, not yet. For safety, yes. Thank you, and we're happy to take questions.
 
 ---
 
@@ -128,6 +137,7 @@ So, is the agent worth it? For accuracy, not yet. For safety, yes. Thank you, an
 - Open `localhost:8502` in the browser before you start, with all four methods ticked. Click the "Typhoon already in the
   news" example instead of pasting: the wording then matches our test claim exactly, so the page shows the tick or
   cross under each verdict. After "Check my claim" the banner shrinks, so all four verdicts fit on the first screen.
-- Rehearse once with a timer. If you run long, cut in this order: the "without the policy / whole policy" sentence on slide 8, the
-  limits sentence on slide 10, then "We ran all of it on two models" on slide 3 (the slide still shows it).
-- Say one number per point; the slides hold the rest. Avoid "McNemar", "Holm" and "kappa" unless asked.
+- Rehearse once with a timer. If you run long, cut in this order: the label-check paragraph on slide 4 (the slide
+  shows the 25 / 15 grid), then "We ran all of it on two models" on slide 3 (the slide still shows it).
+- Say one number per point; the slides hold the rest. Avoid "McNemar", "Holm" and "kappa" unless asked; limits
+  (our own claims, two policies, 124 claims) are on slide 9 for Q&A.
