@@ -1,4 +1,4 @@
-<!-- Synced from the shared report doc on 12 Nov 2026, rev 387 (the doc is the working copy). -->
+<!-- Synced with the shared report doc on 12 Nov 2026, rev 389 (the doc is the working copy). -->
 
 # Is the agent worth it? Agentic RAG for travel insurance coverage verdicts
 
@@ -244,7 +244,7 @@ Accuracy as Llama / gpt-oss. The workflow agent gained most on claims that need 
 
 ### 7.6 Faithfulness, retrieval only and exploratory setups
 
-- **Faithfulness:** This is the share of explanations the Claude Haiku judge found supported by the cited clause text.  ReAct (0.72) and the workflow agent (0.68) were the most faithful on gpt-oss, but on Llama the workflow agent was the least faithful of the search setups (0.29): the 8B model had the right clauses in its context but didn't use them in its citations, so the judge could not match its explanations to the cited text. The judge agreed with our hand checks on 77% of 30 grades on Llama (kappa 0.64) and 80% on gpt-oss (kappa 0.52), and was usually the stricter one.
+- **Faithfulness:** This is the share of explanations the Claude Haiku judge found supported by the cited clause text. ReAct (0.72) and the workflow agent (0.68) were the most faithful on gpt-oss, but on Llama the workflow agent was the least faithful of the search setups (0.29): the 8B model had the right clauses in its context but didn't use them in its citations, so the judge could not match its explanations to the cited text. The judge agreed with our hand checks on 77% of 30 grades on Llama (kappa 0.64) and 80% on gpt-oss (kappa 0.52), and was usually the stricter one.
 - **One search is not enough.** Searching with the claim text alone (k = 5):
 
 | Search | All gold sections | Benefits | Definitions | Exclusions |

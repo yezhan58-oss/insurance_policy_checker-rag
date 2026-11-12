@@ -201,6 +201,14 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   every claim where a wrong "covered" is costly (about 2x simple RAG's tokens, 2.6x its time); safe mode reported as
   tried, not recommended. Updated in slide 10, its script, the report doc (abstract and advice, rev 387), REPORT.md
   and the demo's advice line. The ReAct and model-first points stand.
+- **PRs #74 and #75 merged (12 Nov)**: #74 adds the ReAct agent to Member A's contributions; #75 is Member B's own
+  rewording of his sections (2, 3, 4.2 workflow agent and Agent-Pick, 7.6, 8, his two bullets in 9). Numbers checked
+  against the results (judge 77% / kappa 0.64 Llama, 80% / 0.52 gpt-oss; power 14 / 16 points at 80%; simple RAG's
+  search found 0 of 24 needed definitions). 7.6 now says the 8B workflow agent under-cited (fetched definitions but did
+  not cite them) rather than misquoted. Merged into a/demo-live-react: his wording kept, with the agentic RAG names in
+  4.2, the new advice (now "covered or partially covered", his precision), and section 8's lines on the summary table
+  and policy limit that his older base lacked; typo "itss" fixed. His changes were then copied into the shared doc
+  (rev 389), which again matches REPORT.md.
 - **Power** [9]: with the observed discordance (32 to 42 of 124 claims), a 5-point gap needs about 800 to 1,100
   claims for 80% power (McNemar, two-sided 5%); about 230 to 290 for a 10-point gap.
 - **Course links** [1, 2]: Topic 7 slides 18-19 (ReAct loop), 36 (ReAct vs Plan-and-Execute: the workflow agent is
