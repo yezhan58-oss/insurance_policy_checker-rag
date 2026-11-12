@@ -239,6 +239,22 @@ The four core setups and Full-context ran once per model over the 124 test claim
 - **A claim no setup got right (fwd-030):** S$800 in cash stolen. The S$300 cash limit sits in a separate table of limits, not in the benefit text, so all 14 answers were wrong.
 - **Citations:** no answer cited a real section it had not been shown. Bad citations were made-up IDs, almost all from Llama.
 
+**Tool calls, step by step.** We also scored each step of the agentic setups against the gold sections: how many of the needed sections it found, and how much of what it kept was needed (precision).
+
+| Tool call | Llama: found / precision | gpt-oss: found / precision |
+|---|---|---|
+| Workflow agent: pick benefits | 0.94 / 0.43 | 0.88 / 0.80 |
+| Workflow agent: look up definitions | 0.62 / 0.02 | 0.58 / 0.02 |
+| Workflow agent: keep exclusions | 0.90 / 0.04 (keeps 10.5) | 0.81 / 0.25 (keeps 1.0) |
+| Corrective RAG: grade passages | 0.70 / 0.53 | 0.67 / 0.72 |
+| ReAct: get a definition | called 41 times in 124 claims | called 6 times |
+
+- **Picking the benefit works:** the right benefit was found about 9 times in 10.
+- **Looking up definitions is the weak tool call:** it only fetches terms the claim or benefit names, so it found about 60% of the needed definitions.
+- **Filtering exclusions depends on the model:** Llama kept almost every exclusion (10.5 sections, 4% of them needed); gpt-oss kept about one and missed more.
+- **ReAct rarely chose the definition tool**, which fits its weak results on definition claims (0.45 on gpt-oss, section 7.5).
+- **Efficiency:** 81 to 92% of the sections the agents put in front of the model were not needed, against 80% for simple RAG.
+
 ### 7.5 Where the agent helps
 
 | Category (claims) | RAG | CRAG | Agent | ReAct |
