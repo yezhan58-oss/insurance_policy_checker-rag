@@ -211,7 +211,9 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   (rev 389), which again matches REPORT.md.
 - **Figure 4 (12 Nov)** [8]: the demo on the Manila claim (fwd-010, saved gpt-oss answers), stitched from YZ's three
   screenshots (input and verdicts; steps, reasons and clauses; the side-by-side table) into docs/figures/demo_manila.png.
-  In the shared doc (rev 390) it replaces the Figure 4 placeholder, with a caption; REPORT.md points to the same file.
+  Then split so the page flows better: Figure 4 = the claim and the four cards (docs/figures/demo_manila.png, in place
+  of the old placeholder); Figure 5 = the side-by-side table (demo_manila_table.png), after the section 8 bullets, which
+  now point to it. Same in the shared doc (rev 392) and REPORT.md.
 - **Power** [9]: with the observed discordance (32 to 42 of 124 claims), a 5-point gap needs about 800 to 1,100
   claims for 80% power (McNemar, two-sided 5%); about 230 to 290 for a 10-point gap.
 - **Course links** [1, 2]: Topic 7 slides 18-19 (ReAct loop), 36 (ReAct vs Plan-and-Execute: the workflow agent is
