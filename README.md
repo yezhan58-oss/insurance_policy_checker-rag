@@ -154,5 +154,5 @@ covered answer that quotes wording not in the policy becomes insufficient_info).
 | `configs/` | models, per-setup settings, default run |
 | `scripts/` | SLURM jobs: install, interactive servers, full runs |
 | `data/` | policy PDFs, scenarios and gold labels |
-| `docs/` | final report (`REPORT.md`), running findings (`REPORT_NOTES.md`), section drafts, slides |
+| `docs/` | final report (`REPORT.md`, submitted copy `IS469_Group5_project_report.docx`), running findings (`REPORT_NOTES.md`), section drafts |
 | `docs/figures/` | report figures; `make_architecture.py` redraws Figure 1 |

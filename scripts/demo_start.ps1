@@ -4,7 +4,7 @@
 #   .\scripts\demo_start.ps1 -Offline   cached questions only: just the app, no cluster needed
 #   .\scripts\demo_start.ps1 -Gpu a40   another GPU type (default l40s: the A40 node avenue has been drained since 11 Nov)
 #
-# The app opens at http://localhost:8502, the address in docs/PRESENTATION_SCRIPT.md.
+# The app opens at http://localhost:8502.
 # Stop everything afterwards with .\scripts\demo_stop.ps1 (frees the shared GPU).
 param([switch]$Offline, [string]$Hours = "02:00:00", [string]$Gpu = "l40s")
 $ErrorActionPreference = "Stop"
