@@ -480,3 +480,15 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
     answer. Labels are only displayed, not changed.
     Card badges: "Best value" on A0 (was "Study winner"; renamed 11 Nov to match slide 10) (orange line along the top of its card) and "Safer than A0" on A4 (wrong
     covered 1 vs 9 of 53 on gpt-oss, 4 vs 7 on Llama, so true on both models); B0 has none.
+- **Per-tool-call scores added to report 7.4 (12 Nov; from `results/test/<model>/traces.json`, no new runs)**: answers
+  the prof's ask to grade the agents' tool calls, not only the verdicts. Found (step recall) / precision, Llama then
+  gpt-oss: A4 pick benefits 0.94/0.43, 0.88/0.80; A4 definitions 0.62/0.02, 0.58/0.02; A4 keep exclusions 0.90/0.04
+  (10.5 sections kept), 0.81/0.25 (1.0 kept); A2 grader 0.70/0.53, 0.67/0.72. ReAct called its definition tool only
+  41 times (Llama) and 6 times (gpt-oss) in 124 claims. Unneeded share of context: A4 and A3 0.92 (Llama), 0.81
+  (gpt-oss); A0 0.80.
+- **Recommendation changed (12 Nov, team decision)**: advise insurers to use the workflow agent (A4), with simple RAG
+  (A0) as the budget option. Reason: A4 is as accurate as A0 (no significant gap) and far safer on the costliest error
+  (wrong "covered" 1 vs 9 of 53 on gpt-oss, p = 0.021 exploratory; 4 vs 7 on Llama, not significant), for about 2x
+  the tokens and 2.6x the time. The pre-registered rule still picks A0 (it weighs only accuracy and cost); the report
+  says so. Updated: abstract, section 9 advice, conclusion bullet, README, demo advice line. Slides and script are
+  edited outside the repo.
