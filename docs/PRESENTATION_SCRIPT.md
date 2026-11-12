@@ -61,9 +61,9 @@ could just be luck, we pick the cheaper one.
 
 ## [Slide 5: The agents found more of the clauses that decide a claim] Liang Than, 35 s
 
-This strip is the whole FWD policy. Our workflow agent reads it like a claims assessor: benefits first, then the
-defined terms at the back, then the exclusions that could apply. Simple RAG's one search usually lands near the
-benefit and stops there. Across all four methods, the two that look things up step by step, the workflow agent and
+Back to the Tokyo claim. Simple RAG does one search, finds the delay benefit, and stops there. Our workflow agent
+reads like a claims assessor: the benefit first, then the definition, then the exclusions, so it finds all three.
+Across all four methods, the two that look things up step by step, the workflow agent and
 ReAct, got 77 to 91% of the deciding clauses in front of the model. Simple RAG and corrective RAG, which only search,
 stayed at about two thirds.
 
