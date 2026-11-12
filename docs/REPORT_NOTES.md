@@ -222,6 +222,11 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   "need more detail") while we split ours. YZ kept the split Figures 4 and 5 (saved test-run answers, simple RAG says
   covered, matching the reported results, slide 9 and the shared doc); his file stays in the repo, unused. His slide 9
   script line (simple RAG says covered or asks for more detail) is kept.
+- **Figure 1 redrawn (12 Nov)**: the Graphviz diagram (4 Nov) still used the codes, had no ReAct and said "winner A0, A4
+  toggle" for the demo; it was also 5049 x 872, too wide to read at report width. Redrawn with matplotlib
+  (docs/figures/make_architecture.py, no Graphviz needed) at about 5:4: report names, Baselines / Agentic RAG groups, the
+  exploratory extras, and the current demo. Figures 1 to 3 are now real images in the shared doc (rev 468), with
+  captions. Limitations: "Scope" replaced by "More policies" (what testing more insurers and lines would show).
 - **Power** [9]: with the observed discordance (32 to 42 of 124 claims), a 5-point gap needs about 800 to 1,100
   claims for 80% power (McNemar, two-sided 5%); about 230 to 290 for a 10-point gap.
 - **Course links** [1, 2]: Topic 7 slides 18-19 (ReAct loop), 36 (ReAct vs Plan-and-Execute: the workflow agent is
