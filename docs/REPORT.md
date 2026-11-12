@@ -1,22 +1,20 @@
-<!-- Synced with the shared report doc on 12 Nov 2026, rev 392 (the doc is the working copy). -->
-
-# Is the agent worth it? Agentic RAG for travel insurance coverage verdicts
+# Is the agent worth it? Agentic vs simple RAG for checking travel insurance claims
 
 IS469 Generative and Agentic AI, group project. Member A: Ye Zhan. Member B: Liang Than. Code, data and results: [github.com/yezhan58-oss/insurance\_policy\_checker-rag](https://github.com/yezhan58-oss/insurance_policy_checker-rag)
 
 ## Abstract
 
-A travel insurance claim is rarely decided by one clause. The benefit is in one place, the definition it depends on is at the back of the policy, and the exclusion that cancels it can be many pages away. We wanted to know whether agentic retrieval handles this better than simple RAG, and whether any improvement is worth what it costs.
+A travel insurance claim is rarely decided by one clause. The benefit is in one place, the definition it depends on is at the back of the policy, and the exclusion that cancels it can be many pages away. We wanted to know whether agentic retrieval handles this better than simple RAG, and whether any improvement is worth what it costs.&#32;
 
-We took two real Singapore policies (FWD and MSIG), wrote 124 test claims with human-checked labels, and compared these setups on Llama 3.1 8B and gpt-oss-20b:
+We took two real Singapore policies (FWD and MSIG), wrote 124 test claims with human-checked labels, and compared these setups on Llama 3.1 8B and gpt-oss-20b:&#32;
 
 1. No retrieval (No-RAG)
 2. simple RAG (RAG)
-3. agentic RAG: corrective (CRAG)
+3. agentic RAG: corrective (CRAG)&#32;
 4. agentic RAG: workflow agent (Agent)
 5. agentic RAG: ReAct, which chooses its own lookups, added after the core runs; plus a whole-policy baseline (Full-context) as an exploratory extra
 
-The two agents were the most accurate (workflow agent 0.61 and 0.71, ReAct 0.61 and 0.76, against 0.56 and 0.69 for simple RAG), and the workflow agent found much more of the evidence a claim needs (0.91 and 0.84, against 0.66).
+The two agents were the most accurate (workflow agent 0.61 and 0.71, ReAct 0.61 and 0.76, against 0.56 and 0.69 for simple RAG), and the workflow agent found much more of the evidence a claim needs (0.91 and 0.84, against 0.66).&#32;
 
 None of these gaps was statistically significant, so on accuracy alone the agents are not worth their extra cost, and the rule we fixed before testing picks simple RAG (section 7.2 shows how adding ReAct later shifts its tie-break). What the workflow agent did change was the kind of mistake: its errors moved from retrieval to reasoning, and on gpt-oss it called a "not\_covered" claim covered only once in 53, where simple RAG did so 9 times. We therefore recommend simple RAG by default and the workflow agent wherever a wrong "covered" is costly; the demo shows the methods side by side, behind guardrails.
 
@@ -24,22 +22,22 @@ None of these gaps was statistically significant, so on accuracy alone the agent
 
 Someone whose flight was delayed by a typhoon has one question: can I claim? The answer is in the policy wording, but it is almost never in a single place. The benefit sets a threshold (6 hours of delay), a definition narrows one of its terms ("scheduled public transport"), and a general exclusion somewhere else can take the cover away. A model that reads only the benefit can end up promising a payout the policy does not actually make.
 
-Retrieval-augmented generation (RAG) lets a language model answer from the policy itself. The weakness is that a single search **using the claim's own words** finds what the claim mentions, which is not always the rule that decides it. Agentic RAG tries to fix this by **adding steps that check the evidence and go looking for more**. Those steps are paid for in model calls, tokens and seconds, so we care about two things: **do they help, and is the help worth the price.**
+Retrieval-augmented generation (RAG) lets a language model answer from the policy itself. The weakness is that a single search **using the claim's own words** finds what the claim mentions, which is not always the rule that decides it. Agentic RAG tries to fix this by **adding steps that check the evidence and go looking for more**. Those steps are paid for in model calls, tokens and seconds, so we care about two things: **do they help, and is the help worth the** **price.**
 
-**Research question ->** Which agentic RAG approach gives the most accurate and best-justified coverage verdicts on real insurance policies, and is the gain worth the extra cost and latency compared with simple RAG?
+**Research question:** Which agentic RAG approach gives the most accurate and best-justified coverage verdicts on real insurance policies, and is the gain worth the extra cost and latency compared with simple RAG?
 
 The study combines two course topics: agentic RAG (Topic 8: simple RAG, query rewriting, long context, hybrid search, faithfulness evaluation) and LLM agents (Topic 7: our workflow agent is a Plan-and-Execute agent, ReAct the step-by-step loop).
 
 This report contributes 4 things:
 
-1. A controlled comparison of four setups (no retrieval, simple RAG, corrective RAG and a domain workflow agent) on two models that differ in size and style. All four share one index, one prompt and one answer call. The rule for picking a winner was fixed before the test run, and the paired tests are Holm-corrected.
-2. A trace evaluation that scores every step an agent takes against the gold sections. It sorts each wrong answer into a retrieval failure or a reasoning failure, and it reports a "sound rate" that only counts a right answer when the evidence was actually there.
+1. **A controlled comparison of five setups** (no retrieval, simple RAG, corrective RAG, a domain workflow agent and, added after the core runs, a ReAct agent) on two models that differ in size and style. All five share one index, one prompt and one answer call. The rule for picking a winner was fixed before the test run, and the paired tests are Holm-corrected.
+2. **A trace evaluation** that scores every step an agent takes against the gold sections. It sorts each wrong answer into a retrieval failure or a reasoning failure, and it reports a "sound rate" that only counts a right answer when the evidence was actually there.
 3. A dataset of 144 claims, drafted by an LLM from specific clauses and then hand checked by us.
-4. A brief demo built on the winning setup, with guardrails in-place.
+4. A **brief demo webpage **built on the winning setup, with guardrails in place.
 
 ## 2. Related work
 
-**Retrieval-augmented generation.** RAG gives a language model passages fetched from an outside corpus when it answers (Lewis et al., 2020). Our simple RAG setup is the plainest version of this: one search with the claim text, five chunks, then one answer. Policy wordings are hard cases for this technology, because, like other legal texts, they spread the deciding text throughout the policy and a single search doesn't usually bring back the benefit, the definition and the exclusion together. A typhoon delay claim needs three separate pieces of the policy: the travel delay benefit, the definition of scheduled public transport, and the exclusions. In our tests simple RAG's single search found none of the needed definitions (section 7.6).
+**Retrieval-Augmented Generation.** RAG gives a language model passages fetched from an outside corpus when it answers (Lewis et al., 2020). Our simple RAG setup is the plainest version of this: one search with the claim text, five chunks, then one answer. Policy wordings are hard cases for this technology, because, like other legal texts, they spread the deciding text throughout the policy and a single search doesn't usually bring back the benefit, the definition and the exclusion together. A typhoon delay claim needs three separate pieces of the policy: the travel delay benefit, the definition of scheduled public transport, and the exclusions. In our tests simple RAG's single search found none of the needed definitions (section 7.6).
 
 **Corrective and self-reflective retrieval.** Corrective RAG (CRAG; Yan et al., 2024) grades the passages it retrieves and, when they look weak, rewrites the query or falls back to web search. Self-RAG (Asai et al., 2024) goes further and trains the model to decide when to retrieve and to critique its own output. We followed CRAG rather than Self-RAG, which needs a specially trained model, and swapped CRAG's fine-tuned evaluator for an LLM grader so it works with any model. We also dropped the web search, because our corpus is closed.
 
@@ -47,7 +45,7 @@ This report contributes 4 things:
 
 **Long context instead of retrieval.** A whole policy can fit in one long-context prompt, so one question is whether retrieval is needed at all. Li et al. (2024) found that long context can beat RAG when resources allow, but RAG is much cheaper. Models are also known to use information in the middle of a long prompt less well than information at the start or end (Liu et al., 2024). Our exploratory whole-policy setup tests the first finding. We could not test the second, because in our data the position of a clause and the category of the claim go together.
 
-**LLM as a judge.** Strong LLMs can grade open-ended answers almost as consistently as human raters, though with known biases such as favouring their own outputs (Zheng et al., 2023). We chose **Claude Haiku 5.5** because it was cheap and, coming from a different company than both tested models, should show little self-preference bias. We checked its grades against our hand checks (section 7.6).
+**LLM as a judge.** Strong LLMs can grade open-ended answers almost as consistently as human raters, though with known biases such as favoring their own outputs (Zheng et al., 2023). We chose **Claude Haiku 5.5** because it was cheap and, coming from a different company than both tested models, should show little self-preference bias. We checked its grades against our hand checks as well (section 7.6).
 
 ## 3. Data and labelling
 
@@ -57,7 +55,9 @@ We found and used two public Singapore travel policy wordings, **FWD Travel Insu
 
 **Claims.** The actual claims aren't public, so we made our own 156 claims. An LLM was given one clause at a time and asked to write a short first-person claim for a verdict, and to write the intended verdict and the sections that decide it. The claims come in sets around one clause, so that a small change changes the answer completely: a 7-hour delay is covered, a 5-hour delay isn't, and "my flight was delayed" is "insufficient\_info". Every claim has a verdict ("covered", "not\_covered", "partially\_covered" or "insufficient\_info") and a category (single\_section, needs\_definition, needs\_exclusion or tricky).
 
-**Labelling.** Grading models against an LLM's own drafts would introduce biases in the results, so no draft became a gold label until one of us reviewed it. We wrote a one-page labelling guide covering the verdict definitions, the default assumptions and tie-break rules such as "an exclusion that clearly applies beats a benefit". We then checked every draft against the clause text: 143 were accepted, 1 was corrected and 12 were deleted as repeats, leaving 144 claims. A fixed-seed split put 20 claims into a dev set for tuning and 124 into a test set that we scored once.
+**Labelling.** Grading models against an LLM's own drafts would introduce **bias **in the results, so no draft became a gold label until **one of us reviewed it**.&#32;
+
+We wrote a one-page labelling guide covering the verdict definitions, the default assumptions and tie-break rules such as "an exclusion that clearly applies beats a benefit". We then checked every draft against the clause text: 143 were accepted, 1 was corrected and 12 were deleted as repeats, leaving 144 claims. A fixed-seed split put 20 claims into a dev set for tuning and 124 into a test set that we scored once.
 
 |  | Dev | Test |
 | --- | --- | --- |
@@ -65,11 +65,15 @@ We found and used two public Singapore travel policy wordings, **FWD Travel Insu
 | covered / not\_covered / partially / insufficient | 5 / 6 / 4 / 5 | 46 / 53 / 14 / 11 |
 | single\_section / definition / exclusion / tricky | 8 / 3 / 5 / 4 | 65 / 20 / 25 / 14 |
 
-**Blind check.** To test whether the labels would be affected by how a person reads a clause, Member A labelled 40 random test claims blind, without seeing the drafts or Member B's labels. Agreement was moderate: 25 of 40 on the four-way verdict (Cohen's kappa 0.46, 95% CI 0.24 to 0.64). On the simpler covered-or-not question it was 30 of 40 (kappa 0.50). In 39 of the 40 cases both of us picked at least one gold section in common, so the disagreement was about how to read a clause and not about which clause applies. We went through the 15 disagreements together against the policy text, added two rules to the guide (an add-on the claim doesn't mention buying means insufficient\_info; a fact the claim states beats a default assumption), and froze the test set on 28 Oct.
+**Blind check.** To test whether the labels would be affected by how a person reads a clause, Member A (Ye Zhan) labelled 40 random test claims blind, without seeing the drafts or Member B's (Liang Than) labels. Agreement was moderate: 25 of 40 on the four-way verdict (Cohen's kappa 0.46, 95% CI 0.24 to 0.64). On the simpler covered-or-not question it was 30 of 40 (kappa 0.50).&#32;
+
+In 39 of the 40 cases both of us picked at least one gold section in common, so the disagreement was about how to read a clause and not about which clause applies. We went through the 15 disagreements together against the policy text, added two rules to the guide (an add-on the claim doesn't mention buying means insufficient\_info; a fact the claim states beats a default assumption), and froze the test set on 28 Oct.
 
 ## 4. Methods
 
-![Architecture: one shared index, prompt and answer call; the setups differ only in how they find policy text.](figures/architecture.png)
+![The study pipeline: policies, index, the setups, the models, scoring and the demo](figures/architecture.png)
+
+*Figure 1. The study pipeline. All setups share one index, one prompt and one answer step; they differ only in how they find policy text.*
 
 ### 4.1 A controlled comparison
 
@@ -91,7 +95,7 @@ All setups finish with the same answer call. What differs is which policy text t
 | Agentic RAG: ReAct | The model chooses its own lookups, one at a time | 7.9 / 3.4 | A3 |
 | Agent with term picking (Agent-Pick) | The workflow agent, plus extra definitions the model picks | 4.0 / 4.0 | A4D |
 | Simple RAG, 10 passages (RAG-10) | Simple RAG with 10 chunks instead of 5 | 1.0 / 1.0 | A0K10 |
-| Safe mode (RAG + Check) | Simple RAG first; the agent re-checks any covered or partially covered answer | simple RAG's call + the agent's on 39 / 50 of 124 claims | none (simulated) |
+| Safe mode (RAG + Check) | Simple RAG first; the agent re-checks any covered or partially covered answer | simple RAG's call + the agent's on 39 / 50 of 124 claims | none&#32; (simulated) |
 
 The call counts are measured means on the test set; a one-call setup can show slightly more than 1.0 because of retries. The first four setups were fixed before the test run. **ReAct was added on 4 Nov, after the core runs, and joins the main comparison; we report the decision rule both as planned and with ReAct included.** The other exploratory setups are scored but never compete.
 
@@ -113,13 +117,13 @@ The call counts are measured means on the test set; a one-call setup can show sl
 **Exploratory methods:**
 
 - **Whole policy (Full-context).** The whole policy goes in together with the user's prompt, every section with its ID. That is about 28k tokens for FWD and 45k for MSIG. It asks whether retrieval is needed at all on a corpus this small.
-- **Agent with term picking (Agent-Pick).** A claim about a delayed flight doesn't say anything about scheduled public transport, but that definition decides whether or not it's covered. In Agent-Pick, the model also picks up to 3 extra definitions from the policy's list of defined terms in step 2, for one more call than the workflow agent.
+- **Agent with term-picking (Agent-Pick).** A claim about a delayed flight doesn't say anything about scheduled public transport, but that definition decides whether or not it's covered. In Agent-Pick, the model also picks up to 3 extra definitions from the policy's list of defined terms in step 2, for one more call than the workflow agent.
 - **Simple RAG, 10 passages (RAG-10).** Simple RAG with the top 10 chunks instead of 5. We added it after seeing the test results, to check whether simple RAG just needed more text.
 - **Safe mode (RAG+Check).** Simple RAG answers every claim, and whenever it says covered or partially covered, the agent double-checks and its answer is used. We worked this out from the answers both setups had already given on the test set, so no new runs were needed.
 
 ### 4.3 Models and infrastructure
 
-We compare a small instruction model, **Llama 3.1 8B Instruct (16-bit)**, with a larger open reasoning model, **gpt-oss-20b (4-bit expert weights)**.
+We compare a small instruction model, **Llama 3.1 8B Instruct (16-bit)**, with a larger open reasoning model, **gpt-oss-20b (4-bit expert weights)**.&#32;
 
 Both are served with vLLM on A40 GPUs on the SMU cluster through SLURM batch jobs. They run free on SMU's hardware, so we measure cost in model calls, tokens and seconds per claim rather than dollars. Calls are made one at a time, so seconds are measured the same way for every setup.
 
@@ -190,14 +194,14 @@ The four core setups and Full-context ran once per model over the 124 test claim
 | --- | --- | --- |
 | Agent vs RAG | 0.38 (1.00) | 0.88 (0.88) |
 | RAG vs No-RAG | 0.71 (1.00) | <0.001 (0.001) |
-| CRAG vs Agent | 0.86 (1.00) | 0.12 (0.24) |
+| CRAG vs Agent | 0.86 (1.00) | 0.12 (0.23) |
 | ReAct vs RAG (added later) | 0.36 | 0.18 (0.23 with ReAct as best agent) |
 
 - **Only one comparison is significant:** retrieval beats no retrieval on gpt-oss. Neither agent is significantly more accurate than simple RAG, on either model.
 - **The agents' lead is small:** 6 claims on Llama for both, and 2 (workflow agent) or 8 (ReAct) on gpt-oss. With 124 claims, a gap of about 14 to 16 points is needed to show up reliably.
 - **Decision rule as planned: simple RAG wins on both models.** The workflow agent and simple RAG are the top two, they are not separated, and simple RAG needs one model call against three.
 - **With ReAct included, the rule picks the workflow agent on both models.** ReAct and the workflow agent become the top two, are not separated (p = 1.00 on Llama, 0.43 on gpt-oss), and the workflow agent is cheaper.
-- **So the formal winner depends on which setups are in the race,** because the tie-break only compares the top two. What holds either way: no agent is significantly more accurate than simple RAG.
+- **So the formal winner depends on which setups are in the race,** because the tie-break only compares the top two. We found this to be true at the end of the day: no agent is significantly more accurate than simple RAG.
 
 ### 7.3 Cost
 
@@ -213,15 +217,19 @@ The four core setups and Full-context ran once per model over the 124 test claim
 |  | ReAct | 0.76 (+6) | 3.4 | 8,263 (2.5×) | 11.3 (1.9×) | 3.1 h |
 
 - **On gpt-oss the workflow agent got 2 more claims right for 2.6× the time:** 4.2 hours instead of 1.6 per 1,000 claims.
-- **ReAct depends on the model.** On gpt-oss it was the most accurate retrieval setup and faster than the workflow agent (11.3 s against 15.2 s). On Llama it needed 7.9 calls and 17× simple RAG's tokens just to match the workflow agent.
+- **ReAct depends on the model.** On gpt-oss it was the most accurate retrieval setup and faster than the workflow agent (11.3 s against 15.2 s). On Llama it needed 7.9 calls and 17× simple RAG's tokens just to match the workflow agent. The reason is planning: gpt-oss, a reasoning model, usually made one or two targeted lookups and answered on its own (122 of 124 claims), while Llama repeated a lookup in 74 of 124 runs and hit the 8-lookup limit on 52, and each extra lookup re-sends everything gathered so far.
 - **Corrective RAG was the worst trade on gpt-oss:** less accurate than simple RAG and the slowest, because many rewrite replies ran past the reply limit.
 - **Full-context split by model:** 0.76 on gpt-oss, tied best but not separated from simple RAG (p = 0.28), at 13× the tokens. On Llama it fell to 0.32, answering "need more detail" on 79 of 124 claims.
 
-![Accuracy against tokens per claim, one point per setup and model.](../results/test/report/accuracy_vs_tokens.png)
+![Accuracy and tokens per claim for each setup, one row per setup and one dot per model](../results/test/report/accuracy_vs_tokens.png)
+
+*Figure 2. Accuracy (left) and tokens per claim (right, log scale) for each setup: one row per setup, one dot per model. Faint lines are 95% confidence intervals; the shaded rows are the agentic RAG setups.*
 
 ### 7.4 Why answers were wrong
 
-![Every answer sorted into sound, right without evidence, wrong with evidence, or wrong without evidence.](../results/test/report/process_outcomes.png)
+![Every answer sorted by whether it was right and whether the evidence reached the model](../results/test/report/process_outcomes.png)
+
+*Figure 3. Every answer sorted into right with the evidence, right without it, wrong with the evidence, or wrong without it; "sound" is the share right with the evidence.*
 
 - **The workflow agent fixed retrieval, not reasoning.** Evidence recall rose from 0.66 to 0.91 (Llama) and 0.84 (gpt-oss). Wrong answers with missing evidence fell from 31 to 11 on Llama and from 26 to 18 on gpt-oss, but on Llama 37 of the agent's 48 wrong answers had every needed clause in front of it.
 - **ReAct found nearly as much evidence** (0.88 and 0.77), but on gpt-oss more of its right answers lacked it (sound rate 0.56, against the workflow agent's 0.62).
@@ -276,9 +284,9 @@ The demo is a Streamlit app that runs no retrieval, simple RAG, the workflow age
 
 *Figure 5. The table under the cards for the same claim: each method's verdict, whether it was right, its time and model calls, and the clause only the agents found.*
 
-## 9. Discussion
+## 9. Discussion on our study
 
-**Answer to the research question.** No agent was significantly more accurate than simple RAG. Both agents were slightly more accurate (the workflow agent by 5 and 2 points, ReAct by 5 and 6), but they cost 1.9 to 4.8× the time and 2 to 17× the tokens. On accuracy alone, simple RAG is the better buy; the workflow agent's real advantage is safety.
+**Answer to the research question.** None of the agentic setups (corrective RAG, the workflow agent, ReAct) was significantly more accurate than simple RAG. Both agents were slightly more accurate (the workflow agent by 5 and 2 points, ReAct by 5 and 6), but they cost 1.9 to 4.8× the time and 2 to 17× the tokens. On accuracy alone, simple RAG is the better buy; the workflow agent's real advantage is safety.
 
 **What we learned**
 
@@ -288,16 +296,15 @@ The demo is a Streamlit app that runs no retrieval, simple RAG, the workflow age
 - **The formal winner depends on which setups are in the race.** Our tie-break only compares the top two, so adding ReAct afterwards switched the winner from simple RAG to the workflow agent without changing either one's results. A rule that compares every setup against the cheapest would be more stable.
 - **Safety is where the workflow agent earns its cost.** On gpt-oss it wrongly said "covered" on 1 of 53 claims labelled "not covered", against 9 for simple RAG and 4 for ReAct (exploratory, p = 0.021 against simple RAG; not significant on Llama). That is the costliest error if customers were told they're covered and the insurer then refused the claim. Our rule only checked safety against simple RAG, so it could not reward this; a real deployment should break ties on safety.
 
-**Advice to an insurer.** Use simple RAG by default: no agent was significantly more accurate, and it needs one model call. Where a wrong "covered" is the costly mistake, run the workflow agent on every claim: on gpt-oss it made that mistake once in 53 claims, against 9 times for simple RAG, for about twice the tokens. We also tried a cheaper mix, safe mode, where the agent re-checks only simple RAG's "covered" or "partially covered" answers (simulated from the stored answers, exploratory). On gpt-oss it stopped every wrong "covered" (0 of 53), but it got fewer claims right than the agent alone (66% against 71%) for 91% of its tokens, because simple RAG's other answers go unchecked (Llama: 2 of 53 wrong, 56% right, 72% of the agent's tokens). So we do not recommend it over the agent. Keep ReAct for open-ended questions, such as comparing plans, and only with a strong model and a cap on lookups: claim checking is a well-structured task, where Topic 7's rule of thumb favours a fixed plan over ReAct, and our results agree (more calls, less safe). Invest in the model before the method, and at about 70% accuracy let the tool point customers to the deciding clauses while a person decides the claim.
+**Our a****dvice to an insurance company:**&#32;
 
-**Limitations**
+Use simple RAG by default: no agent was significantly more accurate, and it needs one model call. Where a wrong "covered" is the costly mistake, run the workflow agent on every claim: on gpt-oss it made that mistake once in 53 claims, against 9 times for simple RAG, for about twice the tokens. We also tried a cheaper mix, safe mode, where the agent re-checks only simple RAG's "covered" or "partially covered" answers (simulated from the stored answers, exploratory). On gpt-oss it stopped every wrong "covered" (0 of 53), but it got fewer claims right than the agent alone (66% against 71%) for 91% of its tokens, because simple RAG's other answers go unchecked (Llama: 2 of 53 wrong, 56% right, 72% of the agent's tokens). So we do not recommend it over the agent. Keep ReAct for open-ended questions, such as comparing plans, and only with a strong model and a cap on lookups: claim checking is a well-structured task, where Topic 7's rule of thumb favours a fixed plan over ReAct, and our results agree (more calls, less safe). Invest in the model before the method, and at about 70% accuracy let the tool point customers to the deciding clauses while a person decides the claim.
 
-- **Labels:** agreement was moderate (kappa 0.46); "not covered" versus "need more detail" is partly a judgement call.
+**Limitations in** **our** **project**
+
 - **Power:** With 124 claims we had an 80% chance of detecting a gap of about 14 points on Llama and 16 on gpt-oss. A 5-point gap would need about 800 to 1,100 claims.
-- **ReAct joined after the core runs,** so its comparison was not pre-registered; we report the rule both ways for that reason.
-- **Scope:** two policies from one market, two open models (8B and 20B), and claims we wrote ourselves.
-- **One run per setup,** and vLLM is not fully deterministic.
-- **The judge** checks explanations against the cited text, not against the verdict.
+- **More policies:** we tested two Singapore travel policies. The workflow agent's steps follow a structure most policies share (benefits, definitions, exclusions), so more insurers, and other lines such as health or home cover, would show how far the approach carries.
+- **Model size:** we could only run models that fit one 48 GB student GPU (8B and 20B). The model mattered more than the method (+13 points against at most +6), so a larger model such as Llama 3.3 70B or gpt-oss-120b could lift every setup further.
 
 **Future work**
 
@@ -308,13 +315,22 @@ The demo is a Streamlit app that runs no retrieval, simple RAG, the workflow age
 
 ## 10. Conclusion
 
-On real travel policies, simple RAG is hard to beat for accuracy per unit of cost. The workflow agent was more accurate, better grounded and safer, but not by enough to show on 124 claims, so our pre-registered rule picks simple RAG; ReAct, added later, was not significantly more accurate either. The agent's value is in how it works. It finds the definitions and exclusions that one search misses, which turns retrieval failures into reasoning failures, and the stronger model made far fewer of those (18 against 37). For a user, its clearest benefit is the one our rule did not reward: it is much less likely to tell someone a claim is covered when it isn't (1 of 53 against simple RAG's 9 on gpt-oss).
+Is agentic RAG, where the model decides what to look up, worth its extra cost over simple RAG for checking travel insurance claims?&#32;
+
+**Not for accuracy, yes for safety.** On two real policies and 124 human-checked claims, none of the agentic setups (corrective RAG, the workflow agent, ReAct) was significantly more accurate than simple RAG, which needs one model call. But the workflow agent, which reads a policy the way a claims assessor does, found the definitions and exclusions a single search misses, and wrongly told a customer "you're covered" once in 53 claims, against nine times for simple RAG.
+
+This project delivers:
+
+- **A clear answer for insurers:** simple RAG by default, and the workflow agent wherever a wrong "covered" is the costly mistake.
+- **A fair, reusable test bed:** 144 human-checked claims on two real policies, a winner rule fixed before testing, and a trace evaluation that separates retrieval failures from reasoning failures.
+- **A working demo:** "Am I covered?" runs four methods side by side, cites the deciding clauses, and never promises a payout.
+- **A pointer to what comes next:** the bottleneck has moved from finding the clauses to reading them, so a stronger model now matters more than a cleverer method (+13 points against at most +6).
 
 ## Contributions
 
-**Member A (Ye Zhan), written by Member B.** YZ set up the shared infrastructure the whole study ran on. They tested and documented the SMU GPU cluster setup (vLLM servers and batch scripts), and wrote the repository skeleton and the shared contracts (output schema, model client and store). They wrote the ingestion of both policies into sections with stable IDs, and the search over them. When the planned API credits turned out not to cover API calls, they switched the study to the two free cluster models. They built the no-retrieval, simple RAG and corrective RAG setups (including the corrective RAG dev trials) and the ReAct agent, tuned the shared base prompt on dev, and added the exploratory Full-context and RAG-10 setups and the retrieval-only comparison. They also built the safe-mode analysis (simple RAG re-checked by the agent on every "covered"), simulated from the stored test answers. On evaluation, they wrote the run and scoring pipeline (resumable runs, bootstrap confidence intervals, Holm-corrected McNemar tests, the decision rule and the trace metrics), the leaderboard and charts, the agreement script, and the rule that splits the human "other" error type. They blind-labelled 40 test claims (kappa 0.46), submitted the final test runs on both models, and hand-checked 10 agent traces. In the report they wrote the method, evaluation design, development and results sections, kept the running list of findings, re-checked every number in Member B's sections and the discussion, and wrote the README.
+**Member A (Ye Zhan), written by Member B.** Set up the infrastructure the study ran on: the SMU GPU cluster setup, the repository and shared contracts, and the ingestion and search of both policies. When the API credits fell through, they moved the study to two free cluster models. They built the no-retrieval, simple RAG, corrective RAG and ReAct setups, tuned the shared prompt, and added the exploratory Full-context, RAG-10, retrieval-only and safe-mode analyses. On evaluation, they wrote the run and scoring pipeline (bootstrap intervals, Holm-corrected McNemar tests, the decision rule and trace metrics) and the leaderboard and charts, blind-labelled 40 test claims, ran the final test runs and hand-checked 10 agent traces. In the report they wrote the method, evaluation, development and results sections and the README, and re-checked the numbers in Member B's sections and the discussion.
 
-**Member B (Liang Than), written by Member A.** Liang built the data the study rests on. They wrote the labelling guide that defines the four verdicts and how to choose gold sections, along with the drafting helpers and the Streamlit review page. They drafted 156 claims from specific clauses of both policies and reviewed every draft against the policy text. They removed 12 redundant claims, made the seeded split (20 dev, 124 test), resolved the blind-labelling disagreements with Member A, and updated the guide where a rule was unclear. They built the policy look-up tools and the workflow agent, our domain-specific setup, including its dev trials, plus the exploratory Agent-Pick variant, in which the model picks up to 3 extra defined terms on top of the ones matched by name. On evaluation, they wrote the Claude Haiku faithfulness judge with a cost dry-run and an agreement check, and hand-checked 30 judgments per model. They also labelled the error type of all 176 wrong simple RAG and agent test answers and hand-checked 10 agent traces. They built the "Am I covered?" demo with its guardrails, an offline answer cache, a prompt-injection check, and two exploratory safeguards: a safe mode in which the agent double-checks every "covered" from simple RAG, and a quote check that rejects a "covered" answer quoting wording that is not in the policy. In the report they wrote data and labelling, the workflow agent's design, faithfulness, the demo, the discussion (including the minimum detectable gap and the safety gap in the decision rule), related work and the architecture diagram.
+**Member B (Liang Than), written by Member A.** Built the data the study rests on: the labelling guide, the drafting helpers and review page, and 156 claims drafted from specific clauses, each checked against the policy text. Made the seeded 20/124 split and resolved the blind-labelling disagreements with Member A. Built the policy look-up tools and the workflow agent, our domain-specific setup, with its dev trials and the exploratory Agent-Pick variant. On evaluation, they wrote the Claude Haiku faithfulness judge and hand-checked 30 of its grades per model, labelled the error type of all 176 wrong simple RAG and agent answers, and hand-checked 10 agent traces. They built the "Am I covered?" demo with its guardrails, offline cache, injection check, safe mode and quote check. In the report they wrote data and labelling, the workflow agent, faithfulness, the demo, related work, the discussion and the architecture diagram.
 
 ## References
 

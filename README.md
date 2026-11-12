@@ -2,21 +2,26 @@
 
 Given a travel insurance claim ("my flight was delayed 7 hours by a typhoon, can I claim?"), decide the verdict
 (covered / not_covered / partially_covered / insufficient_info) and cite the policy sections that decide it. We compare
-four setups on two real policies (FWD, MSIG) and two open models (Llama 3.1 8B, gpt-oss-20b), then ship the winner as
-a small Streamlit demo. Full design: `PROJECT_BRIEF.md`; report drafts: `docs/`.
+five methods (two baselines and three agentic RAG setups) on two real policies (FWD, MSIG) and two open models
+(Llama 3.1 8B, gpt-oss-20b), then show them side by side in a small Streamlit demo. Full design: `PROJECT_BRIEF.md`;
+final report: `docs/REPORT.md`.
 
-| Setup | What it does |
-|---|---|
-| B0 | No retrieval: the model answers from the claim alone (floor) |
-| A0 | Simple RAG: one search with the claim, top 5 chunks |
-| A2 | Corrective RAG: grade chunks, rewrite the query up to 2 times |
-| A4 | Claims workflow: benefits, then definitions, then exclusions, then verdict |
-| L0 | Exploratory: the whole policy in the prompt (not in the decision rule) |
-| A3 | Exploratory: ReAct agent that chooses its own lookups (search, definition, exclusions); not in the decision rule |
+| ID | Name in the report | What it does |
+|---|---|---|
+| B0 | No-RAG (baseline) | No retrieval: the model answers from the claim alone (floor) |
+| A0 | Simple RAG (baseline) | One search with the claim, top 5 chunks |
+| A2 | Agentic RAG: Corrective (CRAG) | Grade chunks, rewrite the query up to 2 times |
+| A4 | Agentic RAG: Workflow agent | Benefits, then definitions, then exclusions, then verdict |
+| A3 | Agentic RAG: ReAct | Chooses its own lookups (search, definition, exclusions), max 8; added after the core runs and reported with and without it in the decision rule |
+| L0 | Full-context (exploratory) | The whole policy in the prompt |
+| A4D | Agent-Pick (exploratory) | A4 plus up to 3 definitions the model picks |
+| A0K10 | RAG-10 (exploratory) | A0 with 10 chunks instead of 5 |
+| – | Safe mode (exploratory) | A0, with A4 re-checking every covered or partially covered; simulated from stored answers by `src.eval.report` |
 
-**Result (test, 124 claims):** A4 was the most accurate pre-registered setup (0.61 Llama, 0.71 gpt-oss) but not
-significantly better than A0 (0.56, 0.69), so the pre-registered rule picks the cheaper A0 on both models. Details:
-`results/test/report/leaderboard.md`.
+**Result (test, 124 claims):** the agents were the most accurate (A4 0.61 Llama / 0.71 gpt-oss, A3 0.61 / 0.76) but
+not significantly better than A0 (0.56 / 0.69), so the pre-registered rule picks the cheaper A0 on both models (with A3
+included, its tie-break picks A4). A4 was the safest: on gpt-oss it wrongly said "covered" on 1 of 53 not-covered
+claims, against 9 for A0. Details: `results/test/report/leaderboard.md` and `docs/REPORT.md`.
 
 ## 1. Laptop setup (Windows; Python 3.11 or 3.12)
 
@@ -57,8 +62,9 @@ with `scancel <jobid>` when done.
 
 ## 4. Reproduce every result
 
-All reported numbers come from one run per model on `main` at commit b80d7c3 (`results/test/`). Check that the
-cluster is up to date first (`git log -1 --oneline`).
+B0, A0, A2, A4 and L0 ran once per model on `main` at commit b80d7c3; the later runs ran at c184cad (A3, A4D) and
+c64d688 / bd31b05 (A0K10 on Llama / gpt-oss). Every row of `results/test/<model>/raw.jsonl` records its commit,
+and `scores.json` lists them. Check that the cluster is up to date first (`git log -1 --oneline`).
 
 **Model answers (cluster).** The test runs took about 40 minutes (Llama) and 2 hours (gpt-oss), plus 10 and 35
 minutes for L0. From `~/insurance-rag` after `git pull`:
@@ -70,11 +76,16 @@ MODEL=vllm_llama8b APPROACHES=L0 MAX_LEN=131072 sbatch scripts/run_eval.sbatch
 MODEL=vllm_gptoss20b APPROACHES=L0 MAX_LEN=131072 sbatch scripts/run_eval.sbatch
 MODEL=vllm_llama8b APPROACHES=A3 MAX_LEN=131072 sbatch scripts/run_eval.sbatch
 MODEL=vllm_gptoss20b APPROACHES=A3 MAX_LEN=131072 sbatch scripts/run_eval.sbatch
+MODEL=vllm_llama8b APPROACHES=A4D sbatch scripts/run_eval.sbatch
+MODEL=vllm_gptoss20b APPROACHES=A4D sbatch scripts/run_eval.sbatch
+MODEL=vllm_llama8b APPROACHES=A0K10 sbatch --gres=gpu:l40s:1 scripts/run_eval.sbatch
+MODEL=vllm_gptoss20b APPROACHES=A0K10 sbatch --gres=gpu:l40s:1 scripts/run_eval.sbatch
 ```
 
 Each job starts a private vLLM server, rebuilds the index, runs `python -m src.eval.run` and writes
 `results/test/<model>/raw.jsonl` (resumable: resubmit a cut-off job and it skips finished rows). Run the L0 jobs after
-the core run of the same model. L0 and A3 are exploratory (added after the comparisons were fixed).
+the core run of the same model. L0, A3, A4D and A0K10 were added after the comparisons were fixed. A0K10 ran on an
+L40S because the A40 node was drained, so its seconds are not compared.
 
 **Faithfulness judge (laptop, Claude Haiku 5.5, paid from a US$5 budget).** Without `--yes` it only prints the
 estimated cost; check it before running.
@@ -142,4 +153,5 @@ covered answer that quotes wording not in the policy becomes insufficient_info).
 | `configs/` | models, per-setup settings, default run |
 | `scripts/` | SLURM jobs: install, interactive servers, full runs |
 | `data/` | policy PDFs, scenarios and gold labels |
-| `docs/` | report drafts and `REPORT_NOTES.md` |
+| `docs/` | final report (`REPORT.md`), running findings (`REPORT_NOTES.md`), section drafts, slides |
+| `docs/figures/` | report figures; `make_architecture.py` redraws Figure 1 |
