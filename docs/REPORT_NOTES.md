@@ -227,6 +227,10 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   (docs/figures/make_architecture.py, no Graphviz needed) at about 5:4: report names, Baselines / Agentic RAG groups, the
   exploratory extras, and the current demo. Figures 1 to 3 are now real images in the shared doc (rev 468), with
   captions. Limitations: "Scope" replaced by "More policies" (what testing more insurers and lines would show).
+- **Why ReAct depends on the model (12 Nov)** [7.3]: from the A3 test traces. gpt-oss stopped on its own on 122 of 124
+  claims (2 unusable replies), 1.4 lookups on average, a repeated lookup in 3 runs. Llama hit the 8-lookup limit on 52
+  of 124, 6.3 lookups on average, a repeated lookup in 74 runs; each lookup re-sends everything gathered, hence 17x
+  simple RAG's tokens. One sentence added to the ReAct bullet in the report (doc rev 556).
 - **Power** [9]: with the observed discordance (32 to 42 of 124 claims), a 5-point gap needs about 800 to 1,100
   claims for 80% power (McNemar, two-sided 5%); about 230 to 290 for a 10-point gap.
 - **Course links** [1, 2]: Topic 7 slides 18-19 (ReAct loop), 36 (ReAct vs Plan-and-Execute: the workflow agent is
