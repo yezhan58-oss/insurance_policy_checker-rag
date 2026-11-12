@@ -126,17 +126,20 @@ CSS = """
 
 /* result */
 .who {font-family: var(--display); font-size: 1.15rem; font-weight: 600; color: var(--muted); margin-bottom: 0.9rem;}
-/* verdict: a flat label the same width on every card, so the four verdicts line up and read at a glance */
+/* verdict: a rubber stamp (double border, slight tilt) that lands when the answer arrives; the same width on every
+   card, so the four verdicts still line up */
 .stamp {display: block; font-family: var(--display); font-weight: 700; text-transform: uppercase; text-align: center;
-        letter-spacing: 0.05em; font-size: 1.05rem; line-height: 1.25; padding: 0.6rem 0.75rem;
-        border: 2px solid currentColor; border-radius: 0.55rem; background: color-mix(in srgb, currentColor 7%, #FFFFFF);
-        animation: land 0.3s ease-out both;}
-@keyframes land {from {opacity: 0; transform: translateY(4px);} to {opacity: 1; transform: none;}}
+        letter-spacing: 0.08em; font-size: 1.05rem; line-height: 1.2; padding: 0.55rem 0.7rem 0.5rem;
+        margin: 0.4rem 0.35rem; border: 4px double currentColor; border-radius: 0.45rem;
+        background: color-mix(in srgb, currentColor 5%, #FFFFFF); transform: rotate(-2.5deg);
+        animation: land 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;}
+@keyframes land {from {opacity: 0; transform: rotate(-2.5deg) scale(1.35);} to {opacity: 1; transform: rotate(-2.5deg) scale(1);}}
 @media (prefers-reduced-motion: reduce) {.stamp {animation: none;}}
 [data-testid="stColumn"] {container-type: inline-size;}
 [data-testid="stColumn"] .stamp {font-size: clamp(0.82rem, 5cqi, 1.02rem);}
 @media (min-width: 900px) {.block-container {padding-left: 2.5rem; padding-right: 2.5rem;}}
-.stamp.pending {color: #8A939C; border: 2px dashed #C9BFAE; background: #FFFFFF; animation: breathe 1.6s ease-in-out infinite;}
+.stamp.pending {color: #8A939C; border: 2px dashed #C9BFAE; background: #FFFFFF; transform: none;
+                animation: breathe 1.6s ease-in-out infinite;}
 @keyframes breathe {50% {opacity: 0.45;}}
 @media (prefers-reduced-motion: reduce) {.stamp.pending {animation: none;}}
 .under {margin: 0.75rem 0 0.25rem !important; font-size: 0.9rem; line-height: 1.45; color: var(--ink);}
