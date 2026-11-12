@@ -222,6 +222,26 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   "need more detail") while we split ours. YZ kept the split Figures 4 and 5 (saved test-run answers, simple RAG says
   covered, matching the reported results, slide 9 and the shared doc); his file stays in the repo, unused. His slide 9
   script line (simple RAG says covered or asks for more detail) is kept.
+- **Figure 1 redrawn (12 Nov)**: the Graphviz diagram (4 Nov) still used the codes, had no ReAct and said "winner A0, A4
+  toggle" for the demo; it was also 5049 x 872, too wide to read at report width. Redrawn with matplotlib
+  (docs/figures/make_architecture.py, no Graphviz needed) at about 5:4: report names, Baselines / Agentic RAG groups, the
+  exploratory extras, and the current demo. Figures 1 to 3 are now real images in the shared doc (rev 468), with
+  captions. Limitations: "Scope" replaced by "More policies" (what testing more insurers and lines would show).
+- **Why ReAct depends on the model (12 Nov)** [7.3]: from the A3 test traces. gpt-oss stopped on its own on 122 of 124
+  claims (2 unusable replies), 1.4 lookups on average, a repeated lookup in 3 runs. Llama hit the 8-lookup limit on 52
+  of 124, 6.3 lookups on average, a repeated lookup in 74 runs; each lookup re-sends everything gathered, hence 17x
+  simple RAG's tokens. One sentence added to the ReAct bullet in the report (doc rev 556).
+- **Figure 2 redrawn (12 Nov)**: YZ found the accuracy-vs-tokens chart illegible (both models in one plot, zig-zag lines,
+  six colours, crowded labels). charts.frontier now draws one panel per model on shared axes, no connecting lines,
+  colour by group (baselines, agentic RAG, Full-context; palette checked with the dataviz validator, every dot labelled)
+  and labels placed so none overlap. The latency chart uses the same code and gets 2/5/10/20/50 ticks. Doc rev 557.
+  Still hard to match labels to dots, so Figure 2 became two aligned dot plots (charts.accuracy_cost): one row per
+  setup, named once; accuracy (with CI) on the left, tokens on the right; one sub-row per model with its value printed;
+  agentic RAG rows shaded. report.py draws accuracy_vs_tokens.png with it. Doc rev 558.
+- **Tokens in the demo (12 Nov)** [8]: each card's line under the verdict and the side-by-side table now show tokens
+  (prompt + completion, as in the study's cost figures) next to time and model calls; the 124-claim table adds tokens
+  per claim. Safe mode adds both runs (Manila, saved: 3,167 + 5,326 = 8,493). Manila saved answers: No-RAG 1,364,
+  RAG 3,167, Agent 5,326, ReAct 15,524 tokens. Script slide 9 now says time, tokens and model calls.
 - **Power** [9]: with the observed discordance (32 to 42 of 124 claims), a 5-point gap needs about 800 to 1,100
   claims for 80% power (McNemar, two-sided 5%); about 230 to 290 for a 10-point gap.
 - **Course links** [1, 2]: Topic 7 slides 18-19 (ReAct loop), 36 (ReAct vs Plan-and-Execute: the workflow agent is

@@ -2,6 +2,7 @@
 check; heatmaps use one blue hue from light to dark; every value is also printed, so nothing relies on color alone."""
 import matplotlib
 import matplotlib.ticker
+import matplotlib.transforms
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
@@ -86,48 +87,141 @@ def heat_leaderboard(df: pd.DataFrame, path) -> None:
     plt.close(fig)
 
 
+GROUPS = {"B0": "Baselines", "A0": "Baselines", "A2": "Agentic RAG", "A4": "Agentic RAG", "A3": "Agentic RAG",
+          "L0": "Full-context (exploratory)"}
+GROUP_COLORS = {"Baselines": "#2a78d6", "Agentic RAG": "#eb6834", "Full-context (exploratory)": "#1baf7a"}   # validated set
+# label spots tried in order, in points from the dot: above, below, right, left, then the four diagonals
+SPOTS = [(0, 9, "center", "bottom"), (0, -9, "center", "top"), (9, 0, "left", "center"), (-9, 0, "right", "center"),
+         (7, 7, "left", "bottom"), (-7, 7, "right", "bottom"), (7, -7, "left", "top"), (-7, -7, "right", "top")]
+
+
+def place_labels(fig, ax, points) -> None:
+    """Direct labels that never overlap: each label takes the first spot (SPOTS) that clears every dot and every label
+    already placed and stays inside the plot."""
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    frame = ax.get_window_extent(renderer)
+    taken = []
+    for px, py, _ in points:                       # the dots themselves, as small boxes
+        cx, cy = ax.transData.transform((px, py))
+        taken.append(matplotlib.transforms.Bbox([[cx - 7, cy - 7], [cx + 7, cy + 7]]))
+    for px, py, text in points:
+        for dx, dy, ha, va in SPOTS:
+            ann = ax.annotate(text, (px, py), xytext=(dx, dy), textcoords="offset points", ha=ha, va=va,
+                              fontsize=8, color=INK, fontweight="bold")
+            box = ann.get_window_extent(renderer).expanded(1.06, 1.15)
+            inside = frame.x0 <= box.x0 and box.x1 <= frame.x1 and frame.y0 <= box.y0 and box.y1 <= frame.y1
+            if inside and not any(box.overlaps(t) for t in taken):
+                taken.append(box)
+                break
+            ann.remove()
+        else:                                      # nowhere free: keep the first spot
+            ax.annotate(text, (px, py), xytext=SPOTS[0][:2], textcoords="offset points", ha="center", va="bottom",
+                        fontsize=8, color=INK, fontweight="bold")
+
+
 def frontier(df: pd.DataFrame, x: str, xlabel: str, path) -> None:
-    """Accuracy against cost; each model's approaches joined in order of cost, so the trade-off reads as a path.
-    The main comparison (B0, A0, A2, A4, ReAct) plus Full-context (L0); the smaller exploratory variants are
-    reported in the tables, and their labels made the middle of the chart unreadable."""
+    """Accuracy against cost, one panel per model on shared axes, so the two models never crowd one plot. The main
+    comparison (B0, A0, A2, A4, ReAct) plus Full-context (L0); colour = group (baselines, agentic RAG, exploratory),
+    and every dot carries its own label, so colour is never the only cue. Faint lines are 95% confidence intervals."""
     df = df[df.approach.isin(["B0", "L0", "A0", "A2", "A4", "A3"])]
     models = list(dict.fromkeys(df.model))
-    fig, ax = plt.subplots(figsize=(6.6, 4.2), dpi=200)
-    style(ax)
-    ax.grid(axis="x", color=GRID, linewidth=0.8)
-    for k, model in enumerate(models):
-        sub = df[df.model == model].sort_values(x)
-        ax.plot(sub[x], sub.accuracy, color=MUTED, lw=1, ls="-" if k == 0 else "--", zorder=1)
-        last = sub.iloc[-1]
-        ax.annotate(model, (last[x], last.accuracy), xytext=(12, 0), textcoords="offset points", fontsize=8,
-                    color=MUTED, va="center", style="italic")
-        for n, r in enumerate(sub.itertuples()):
-            ax.vlines(getattr(r, x), r.acc_lo, r.acc_hi, color=COLORS[r.approach], lw=1.2, alpha=0.35, zorder=1)
-            ax.scatter(getattr(r, x), r.accuracy, s=130, marker=MARKERS[k], color=COLORS[r.approach],
-                       edgecolor="white", linewidth=2, zorder=3)
-            dx, dy, ha = LABEL_AT.get(x, {}).get((r.approach, k), (0, 11 if n % 2 == 0 or x in LABEL_AT else -18,
-                                                                    "center"))
-            ax.annotate(f"{NAMES.get(r.approach, r.approach)} {r.accuracy:.2f}", (getattr(r, x), r.accuracy),
-                        xytext=(dx, dy), textcoords="offset points", ha=ha, fontsize=7.5, color=INK,
-                        fontweight="bold", arrowprops=dict(arrowstyle="-", color=MUTED, lw=0.6) if abs(dy) > 30 else None)
+    fig, axes = plt.subplots(1, len(models), figsize=(4.0 * len(models), 3.9), dpi=200, sharex=True, sharey=True)
+    axes = [axes] if len(models) == 1 else list(axes)
     lo, hi = df[x].min(), df[x].max()
-    if lo > 0 and hi / lo > 8:          # e.g. L0's whole-policy prompts: a linear axis would squash the rest together
-        ax.set_xscale("log")
-        ax.set_xlim(lo / 1.6, hi * 2.2)
-        ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:,.0f}"))
-        ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())   # plain numbers, no crowded 3x10^0 labels
-        xlabel += " (log scale)"
-    else:
-        ax.set_xlim(0, hi * 1.35)
-    ax.set_ylim(0, 1)
-    ax.set_xlabel(xlabel, color=MUTED, fontsize=9)
-    ax.set_ylabel("Verdict accuracy (faint lines: 95% CI)", color=MUTED, fontsize=9)
-    handles = [plt.Line2D([], [], marker="o", ls="", ms=8, color=COLORS[a], label=NAMES.get(a, a))
-               for a in APPROACHES if a in set(df.approach)]
-    handles += [plt.Line2D([], [], marker=MARKERS[k], ls="-" if k == 0 else "--", ms=7, color=MUTED, label=m)
-                for k, m in enumerate(models)]
-    ax.legend(handles=handles, frameon=False, fontsize=8, ncol=3, loc="lower right")
-    fig.tight_layout()
+    log = lo > 0 and hi / lo > 8       # e.g. Full-context's whole-policy prompts: a linear axis squashes the rest
+    for ax, model in zip(axes, models):
+        style(ax)
+        ax.grid(axis="x", color=GRID, linewidth=0.8)
+        sub = df[df.model == model]
+        for r in sub.itertuples():
+            color = GROUP_COLORS[GROUPS[r.approach]]
+            ax.vlines(getattr(r, x), r.acc_lo, r.acc_hi, color=color, lw=2, alpha=0.25, zorder=1)
+            ax.scatter(getattr(r, x), r.accuracy, s=70, color=color, edgecolor="white", linewidth=1.5, zorder=3)
+        if log:
+            ax.set_xscale("log")
+            ax.set_xlim(lo / 2.2, hi * 2.6)
+            if hi / lo < 30:           # a short range (e.g. seconds): label 1, 2, 5 steps, not just the tens
+                ax.xaxis.set_major_locator(matplotlib.ticker.LogLocator(subs=(1, 2, 5)))
+            ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:,.0f}"))
+            ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+        else:
+            ax.set_xlim(0, hi * 1.3)
+        ax.set_ylim(0.2, 0.9)
+        ax.set_title(model, fontsize=10, color=INK, fontweight="bold", loc="left")
+        ax.set_xlabel(xlabel + (" (log scale)" if log else ""), color=MUTED, fontsize=8.5)
+    axes[0].set_ylabel("Verdict accuracy (faint lines: 95% CI)", color=MUTED, fontsize=8.5)
+    handles = [plt.Line2D([], [], marker="o", ls="", ms=7, color=c, label=g) for g, c in GROUP_COLORS.items()]
+    fig.legend(handles=handles, frameon=False, fontsize=8.5, ncol=3, loc="upper center", bbox_to_anchor=(0.5, 1.0))
+    fig.tight_layout(rect=(0, 0, 1, 0.93))
+    for ax, model in zip(axes, models):
+        sub = df[df.model == model].sort_values("accuracy", ascending=False)
+        place_labels(fig, ax, [(getattr(r, x), r.accuracy, f"{NAMES.get(r.approach, r.approach)} {r.accuracy:.2f}")
+                               for r in sub.itertuples()])
+    fig.savefig(path)
+    plt.close(fig)
+
+
+MODEL_COLORS = ["#2a78d6", "#eb6834"]   # one per model, in leaderboard order (validated categorical slots 1 and 2)
+ROWS = ["B0", "A0", "A2", "A4", "A3", "L0"]   # baselines, agentic RAG, then the exploratory whole-policy setup
+ROW_NAMES = {"L0": "Full-context\n(exploratory)"}
+
+
+def compact(v: float) -> str:
+    return f"{v:,.0f}" if v < 1000 else f"{v / 1000:.1f}k" if v < 10000 else f"{v / 1000:.0f}k"
+
+
+def accuracy_cost(df: pd.DataFrame, x: str, xlabel: str, path) -> None:
+    """Accuracy and cost per setup as two aligned dot plots: one row per setup (named once, on the left), one sub-row
+    per model with its value printed beside the dot, so no label can be read as another dot's. The agentic RAG rows
+    sit on a light band. Replaces the accuracy-vs-cost scatter for the report, where labels crowded."""
+    df = df[df.approach.isin(ROWS)]
+    models = list(dict.fromkeys(df.model))
+    fig, (acc_ax, cost_ax) = plt.subplots(1, 2, figsize=(7.4, 4.3), dpi=200, sharey=True,
+                                          gridspec_kw={"width_ratios": [1.15, 1]})
+    rows = [a for a in ROWS if a in set(df.approach)]
+    off = {m: (k - (len(models) - 1) / 2) * 0.34 for k, m in enumerate(models)}
+    lo, hi = df[x].min(), df[x].max()
+    for ax in (acc_ax, cost_ax):
+        style(ax)
+        ax.grid(axis="y", visible=False)
+        ax.grid(axis="x", color=GRID, linewidth=0.8)
+        agentic = [i for i, a in enumerate(rows) if a in ("A2", "A4", "A3")]
+        if agentic:
+            ax.axhspan(min(agentic) - 0.5, max(agentic) + 0.5, color="#f3f2ef", zorder=0)
+        for i in range(1, len(rows)):
+            ax.axhline(i - 0.5, color=GRID, lw=0.8, zorder=0)
+    for k, m in enumerate(models):
+        for i, a in enumerate(rows):
+            r = df[(df.model == m) & (df.approach == a)]
+            if r.empty:
+                continue
+            r = r.iloc[0]
+            y = i + off[m]
+            acc_ax.hlines(y, r.acc_lo, r.acc_hi, color=MODEL_COLORS[k], lw=2, alpha=0.3, zorder=1)
+            acc_ax.scatter(r.accuracy, y, s=46, color=MODEL_COLORS[k], edgecolor="white", linewidth=1.2, zorder=3)
+            acc_ax.text(r.acc_hi + 0.012, y, f"{r.accuracy:.2f}", va="center", fontsize=7.5, color=INK)
+            cost_ax.scatter(r[x], y, s=46, color=MODEL_COLORS[k], edgecolor="white", linewidth=1.2, zorder=3)
+            cost_ax.text(r[x] * 1.18, y, compact(r[x]), va="center", fontsize=7.5, color=INK)
+    acc_ax.set_xlim(0.2, 0.95)
+    acc_ax.set_ylim(len(rows) - 0.5, -0.5)
+    acc_ax.set_yticks(range(len(rows)))
+    acc_ax.set_yticklabels([ROW_NAMES.get(a, NAMES.get(a, a)) for a in rows], fontsize=8.5, color=INK)
+    acc_ax.tick_params(axis="y", length=0)
+    acc_ax.set_xlabel("Verdict accuracy (faint lines: 95% CI)", color=MUTED, fontsize=8.5)
+    if agentic:
+        acc_ax.text(0.205, min(agentic) - 0.42, "AGENTIC RAG", fontsize=6.5, color=MUTED, fontweight="bold", va="top")
+    cost_ax.set_xscale("log")
+    cost_ax.set_xlim(lo / 1.6, hi * 3.2)
+    cost_ax.xaxis.set_major_locator(matplotlib.ticker.LogLocator(subs=(1,)))
+    cost_ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v / 1000:.0f}k" if v >= 1000
+                                                                      else f"{v:.0f}"))
+    cost_ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+    cost_ax.tick_params(axis="y", length=0)
+    cost_ax.set_xlabel(xlabel + " (log scale)", color=MUTED, fontsize=8.5)
+    handles = [plt.Line2D([], [], marker="o", ls="", ms=7, color=MODEL_COLORS[k], label=m) for k, m in enumerate(models)]
+    fig.legend(handles=handles, frameon=False, fontsize=8.5, ncol=len(models), loc="upper center", bbox_to_anchor=(0.5, 1.0))
+    fig.tight_layout(rect=(0, 0, 1, 0.94))
     fig.savefig(path)
     plt.close(fig)
 

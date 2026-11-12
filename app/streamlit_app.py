@@ -401,7 +401,12 @@ def mark_html(verdict: str, gold: str | None) -> str:
     return f'<div class="mark no">&#10007; Wrong (correct: {plain(gold)})</div>'
 
 
-PENDING = '<div class="stamp pending">Deciding</div><p class="under">&nbsp;</p>'
+def tokens_used(usage: dict) -> int:
+    """Tokens in and out, as in the study's cost figures (gpt-oss's reasoning tokens are part of the completion)."""
+    return int(usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0))
+
+
+PENDING ='<div class="stamp pending">Deciding</div><p class="under">&nbsp;</p>'
 
 
 def stamp_html(out: VerdictOutput, aid: str, notes: list[str] = (), gold: str | None = None) -> str:
@@ -415,7 +420,7 @@ def stamp_html(out: VerdictOutput, aid: str, notes: list[str] = (), gold: str | 
                 + (f" and {len(titles) - 2} more" if len(titles) > 2 else "")) or "the policy"
         under = line.format(secs=secs)
     calls = out.usage.get("model_calls", 0)
-    meta = f'{calls} model call{"" if calls == 1 else "s"}'
+    meta = f'{calls} model call{"" if calls == 1 else "s"} &middot; {tokens_used(out.usage):,} tokens'
     if out.usage.get("safe_mode"):
         meta += " in total (simple RAG + the agent's check)"
     if out.usage.get("cached"):
@@ -809,8 +814,10 @@ def finish(aid: str, out, box, outs: dict, slot: dict) -> None:
         # the cost is both runs, one after the other: simple RAG's call, then the agent's
         secs = (out.usage.get("shown_s", out.usage.get("latency_s", 0))
                 + check.usage.get("shown_s", check.usage.get("latency_s", 0)))
+        both = lambda key: out.usage.get(key, 0) + check.usage.get(key, 0)   # noqa: E731
         out = check.model_copy(update={"usage": {
-            **check.usage, "model_calls": out.usage.get("model_calls", 0) + check.usage.get("model_calls", 0),
+            **check.usage, "model_calls": both("model_calls"), "prompt_tokens": both("prompt_tokens"),
+            "completion_tokens": both("completion_tokens"), "reasoning_tokens": both("reasoning_tokens"),
             "shown_s": round(secs, 1), "safe_mode": True, "cached": out.usage.get("cached")}})
         slot["head"].markdown(head_html(TITLES[aid], "simple RAG, then the agent's check", secs, aid),
                               unsafe_allow_html=True)
@@ -859,7 +866,8 @@ def summary(outs: dict) -> None:
                     + ('<div class="sum-pills">' + "".join(f"<span>{html.escape(p)}</span>" for p in pills) + "</div>"
                        if pills else ""), unsafe_allow_html=True)
         head = ("<th>Method</th><th>Verdict</th>" + ("<th>Result</th>" if GOLD else "")
-                + '<th class="num">Time</th><th class="num">Model calls</th><th class="num">Clauses cited</th>')
+                + '<th class="num">Time</th><th class="num">Tokens</th><th class="num">Model calls</th>'
+                  '<th class="num">Clauses cited</th>')
         body = ""
         for a in order:
             o, v = outs[a], verdicts[a]
@@ -870,7 +878,8 @@ def summary(outs: dict) -> None:
             label = TITLES[a] + (" + safe mode" if o.usage.get("safe_mode") else "")
             body += (f'<tr><td class="m">{html.escape(label)}</td>'
                      f'<td><span class="vpill" style="color:{VERDICT[v][2]}">{VERDICT[v][0]}</span></td>{result}'
-                     f'<td class="num">{secs:.1f} s</td><td class="num">{o.usage.get("model_calls", 0)}</td>'
+                     f'<td class="num">{secs:.1f} s</td><td class="num">{tokens_used(o.usage):,}</td>'
+                     f'<td class="num">{o.usage.get("model_calls", 0)}</td>'
                      f'<td class="num">{cited}</td></tr>')
         st.markdown(f'<table class="cmp"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>',
                     unsafe_allow_html=True)
@@ -892,10 +901,11 @@ def study_results() -> None:
     body = "".join(f'<tr><td class="m">{html.escape(TITLES[a])}'
                    + (' <span class="pg">added later</span>' if a == "A3" else "") + "</td>"
                    f'<td class="num">{float(rows[a]["accuracy"]):.0%}</td><td class="num">{wc[a]} of {NOT_COVERED}</td>'
-                   f'<td class="num">{float(rows[a]["latency_s"]):.1f} s</td></tr>' for a in METHODS if a in rows)
+                   f'<td class="num">{float(rows[a]["latency_s"]):.1f} s</td>'
+                   f'<td class="num">{float(rows[a]["tokens"]):,.0f}</td></tr>' for a in METHODS if a in rows)
     with st.expander(f"How each method did on our 124 test claims ({name})"):
         st.markdown('<table class="cmp"><thead><tr><th>Method</th><th class="num">Right (of 124)</th>'
-                    '<th class="num">Said “covered” on a not-covered claim (of 53)</th><th class="num">Time per claim</th></tr></thead>'
+                    '<th class="num">Said “covered” on a not-covered claim (of 53)</th><th class="num">Time per claim</th><th class="num">Tokens per claim</th></tr></thead>'
                     f'<tbody>{body}</tbody></table><p class="sum-foot"><b>Best value:</b> simple RAG &middot; '
                     "<b>Safer:</b> workflow agent &middot; <b>Our advice:</b> simple RAG by default; the workflow agent "
                     'where a wrong "covered" is costly.</p>', unsafe_allow_html=True)
