@@ -35,7 +35,7 @@ public transport", which is defined all the way back on page 44. Then the exclus
 event that was already in the news before you bought the policy. A normal search with the claim's own words finds
 the first clause, but the other two use words the claim never says.
 
-## [Slide 3: Five ways to read the policy] Ye Zhan, 45 s
+## [Slide 3: Five ways to read a policy] Ye Zhan, 45 s
 
 So we compared five ways of reading the policy. No-RAG reads nothing and answers from what the model already knows,
 and simple RAG does one search that returns the top five passages; these two are our baselines. The other three are
@@ -59,7 +59,7 @@ could just be luck, we pick the cheaper one.
 
 *(hand over)* Liang will show you how the workflow agent works, and how it did.
 
-## [Slide 5: The agents found more of the clauses that decide a claim] Liang Than, 35 s
+## [Slide 5: Agents find the clauses a search misses] Liang Than, 35 s
 
 Back to the Tokyo claim. Simple RAG does one search, finds the delay benefit, and stops there. Our workflow agent
 reads like a claims assessor: the benefit first, then the definition, then the exclusions, so it finds all three.
@@ -67,7 +67,7 @@ Across all four methods, the two that look things up step by step, the workflow 
 ReAct, got 77 to 91% of the deciding clauses in front of the model. Simple RAG and corrective RAG, which only search,
 stayed at about two thirds.
 
-## [Slide 6: The agents led, but not by enough] Liang Than, 35 s
+## [Slide 6: Slightly more accurate, but it could be luck] Liang Than, 35 s
 
 So did all that extra reading pay off? The two agents were the most accurate, but only just: on gpt-oss, ReAct got
 76% right against simple RAG's 69%. None of these gaps is statistically significant: with 124 claims, differences this
@@ -75,7 +75,7 @@ small could just be luck. So they are too close to call, and the best value is s
 picks simple RAG; with ReAct added later, its tie-break picks the workflow agent. Either way, no agent is
 significantly better.)
 
-## [Slide 7: The agent costs more, but it's safer] Liang Than, 35 s
+## [Slide 7: Slower, but far fewer wrong "covered"] Liang Than, 35 s
 
 The workflow agent takes 2.6 times as long per claim, and for that you get two more right answers, which isn't a
 real difference. Where it does matter is safety: on the claims that are not covered, simple RAG wrongly told the
@@ -83,7 +83,7 @@ customer "you're covered" 9 times, the workflow agent only once.
 
 *(Ye Zhan switches to the browser)*
 
-## [Slide 8: Live demo] Liang Than, 90 s (Ye Zhan drives the laptop and clicks the example)
+## [Slide 8: Live demo: one claim, four methods] Liang Than, 90 s (Ye Zhan drives the laptop and clicks the example)
 
 Let's see it live. This claim is from our test set: a typhoon heading to Manila was already in the news when the
 policy was bought, and the correct answer is **not covered**. We'll run all four methods at the same time on the
@@ -113,7 +113,7 @@ exactly this kind of claim.
 > If ReAct says covered or need more detail, say "this is why we call the fixed workflow safer: ReAct picks its own
 > route, and on this claim it sometimes misses the exclusion. Across our runs on this claim it got it right four times out of seven"
 
-## [Slide 9: What we'd tell an insurer] Ye Zhan, 30 s
+## [Slide 9: Our advice to insurers] Ye Zhan, 30 s
 
 So what would we tell an insurer?
 
