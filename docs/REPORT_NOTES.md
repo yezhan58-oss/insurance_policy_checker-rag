@@ -214,6 +214,10 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   Then split so the page flows better: Figure 4 = the claim and the four cards (docs/figures/demo_manila.png, in place
   of the old placeholder); Figure 5 = the side-by-side table (demo_manila_table.png), after the section 8 bullets, which
   now point to it. Same in the shared doc (rev 392) and REPORT.md.
+- **Full-context on the slides (12 Nov)** [7.3]: slide 8 gets a fourth line, paired with "No policy": "Whole policy: the
+  bigger model did far better (76% vs 32%, 13x the tokens)" (gpt-oss 0.758 vs Llama 0.323; tokens 40,842 vs simple RAG's
+  3,247 on gpt-oss, 34,246 vs 2,635 on Llama, both about 13x). Script slide 8 now 25 s, total 6:40; that sentence is
+  the first cut if running long. The report already covers Full-context (sections 2, 4, 7.1, 7.3, 9).
 - **Power** [9]: with the observed discordance (32 to 42 of 124 claims), a 5-point gap needs about 800 to 1,100
   claims for 80% power (McNemar, two-sided 5%); about 230 to 290 for a 10-point gap.
 - **Course links** [1, 2]: Topic 7 slides 18-19 (ReAct loop), 36 (ReAct vs Plan-and-Execute: the workflow agent is
