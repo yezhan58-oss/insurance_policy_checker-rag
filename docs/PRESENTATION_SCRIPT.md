@@ -33,12 +33,12 @@ the first clause, but the other two use words the claim never says.
 
 ## [Slide 3: Five ways to read the policy] Ye Zhan, 45 s
 
-So we compared five ways of reading the policy. No-RAG reads nothing and answers from what the model already knows.
-Simple RAG does one search that returns the top five passages. Corrective RAG grades what it found and rewrites the
-search if the passages are weak. Our workflow agent works like a claims assessor and goes benefits first, then
-definitions, then exclusions. ReAct, which we added after the first four had run, picks its own lookups one at a
-time. Everything else stays the same in all five (the index, the prompt and the final answer step), so only the
-reading strategy changes. We ran all of it on two models, Llama 3.1 8B and gpt-oss-20b.
+So we compared five ways of reading the policy. No-RAG reads nothing and answers from what the model already knows,
+and simple RAG does one search that returns the top five passages; these two are our baselines. The other three are
+agentic RAG, where the model decides what to retrieve. Corrective RAG grades what it found and rewrites the search if
+the passages are weak. Our workflow agent works like a claims assessor and goes benefits first, then definitions, then
+exclusions. ReAct, which we added after the first four had run, picks its own lookups one at a time. Everything else
+stays the same, so only the reading strategy changes. We ran all of it on two models, Llama 3.1 8B and gpt-oss-20b.
 
 ## [Slide 4: How we kept the comparison fair] Ye Zhan, 30 s
 
@@ -88,25 +88,32 @@ cluster.
 usually answers first. The workflow agent is working through its fixed steps, and ReAct is choosing its own
 lookups one at a time.
 
-*(point at the stamps, and the tick or cross under each)* No-RAG says it doesn't have enough information. Simple RAG
+*(point at the verdict labels, and the tick or cross under each)* No-RAG says it doesn't have enough information. Simple RAG
 says covered, because it found the delay benefit and stopped. The workflow agent says not covered, because it found the
-exclusion for events already reported by the media. ReAct gets there too, by its own route, so both agents get
-a tick.
+exclusion for events already reported by the media. ReAct chooses its own lookups, so it may or may not get there:
+point at its tick or cross either way.
 
-*(scroll down to the "Which one wins?" panel)* This panel sums up the study: simple RAG is our best-value pick, and
-the workflow agent is the safer one on exactly this kind of claim.
+*(scroll down to the table under the cards)* Here are the four answers side by side, with the time and model calls
+each took. It matches our test results: simple RAG is the best value, and the workflow agent is the safer one on
+exactly this kind of claim.
 
-> If live fails, or the cluster is slow: untick "Run live" and say "here are the saved answers from the same run".
+> If live fails, or the cluster is slow: open the sidebar (arrow at the top left), untick "Run live" and say "here are
+> the saved answers from the same run".
+> If No-RAG says not covered, say "No-RAG got lucky: it never read the policy, and its reason (weather delays are
+> excluded) is wrong; the real reason is the news exclusion the workflow agent found"
 > If simple RAG says not covered this time, say "simple RAG got this one right today, but in our test run it said
 > covered, and it made that mistake on 9 of the 53 not-covered claims."
+> If ReAct says covered or need more detail, say "this is why we call the fixed workflow safer: ReAct picks its own
+> route, and on this claim it sometimes misses the exclusion. Across our runs on this claim it got it right four times out of seven"
 
 ## [Slide 10: What we would tell an insurer] Ye Zhan, 35 s
 
 So here's what we'd tell an insurer. For best value, use simple RAG: it's as accurate as the agents with one model call
-instead of three or more. If wrongly telling a customer "you're covered" is the error you can't afford, the workflow agent is
-safer. Our advice is to combine them: let simple RAG answer everything, and have the workflow agent re-check only
-the claims simple RAG says are covered. In our test, that brought the wrong "covered" answers down to zero. The limits are that
-we wrote these claims ourselves from two policies, and 124 claims can only detect fairly large gaps.
+instead of three or more. If wrongly telling a customer "you're covered" is the error you can't afford, run the
+workflow agent on every claim, because it's the safer one. We also tried a cheaper mix, safe mode, where the agent only
+re-checks simple RAG's "covered" answers: it stopped every wrong "covered", but got fewer claims right and cost almost
+as much as the agent. The limits are that we wrote these claims ourselves from two policies, and 124 claims can only
+detect fairly large gaps.
 
 ## [Slide 11: Thank you. Questions?] Ye Zhan, 10 s
 

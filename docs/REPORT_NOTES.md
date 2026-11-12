@@ -193,6 +193,22 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   where Topic 7 slide 36 (ReAct vs Plan-and-Execute) favours a fixed plan, and A3 was less safe (4 of 53 vs 1) with
   unpredictable cost (7.9 calls on Llama). Invest in the model first (+13 points vs at most +6 from method). At
   about 70% accuracy, point customers to the deciding clauses and leave the claim decision to a person.
+- **Advice changed (12 Nov, replaces the safe-mode advice above)** [9]: YZ noticed safe mode is nearly the workflow
+  agent anyway. On gpt-oss it costs 5,913 tokens per claim against the agent's 6,476 (91%) and 12.3 s against 15.2 s,
+  because simple RAG says covered on 50 of 124 claims and those all go to the agent; and it gets 66% right against
+  the agent's 71%, because simple RAG's other answers go unchecked. Its only gain is 0 wrong "covered" of 53 against 1.
+  (Llama: 4,790 vs 6,626 tokens, 56% vs 61%, 2 vs 4 wrong.) New advice: simple RAG by default; the workflow agent on
+  every claim where a wrong "covered" is costly (about 2x simple RAG's tokens, 2.6x its time); safe mode reported as
+  tried, not recommended. Updated in slide 10, its script, the report doc (abstract and advice, rev 387), REPORT.md
+  and the demo's advice line. The ReAct and model-first points stand.
+- **PRs #74 and #75 merged (12 Nov)**: #74 adds the ReAct agent to Member A's contributions; #75 is Member B's own
+  rewording of his sections (2, 3, 4.2 workflow agent and Agent-Pick, 7.6, 8, his two bullets in 9). Numbers checked
+  against the results (judge 77% / kappa 0.64 Llama, 80% / 0.52 gpt-oss; power 14 / 16 points at 80%; simple RAG's
+  search found 0 of 24 needed definitions). 7.6 now says the 8B workflow agent under-cited (fetched definitions but did
+  not cite them) rather than misquoted. Merged into a/demo-live-react: his wording kept, with the agentic RAG names in
+  4.2, the new advice (now "covered or partially covered", his precision), and section 8's lines on the summary table
+  and policy limit that his older base lacked; typo "itss" fixed. His changes were then copied into the shared doc
+  (rev 389), which again matches REPORT.md.
 - **Power** [9]: with the observed discordance (32 to 42 of 124 claims), a 5-point gap needs about 800 to 1,100
   claims for 80% power (McNemar, two-sided 5%); about 230 to 290 for a 10-point gap.
 - **Course links** [1, 2]: Topic 7 slides 18-19 (ReAct loop), 36 (ReAct vs Plan-and-Execute: the workflow agent is
@@ -208,6 +224,58 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   results files keep the IDs. Report cut toward 10 pages; slides cut to short cue phrases; slide 3 has a ReAct row,
   slide 6 a ReAct bar, slide 9 a ReAct line. Demo: ReAct card (live, plus saved test-run answers for fwd-010 and
   fwd-003; not covered on fwd-010, like A4). Charts: scatter plots show the core setups, ReAct and Full-context.
+- **Live demo test (11 Nov, L40S job 363304, gpt-oss)** [8]: all four methods run live, steps shown as they happen.
+  Manila (fwd-010): simple RAG covered every time (wrong), the workflow agent not covered every time (right), ReAct
+  not covered in 2 of 3 live runs and in the test run (3 of 4 right): it picks its own searches, and once looked for
+  weather exclusions instead of the news exclusion. Slide 9 and the script no longer promise ReAct finds it. ReAct
+  answers saved for all 7 scripted examples; neither injection test made it say covered.
+- **Policy limit in the demo (11 Nov)** [8]: YZ asked for the dollar amount on covered verdicts. The brief's
+  guardrail forbids promising a payout, amounts were never evaluated, and the payout depends on the plan, so the
+  card quotes the cited benefit's limit per plan from the policy (FWD table of benefits, MSIG "The maximum we will
+  pay under this section is:" lines), labelled "Policy limit, not an estimate". No calculation; no block for
+  no-retrieval or non-covered verdicts; "see your policy schedule" when the clause prints no limit.
+- **Demo layout, round 2 (11 Nov)** [8]: at 1440 px the four cards were 239 px wide and up to 1,457 px tall. Now: the
+  sidebar starts collapsed and the page is wider (cards 300 px, at most about 1,000 px tall); flat verdict labels instead
+  of tilted stamps; one-line reason; clause titles with one deciding quote; policy limit as "Up to S$300 - S$1,000, by
+  plan" plus its basis; one fold-out per card. The summary is now one table of this claim's answers (verdict, right
+  or wrong, time, calls, clauses cited); the static 124-claim results are folded below it. Live run 3 on Manila: ReAct
+  right again (4 of 5 runs), and no retrieval guessed not covered for a wrong reason (weather), so the script has a
+  fallback line for that.
+- **Agentic RAG naming (11 Nov)** [4.2]: No-RAG and RAG are the baselines; CRAG, the workflow agent and ReAct are all
+  agentic RAG (the model makes retrieval decisions), so they are named "Agentic RAG: Corrective / Workflow agent /
+  ReAct" in the report's setup list and table, the abstract and slide 3. Short names stay in charts and results
+  tables. Demo columns sit under ruled "Baselines" and "Agentic RAG" headers. Safe mode is not a sixth
+  method: it is simple RAG with the workflow agent re-checking each "covered".
+- **Demo look, round 3 (11 Nov)** [8]: YZ found the rounded cards generic. Now one flat page: no cards, shadows,
+  pills or gradient banner; a masthead with the policy, model and live/saved status; the four methods as plain
+  columns under two ruled headers ("Baselines", "Agentic RAG"); the verdict in large coloured serif type, with the
+  right/wrong mark straight under it; numbered steps (running step orange, steps to come grey); a ruled summary
+  table. All four verdicts and marks fit on the first screen at 1280 x 720; no sideways scroll at phone width.
+  Another live run on Manila (gpt-oss): no retrieval not covered (a guess, weather reason), simple RAG covered (wrong),
+  workflow agent not covered (right), ReAct covered (wrong). ReAct is now right in 4 of 6 runs on this claim (the test run and 5 live);
+  the script's fallback line says so.
+- **Demo look, round 4 (12 Nov)** [8]: round 3 was too flat (the four methods ran together). Now the results are one
+  white panel with a line between methods: a band per group (slate "Baselines", navy "Agentic RAG"), the name
+  and time on a tint, the verdict as a solid colour block (green covered, red not covered, slate need more
+  detail), the right/wrong mark under it, and ruled, labelled sections (what it did, why, clauses, policy limit).
+  The summary table is a white panel too. Checked at 1280 x 720 (all verdicts on the first screen) and phone width.
+  Another live run on Manila: no retrieval need more detail, simple RAG covered (wrong), workflow agent not covered
+  (right, 13.4 s), ReAct need more detail (wrong). The workflow agent has been right in every run, ReAct in 4 of 7
+  (the test run and 6 live); the script's ReAct fallback now covers "need more detail" too.
+  Then, at YZ's request, a little rounding: the panel's outer corners, the verdict blocks, small pill tags and
+  right/wrong marks (in the columns and the summary table), circled step numbers, softer buttons and text box. The
+  column lines and group bands stay square; on a phone each stacked method is its own rounded box.
+  The 124-claim results fold-out is now its own panel. Its wrong-"covered" column is renamed "Said 'covered' on a
+  not-covered claim (of 53)" (YZ asked why only 53: that mistake is only possible on the 53 test claims whose answer
+  is not covered; "Right" is over all 124), and the three takeaways (best value, safer, our advice) are separate blocks.
+  Reverted (12 Nov, YZ's call): the demo look is back to the 11 Nov card version (commit 92489df: navy banner,
+  rounded cards with Baseline / Agentic RAG labels, flat verdict stamps). Kept from rounds 3-4: the renamed
+  columns ("Right (of 124)", "Said 'covered' on a not-covered claim (of 53)"), the clean-up of stray "}" and ".…"
+  in the one-line reasons, and the live-run counts and script fallback for ReAct.
+  Demo tables (12 Nov): even columns, values centred under their headers, no vertical grid lines.
+  scripts/demo_start.ps1 (12 Nov): asks for an L40S by default (`-Gpu a40` to switch back; the A40 node avenue is
+  still drained, so the old request would have waited and failed on the day) and opens the app on port 8502, the
+  address in the script's checklist. Checked with `sbatch --test-only`: the L40S job would start at once on lucas.
 - **A0K10 on test (11 Nov, branch a/a0-k10 at bd31b05, L40S; exploratory, a test only; code merged in PR #71)** [7]: A0 with
   top_k 10. 124 claims each, 0 errors. Accuracy (wrong-covered): gpt-oss 0.70 (0.15) vs A0 0.69 (0.17), McNemar
   p = 1.00 (13 vs 12); Llama 0.59 (0.13) vs A0 0.56 (0.13), p = 0.607 (9 vs 6). Evidence recall 0.66 to 0.75 on

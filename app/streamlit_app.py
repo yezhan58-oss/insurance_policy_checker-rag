@@ -36,8 +36,8 @@ FLOOR = "B0"             # no retrieval: shows what the model says without readi
 METHODS = {   # sidebar and column order: reads nothing -> one search -> reads like an assessor
     "B0": ("No retrieval", "Reads no policy: answers from what it already knows"),
     "A0": ("Simple RAG", "Best value in our study: 1 search, about 5 s"),
-    "A4": ("Workflow agent", "4 steps like a claims assessor, usually 7 to 20 s"),
-    "A3": ("ReAct agent", "Picks its own lookups, one at a time (added after the core runs)"),
+    "A4": ("Workflow agent", "Agentic RAG: fixed steps like a claims assessor, usually 7 to 20 s"),
+    "A3": ("ReAct agent", "Agentic RAG: picks its own lookups, one at a time (added later)"),
 }
 TITLES = {aid: name for aid, (name, _) in METHODS.items()}
 SHORT = {"B0": "No-RAG", "A0": "RAG", "A4": "Agent", "A3": "ReAct"}   # report names; the IDs above stay as in the repo
@@ -45,11 +45,10 @@ MODELS = {"vllm_gptoss20b": "gpt-oss-20b", "vllm_llama8b": "Llama 3.1 8B"}   # g
 CACHE = ROOT / "app" / "demo_cache.json"
 VERDICT = {   # stamp text, line under it ({secs} = clause names), stamp colour (AA contrast on white)
     "covered": ("Likely covered", "Under {secs}, subject to the insurer's assessment.", "#1B6B3A"),
-    "partially_covered": ("Likely partly covered", "Under {secs}. Some costs or a sub-limit may not be paid, subject "
-                          "to the insurer's assessment.", "#94570A"),
+    "partially_covered": ("Likely partly covered", "Under {secs}; some costs may not be paid, subject to the "
+                          "insurer's assessment.", "#94570A"),
     "not_covered": ("Likely not covered", "Based on {secs}.", "#A3271B"),
-    "insufficient_info": ("Need more detail", "A detail needed to decide is missing. The explanation below says "
-                          "what to add.", "#2F4A66"),
+    "insufficient_info": ("Need more detail", "A fact needed to decide is missing; see why below.", "#2F4A66"),
 }
 ROUTE = """<svg viewBox="0 0 440 220" fill="none" aria-hidden="true">
 <path d="M20 190 C 120 40, 300 20, 420 70" stroke="#F0B98D" stroke-width="2" stroke-dasharray="2 9"
@@ -97,7 +96,7 @@ CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap');
 :root {--ink:#1B2633; --navy:#12263A; --muted:#55606C; --line:#E4DCCD; --accent:#B4541A;
        --display:"Fraunces","Source Serif Pro","Source Serif 4",Georgia,serif;}
-.block-container {max-width: 76rem; padding-top: 1.75rem; padding-bottom: 4rem;}
+.block-container {max-width: 86rem; padding-top: 1.75rem; padding-bottom: 4rem;}
 ::selection {background: #F3D7C2;}
 
 /* banner */
@@ -118,41 +117,6 @@ CSS = """
 
 /* cards */
 .st-key-summary {margin-top: 1.25rem;}
-.sum-head {display: flex; align-items: baseline; gap: 0.9rem; flex-wrap: wrap; margin-bottom: 1.1rem;}
-.sum-head .kicker-free {margin: 0;}
-.sum-head .sub {color: var(--muted); font-size: 0.9rem;}
-.facts {display: grid; grid-template-columns: 6.2rem 1fr; gap: 0.85rem 1rem; align-items: baseline; margin: 0;}
-.facts dt {font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted);}
-.facts dd {margin: 0; line-height: 1.5;}
-.big {font-family: var(--display); font-size: 1.45rem; font-weight: 700; color: var(--ink); line-height: 1.2;}
-.chips {display: flex; flex-wrap: wrap; gap: 0.4rem;}
-.chip {display: inline-flex; gap: 0.35rem; align-items: baseline; font-size: 0.88rem; padding: 0.2rem 0.6rem;
-       border-radius: 999px; border: 1.5px solid currentColor; font-weight: 600; white-space: nowrap;}
-.chip b {color: var(--ink); font-weight: 700;}
-.times {font-variant-numeric: tabular-nums;}
-.times span {margin-right: 0.9rem; white-space: nowrap;}
-.times b {color: var(--muted); font-weight: 600; margin-right: 0.25rem;}
-.study {width: 100%; border-collapse: collapse; font-size: 0.93rem; font-variant-numeric: tabular-nums; margin-bottom: 1.2rem;}
-.study th {text-align: left; font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted);
-           font-weight: 700; padding: 0 0.6rem 0.45rem 0;}
-.study td {padding: 0.55rem 0.6rem 0.55rem 0; border-top: 1px solid var(--line); white-space: nowrap;}
-.study tr.win td {background: #FBF4EC;}
-.study tr.win td:first-child {box-shadow: inset 3px 0 0 var(--accent); padding-left: 0.55rem;}
-.study td:first-child {padding-left: 0.55rem;}
-.study .aid {font-weight: 700; margin-right: 0.35rem;}
-.study .nm {color: var(--muted);}
-.bar {position: relative; width: 7.5rem; height: 1.25rem; background: #EFE9DE; border-radius: 0.3rem; overflow: hidden;}
-.bar i {position: absolute; inset: 0 auto 0 0; background: #2F4A66;}
-.bar span {position: relative; display: block; padding-left: 0.4rem; color: #FFFFFF; font-size: 0.8rem; font-weight: 700;
-           line-height: 1.25rem;}
-.take {display: grid; grid-template-columns: 6.6rem 1fr; gap: 0.6rem 0.9rem; align-items: baseline;}
-.tl {justify-self: start; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
-     border-radius: 999px; padding: 0.15rem 0.6rem; white-space: nowrap;}
-.tl.win {background: #FBE9DC; color: #8A3D10;}
-.tl.safe {background: #E2F0E7; color: #1B6B3A;}
-.tl.adv {background: #E5ECF3; color: #1F3B57;}
-.take p {margin: 0; line-height: 1.45;}
-.take .q {color: var(--muted);}
 .st-key-ask, .st-key-summary, [class*="st-key-res-"] {background: #FFFFFF; border: 1px solid var(--line); border-radius: 1rem;
        padding: 1.5rem 1.7rem 1.6rem; box-shadow: 0 1px 2px rgba(18,38,58,0.05), 0 14px 30px -18px rgba(18,38,58,0.25);}
 [class*="st-key-res-"] {margin-top: 0.75rem;}
@@ -162,37 +126,42 @@ CSS = """
 
 /* result */
 .who {font-family: var(--display); font-size: 1.15rem; font-weight: 600; color: var(--muted); margin-bottom: 0.9rem;}
-.stamp {display: inline-block; font-family: var(--display); font-weight: 700; text-transform: uppercase;
-        letter-spacing: 0.08em; font-size: 1.45rem; line-height: 1; padding: 0.55rem 1rem 0.5rem;
-        border: 4px double currentColor; border-radius: 0.45rem; transform: rotate(-2.5deg);
-        animation: land 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;}
-@keyframes land {from {opacity: 0; transform: rotate(-2.5deg) scale(1.35);} to {opacity: 1; transform: rotate(-2.5deg) scale(1);}}
+/* verdict: a flat label the same width on every card, so the four verdicts line up and read at a glance */
+.stamp {display: block; font-family: var(--display); font-weight: 700; text-transform: uppercase; text-align: center;
+        letter-spacing: 0.05em; font-size: 1.05rem; line-height: 1.25; padding: 0.6rem 0.75rem;
+        border: 2px solid currentColor; border-radius: 0.55rem; background: color-mix(in srgb, currentColor 7%, #FFFFFF);
+        animation: land 0.3s ease-out both;}
+@keyframes land {from {opacity: 0; transform: translateY(4px);} to {opacity: 1; transform: none;}}
 @media (prefers-reduced-motion: reduce) {.stamp {animation: none;}}
-.stamp {white-space: nowrap;}
 [data-testid="stColumn"] {container-type: inline-size;}
-[data-testid="stColumn"] .stamp {font-size: clamp(0.95rem, 6.4cqi, 1.35rem); letter-spacing: 0.05em; line-height: 1.15;
-                                 padding: 0.5rem 0.8rem 0.45rem; white-space: normal; max-width: 92%;}
+[data-testid="stColumn"] .stamp {font-size: clamp(0.82rem, 5cqi, 1.02rem);}
 @media (min-width: 900px) {.block-container {padding-left: 2.5rem; padding-right: 2.5rem;}}
-.stamp.pending {color: #8A939C; border: 2px dashed #C9BFAE; animation: breathe 1.6s ease-in-out infinite;}
+.stamp.pending {color: #8A939C; border: 2px dashed #C9BFAE; background: #FFFFFF; animation: breathe 1.6s ease-in-out infinite;}
 @keyframes breathe {50% {opacity: 0.45;}}
 @media (prefers-reduced-motion: reduce) {.stamp.pending {animation: none;}}
-.under {margin: 1.05rem 0 0.3rem !important; font-size: 1rem; line-height: 1.5; color: var(--ink);}
+.under {margin: 0.75rem 0 0.25rem !important; font-size: 0.9rem; line-height: 1.45; color: var(--ink);}
 .under b {font-weight: 650;}
-.meta {color: var(--muted); font-size: 0.83rem; font-variant-numeric: tabular-nums; margin: 0 0 1rem;
-       padding-bottom: 0.9rem; border-bottom: 1px solid var(--line);}
-.section-label {font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
-                color: var(--muted); margin: 1.2rem 0 0.45rem;}
-.clause {font-family: var(--display); font-size: 0.98rem; line-height: 1.65; white-space: pre-wrap; max-height: 22rem;
+.meta {color: var(--muted); font-size: 0.78rem; font-variant-numeric: tabular-nums; margin: 0 0 0.9rem;
+       padding-bottom: 0.8rem; border-bottom: 1px solid var(--line);}
+.section-label {font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+                color: var(--muted); margin: 1rem 0 0.4rem;}
+.clause {font-family: var(--display); font-size: 0.95rem; line-height: 1.6; white-space: pre-wrap; max-height: 22rem;
          overflow-y: auto; padding-right: 0.5rem; color: var(--ink);}
 .sid {font-size: 0.78rem; color: var(--muted); margin: 1rem 0 0.4rem;}
-.why {font-size: 1.02rem; line-height: 1.55; color: var(--ink); margin: 0 0 0.4rem;}
-.clauses {list-style: none; margin: 0 0 1rem; padding: 0;}
-.clauses li {padding: 0.6rem 0 0.65rem; border-top: 1px solid var(--line);}
-.clauses li:first-child {border-top: none; padding-top: 0.1rem;}
+.why {font-size: 0.92rem; line-height: 1.5; color: var(--ink); margin: 0 0 0.3rem;}
+.clauses {list-style: none; margin: 0 0 0.6rem; padding: 0;}
+.clauses li {padding: 0.45rem 0; border-top: 1px solid var(--line); font-size: 0.9rem; line-height: 1.4;}
+.clauses li:first-child {border-top: none; padding-top: 0.05rem;}
 .clauses .ct {font-weight: 650; color: var(--ink);}
-.clauses .pg {color: var(--muted); font-size: 0.8rem; margin-left: 0.4rem; font-variant-numeric: tabular-nums;}
-.clauses .line {display: block; font-family: var(--display); font-size: 0.95rem; line-height: 1.5; color: #3B4652;
-                margin-top: 0.2rem;}
+.clauses .pg {color: var(--muted); font-size: 0.76rem; margin-left: 0.35rem; font-variant-numeric: tabular-nums;}
+.clauses .line {display: block; font-size: 0.85rem; line-height: 1.45; color: #4A5560; margin-top: 0.15rem;
+                font-style: italic;}
+.limits {list-style: none; margin: 0; padding: 0;}
+.limits li {font-size: 0.88rem; line-height: 1.4; padding: 0.4rem 0; border-top: 1px solid var(--line);}
+.limits li:first-child {border-top: none; padding-top: 0.05rem;}
+.limits .ct {display: block; font-weight: 650; color: var(--ink);}
+.limits .amt {display: block; font-weight: 700; color: #1B6B3A; font-variant-numeric: tabular-nums;}
+.limits .basis {display: block; color: var(--muted); font-size: 0.8rem;}
 .trace {margin: 0; padding: 0; list-style: none; counter-reset: s;}
 .trace li {counter-increment: s; position: relative; padding: 0 0 0.85rem 2.2rem; line-height: 1.5;}
 .trace li::before {content: counter(s); position: absolute; left: 0; top: -0.05rem; width: 1.5rem; height: 1.5rem;
@@ -204,6 +173,9 @@ CSS = """
 /* live run */
 .live-head {margin-bottom: 0.9rem;}
 .live-head .who {margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.live-head .kind {font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+                  color: var(--muted); min-height: 1rem; margin-bottom: 0.1rem;}
+.live-head .kind.agentic {color: var(--navy);}
 .live-sub {display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; min-height: 2rem;}
 .live-head .status {font-size: 0.82rem; color: var(--muted);}
 .badges {min-height: 1.55rem; margin: 0.3rem 0 0.1rem;}
@@ -212,15 +184,37 @@ CSS = """
 .badge.win {background: #FBE9DC; color: #8A3D10;}
 .badge.safe {background: #E2F0E7; color: #1B6B3A;}
 .badge.later {background: #E5ECF3; color: #1F3B57;}
-.st-key-res-A0 {box-shadow: inset 0 3px 0 var(--accent), 0 1px 2px rgba(18,38,58,0.05),
-                0 14px 30px -18px rgba(18,38,58,0.25) !important;}
+.limit-note {color: var(--muted); font-size: 0.76rem; line-height: 1.4; margin: 0.35rem 0 0.9rem;}
 [data-testid="stColumn"] [class*="st-key-res-"] {padding: 1.15rem 1.15rem 1.25rem;}
+/* summary under the cards: this claim, side by side */
+.cmp {width: 100%; border-collapse: collapse; font-size: 0.95rem; font-variant-numeric: tabular-nums;}
+.cmp th {text-align: left; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+         font-weight: 700; padding: 0 0.75rem 0.55rem 0;}
+.cmp td {padding: 0.65rem 0.75rem 0.65rem 0; border-top: 1px solid var(--line); vertical-align: middle;}
+.cmp td.num, .cmp th.num {text-align: right;}
+/* even columns, everything after the method name centred under its header, rows only (Streamlit draws a full
+   grid on markdown tables) */
+.cmp {table-layout: fixed;}
+.cmp th:first-child {width: 24%;}
+[data-testid="stMarkdownContainer"] .cmp :is(th, td) {border-left: 0; border-right: 0; padding-left: 0.5rem;
+    padding-right: 0.5rem; text-align: center; vertical-align: middle;}
+[data-testid="stMarkdownContainer"] .cmp :is(th, td):first-child {text-align: left; padding-left: 0;}
+.cmp .m {font-weight: 650; color: var(--ink);}
+.vpill {display: inline-block; font-weight: 700; font-size: 0.84rem; padding: 0.18rem 0.65rem; border-radius: 999px;
+        border: 1.5px solid currentColor; white-space: nowrap; background: color-mix(in srgb, currentColor 7%, #FFFFFF);}
+.cmp .ok {color: #1B6B3A; font-weight: 700;}
+.cmp .no {color: #A3271B; font-weight: 700;}
+.sum-pills {display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0 0 1rem;}
+.sum-pills span {font-size: 0.82rem; font-weight: 650; padding: 0.22rem 0.7rem; border-radius: 999px;
+                 background: #F3EEE5; color: var(--ink);}
+.sum-foot {color: var(--muted); font-size: 0.85rem; margin: 0.9rem 0 0;}
+.sum-foot b {color: var(--ink); font-weight: 650;}
 [data-testid="stColumn"] .who {font-size: 1.02rem;}
 [data-testid="stColumn"] .clock {font-size: 1.3rem;}
 .clock {font-family: var(--display); font-size: 1.6rem; font-weight: 700; color: var(--navy);
         font-variant-numeric: tabular-nums;}
 .live {margin: 0; padding: 0; list-style: none;}
-.live li {position: relative; padding: 0 0 1rem 2.4rem; line-height: 1.45;}
+.live li {position: relative; padding: 0 0 0.7rem 2rem; line-height: 1.4; font-size: 0.9rem;}
 .live li::before {content: ""; position: absolute; left: 0.3rem; top: 0.1rem; width: 1.05rem; height: 1.05rem;
                   border-radius: 50%; box-sizing: border-box;}
 .live li:not(:last-child)::after {content: ""; position: absolute; left: 0.79rem; top: 1.35rem; bottom: 0.15rem;
@@ -234,7 +228,7 @@ CSS = """
 .live .skip .name {text-decoration: line-through;}
 .live .name {font-weight: 650;}
 .live .at {float: right; color: var(--muted); font-size: 0.82rem; font-variant-numeric: tabular-nums;}
-.live .what {display: block; color: var(--muted); font-size: 0.9rem;}
+.live .what {display: block; color: var(--muted); font-size: 0.82rem;}
 .live .active .name {color: var(--accent);}
 @keyframes pulse {50% {transform: scale(0.75); opacity: 0.55;}}
 @media (prefers-reduced-motion: reduce) {.live .active::before {animation: none;}}
@@ -242,9 +236,6 @@ CSS = """
 .mark {font-size: 0.95rem; font-weight: 700; margin: 0 0 0.55rem;}
 .mark.ok {color: #1B6B3A;}
 .mark.no {color: #A3271B;}
-.chip.no {border-style: dashed;}
-.gold {font-family: var(--display); font-size: 1.2rem; font-weight: 700;}
-.gold small {font-family: inherit; font-size: 0.82rem; font-weight: 400; color: var(--muted); margin-left: 0.5rem;}
 .hero.slim {padding: 0.85rem 1.6rem; margin-bottom: 1rem; border-radius: 0.9rem;}
 .hero.slim .t {font-size: 1.7rem;}
 .note {color: #7A4A00; background: #FBF1E2; font-size: 0.88rem; border-radius: 0.5rem; padding: 0.55rem 0.8rem;
@@ -320,26 +311,30 @@ def describe(step: dict) -> str:
     if kind == "stop":
         return {"answer": "decided it had enough", "limit": "reached the 8-lookup limit",
                 "unusable": "reply unusable, answering now"}.get(step.get("reason"), "")
-    if kind == "search":
+    if kind == "search":   # short on purpose: four cards share one row
         hits = [h["section_id"] for h in step.get("hits", [])]
-        asked = f"\"{html.escape(str(step['query']))}\": " if "thought" in step and step.get("query") else ""
-        return f"{asked}found {len(hits)} passages, from {names(hits)}"
+        asked = (f"\"{html.escape(clip(str(step['query']), 40))}\": " if "thought" in step and step.get("query")
+                 else "")
+        return f"{asked}{names(hits, 2)}"
     if kind == "rewrite":
-        return f"new search: \"{html.escape(str(step.get('query', '')))}\""
+        return f"new search: \"{html.escape(clip(str(step.get('query', '')), 40))}\""
     if kind == "grade":
         return f"kept {len(step.get('picked', []))}, dropped {len(step.get('dropped', []))}"
     if kind == "decide":
-        return names(step.get("context", []))
+        n = len(dict.fromkeys(step.get("context", [])))
+        return f"{n} section{'' if n == 1 else 's'}"
     if kind == "benefits":
-        return names(step.get("picked", []))
+        return names(step.get("picked", []), 2)
     if kind == "definitions":
         if "term" in step and not step.get("fetched"):
-            return f"\"{html.escape(str(step['term']))}\" is not a defined term"
-        return names(step.get("fetched", []))
+            return f"\"{html.escape(clip(str(step['term']), 30))}\": not a defined term"
+        return names(step.get("fetched", []), 2)
     if kind == "exclusions":
+        picked = step.get("picked", [])
         if "candidates" not in step:   # ReAct: the exclusions of one benefit it chose
-            return f"for {html.escape(title_of(str(step.get('benefit', ''))))}: {names(step.get('picked', []))}"
-        return (f"kept {names(step.get('picked', []))} out of {len(step.get('candidates', []))} that could apply")
+            n = len(picked)
+            return f"{n} exclusion{'' if n == 1 else 's'} for {html.escape(title_of(str(step.get('benefit', ''))))}"
+        return f"kept {names(picked, 1)} (of {len(step.get('candidates', []))})"
     if kind == "answer":
         return str(step.get("verdict", "")).replace("_", " ")
     return ""
@@ -359,16 +354,21 @@ def card(box) -> dict:
 BADGES = {   # from the 124-claim test: A0 won under the decision rule; A4 said covered wrongly less often than A0
     WINNER: '<span class="badge win">Best value</span>',
     BASELINE: '<span class="badge safe">Safer than simple RAG</span>',
-    "A3": '<span class="badge later">Added after the core runs</span>',
+    "A3": '<span class="badge later">Picks its own steps</span>',   # "added later" stays in the results table
 }
 
 
+KINDS = {"B0": "Baseline", "A0": "Baseline", "A4": "Agentic RAG", "A3": "Agentic RAG"}   # as in the report, 4.2
+
+
 def head_html(title: str, status: str, secs: float | None, aid: str | None = None) -> str:
-    """Card header: method name, its study badge (main cards only), status and clock. The badge row keeps its height
-    on every card, so the verdict stamps below still line up."""
+    """Card header: kind (baseline or agentic RAG), method name, its study badge (main cards only), status and clock.
+    The badge row keeps its height on every card, so the verdict stamps below still line up."""
     clock = f"{secs:.1f} s" if secs is not None else ""
     badge = BADGES.get(aid, "") if aid and title == TITLES.get(aid) else ""
-    return (f'<div class="live-head"><div class="who">{html.escape(title)}</div>'
+    kind = KINDS.get(aid, "")
+    return (f'<div class="live-head"><div class="kind {"agentic" if kind == "Agentic RAG" else ""}">{kind}</div>'
+            f'<div class="who">{html.escape(title)}</div>'
             f'<div class="badges">{badge}</div><div class="live-sub">'
             f'<span class="status">{html.escape(status)}</span><span class="clock">{clock}</span></div></div>')
 
@@ -398,7 +398,7 @@ def mark_html(verdict: str, gold: str | None) -> str:
         return ""
     if verdict == gold:
         return '<div class="mark ok">&#10003; Correct</div>'
-    return f'<div class="mark no">&#10007; Wrong: the correct answer is {plain(gold)}</div>'
+    return f'<div class="mark no">&#10007; Wrong (correct: {plain(gold)})</div>'
 
 
 PENDING = '<div class="stamp pending">Deciding</div><p class="under">&nbsp;</p>'
@@ -408,14 +408,18 @@ def stamp_html(out: VerdictOutput, aid: str, notes: list[str] = (), gold: str | 
     """Verdict stamp, the clauses it rests on and its cost, plus any safe-mode or quote-check notes."""
     label, line, ink = VERDICT[out.verdict]
     if aid == FLOOR:
-        under = "A guess: this method read no policy text, so no clause is behind it."
+        under = "A guess: it read no policy text."
     else:
-        secs = " and ".join(f"<b>{html.escape(title_of(s))}</b>" for s in out.cited_sections) or "the policy"
+        titles = list(dict.fromkeys(title_of(s) for s in out.cited_sections))
+        secs = (" and ".join(f"<b>{html.escape(t)}</b>" for t in titles[:2])
+                + (f" and {len(titles) - 2} more" if len(titles) > 2 else "")) or "the policy"
         under = line.format(secs=secs)
     calls = out.usage.get("model_calls", 0)
     meta = f'{calls} model call{"" if calls == 1 else "s"}'
+    if out.usage.get("safe_mode"):
+        meta += " in total (simple RAG + the agent's check)"
     if out.usage.get("cached"):
-        meta += " &middot; saved answer, timed when it ran live"
+        meta += " &middot; saved run"
     return (f'<div class="stamp" style="color:{ink}">{label}</div>'
             f'<p class="under">{under}</p>{mark_html(out.verdict, gold)}<div class="meta">{meta}</div>' + "".join(note_html(n) for n in notes))
 
@@ -456,17 +460,19 @@ def sentences(text: str) -> list[str]:
 
 def clip(text: str, n: int) -> str:
     text = " ".join(text.split())
-    return text if len(text) <= n else text[:n].rsplit(" ", 1)[0].rstrip(",;:") + "…"
+    return text if len(text) <= n else text[:n].rsplit(" ", 1)[0].rstrip(",;:.") + "…"
 
 
 def short_why(explanation: str) -> str:
-    """The reasoning in the model's own words, at most 2 sentences: the sentences that quote no policy wording (the
-    quotes are shown under each clause instead). Section IDs become clause titles."""
-    text = SECTION_ID.sub(lambda m: title_of(m.group(0)), explanation)
+    """The reasoning in the model's own words, in one sentence: the last sentence that quotes no policy wording (the
+    deciding quote is shown under the clause instead). Section IDs become clause titles."""
+    text = SECTION_ID.sub(lambda m: title_of(m.group(0)), explanation).strip().rstrip("}").strip()   # JSON leftovers
     sents = sentences(text)
     plain = [s for s in sents if not re.search(r'["“”]', s)] or sents
-    pick = plain[-2:] if len(" ".join(plain[-2:])) <= 230 else plain[-1:]
-    return clip(" ".join(pick), 230)
+    if not plain:
+        return clip(text, 180)
+    pick = plain[-1] if len(plain[-1]) >= 70 or len(plain) == 1 else plain[-2] + " " + plain[-1]
+    return clip(pick, 180)
 
 
 def deciding_line(explanation: str, sid: str) -> str:
@@ -484,31 +490,105 @@ def deciding_line(explanation: str, sid: str) -> str:
     return clip(first, 150)
 
 
-def show_body(out: VerdictOutput) -> None:
-    """Below the steps, short for reading on a projector: why (2 sentences), one deciding line per clause, then the
-    full explanation and clause wording and the raw trace, folded away."""
+FWD_LIMIT_TABLES = ("fwd:benefit_limits:protecting_your_travel_plans", "fwd:benefit_limits:protecting_your_stuff",
+                    "fwd:benefit_limits:protecting_you_and_your_health", "fwd:benefit_limits:optional_covers")
+LIMIT_ROW = re.compile(r"^(?P<name>.+?) \[(?P<plans>[^\]]+)\](?::\s*(?P<note>.*))?$")
+MSIG_PLAN_ROW = re.compile(r"^(?P<plan>\w+ Plan) \| (?P<amount>.+)$")
+
+
+@st.cache_data(show_spinner=False)
+def fwd_limits() -> dict:
+    """FWD's table of benefits (its own sections in the index): benefit name, lower case -> the row's wording."""
+    rows = {}
+    for sid in FWD_LIMIT_TABLES:
+        sec = store.get_section(sid)
+        for line in (sec.text.splitlines() if sec else []):
+            m = LIMIT_ROW.match(line.strip())
+            if m:
+                rows[m["name"].strip().lower()] = line.strip()
+    return rows
+
+
+def limit_range(amounts: list[int], cur: str) -> str:
+    lo, hi = min(amounts), max(amounts)
+    return f"Up to {cur}{hi:,}" if lo == hi else f"Up to {cur}{lo:,} – {cur}{hi:,}, by plan"
+
+
+def policy_limits(out: VerdictOutput) -> list[tuple[str, str, str]]:
+    """The most each cited benefit pays, as printed in the policy: (benefit title, range across plans, what it applies
+    to). At most two benefits. No calculation: the payout depends on the plan bought and the insurer's assessment.
+    MSIG prints the limits inside each benefit section ("The maximum we will pay under this section is:", then one line
+    per plan); FWD prints them in its table of benefits ("Travel delay [Premium S$300, Business S$500, ...]: ...")."""
+    found = []
+    for sid in dict.fromkeys(out.cited_sections):
+        sec = store.get_section(sid)
+        if not sec or sec.type != "benefit" or any(t == sec.title for t, _, _ in found):
+            continue
+        if sid.startswith("msig:"):
+            lines = [ln.strip() for ln in sec.text.splitlines()]
+            start = next((i for i, ln in enumerate(lines) if ln.startswith("The maximum we will pay under this section")), None)
+            amounts, per_person = [], False
+            for ln in lines[start + 1:] if start is not None else []:
+                m = MSIG_PLAN_ROW.match(ln)
+                if not m:
+                    break
+                first = re.match(r"\$([\d,]+)", m["amount"])   # "$300 for each insured person $750 in total ..."
+                if first:
+                    amounts.append(int(first.group(1).replace(",", "")))
+                per_person |= "for each insured person" in m["amount"]
+            if amounts:
+                found.append((sec.title, limit_range(amounts, "$"), "per insured person" if per_person else ""))
+        else:
+            title = sec.title.strip().lower()
+            row = next((r for name, r in fwd_limits().items() if name == title or name.startswith(title + ":")), None)
+            rest = row[len(sec.title):] if row else ""
+            plans = re.search(r"\[([^\]]+)\]", rest)
+            amounts = [int(a.replace(",", "")) for a in re.findall(r"S\$([\d,]+)", plans.group(1))] if plans else []
+            if amounts:
+                who = rest[:plans.start()].strip(" :;").split(";")[-1].strip()   # e.g. "Adult below 70 years of age"
+                note = rest[plans.end():].lstrip(" :").split(";")[0].strip()      # e.g. "S$100 for every six hours ..."
+                basis = (who.lower() if who and len(who) <= 32
+                         else note if "$" in note and len(note) <= 60 and "sub-limit" not in note.lower()
+                         else "sub-limits apply to some items" if "sub-limit" in note.lower() else "")
+                found.append((sec.title, limit_range(amounts, "S$"), basis))
+    return found[:2]
+
+
+def show_body(out: VerdictOutput, aid: str | None = None) -> None:
+    """Below the steps, short enough for four cards side by side on a projector: why (one sentence), the clauses (the
+    deciding quote under the first only), the policy limit for a covered verdict; full text and trace folded away."""
     st.markdown(f'<div class="section-label">Why</div><p class="why">{html.escape(short_why(out.explanation))}</p>',
                 unsafe_allow_html=True)
     if out.cited_sections:
         groups = {}   # one row per clause title: a cited section can come in parts with the same title
         for s in out.cited_sections:
             sec = store.get_section(s)
-            g = groups.setdefault(sec.title, {"page": sec.page, "lines": []})
-            line = deciding_line(out.explanation, s)
-            if line not in g["lines"]:
-                g["lines"].append(line)
+            groups.setdefault(sec.title, {"page": sec.page, "sid": s})
+        shown = list(groups.items())[:3]
+        first_line = deciding_line(out.explanation, shown[0][1]["sid"])
         rows = "".join(f'<li><span class="ct">{html.escape(t)}</span><span class="pg">p. {g["page"]}</span>'
-                       + "".join(f'<span class="line">{html.escape(ln)}</span>' for ln in g["lines"]) + "</li>"
-                       for t, g in groups.items())
-        st.markdown(f'<div class="section-label">The clauses behind it</div><ul class="clauses">{rows}</ul>',
+                       + (f'<span class="line">{html.escape(clip(first_line, 120))}</span>' if i == 0 else "")
+                       + "</li>" for i, (t, g) in enumerate(shown))
+        more = (f'<li><span class="pg">and {len(groups) - 3} more, in the full wording below</span></li>'
+                if len(groups) > 3 else "")
+        st.markdown(f'<div class="section-label">The clauses behind it</div><ul class="clauses">{rows}{more}</ul>',
                     unsafe_allow_html=True)
-    with st.expander("Full explanation and clause wording"):
+    if out.verdict in ("covered", "partially_covered") and aid != FLOOR:   # B0 reads no policy: no limit to quote
+        limits = policy_limits(out)
+        items = ("".join(f'<li><span class="ct">{html.escape(t)}</span><span class="amt">{html.escape(a)}</span>'
+                         + (f'<span class="basis">{html.escape(b)}</span>' if b else "") + "</li>"
+                         for t, a, b in limits)
+                 or '<li><span class="basis">No limit printed in the cited clause: see your policy schedule.</span></li>')
+        st.markdown('<div class="section-label">Policy limit (not an estimate)</div>'
+                    f'<ul class="limits">{items}</ul><p class="limit-note">What you receive depends on your plan '
+                    "and the insurer's assessment.</p>", unsafe_allow_html=True)
+    with st.expander("Full wording and trace"):
         st.markdown(out.explanation)
         for sid in out.cited_sections:
             sec = store.get_section(sid)
             st.markdown(f'<div class="sid">{html.escape(sec.title)} · page {sec.page} · <code>{html.escape(sid)}'
                         f'</code></div><div class="clause">{html.escape(sec.text)}</div>', unsafe_allow_html=True)
-    with st.expander("Raw trace, as scored in the evaluation"):
+        st.caption("Trace, as scored in the evaluation")
         st.json(out.steps, expanded=False)
 
 
@@ -619,7 +699,7 @@ def use_example(policy: str) -> None:
     st.session_state[key] = None
 
 
-st.set_page_config(page_title="Am I covered?", layout="wide")
+st.set_page_config(page_title="Am I covered?", layout="wide", initial_sidebar_state="collapsed")
 st.markdown(CSS, unsafe_allow_html=True)
 warm = warm_up()
 
@@ -726,7 +806,14 @@ def finish(aid: str, out, box, outs: dict, slot: dict) -> None:
             return
         notes.append(f"Safe mode: simple RAG said {said}; the workflow agent checked it and says "
                      f"{check.verdict.replace('_', ' ')}, so that is the answer shown.")
-        out = check
+        # the cost is both runs, one after the other: simple RAG's call, then the agent's
+        secs = (out.usage.get("shown_s", out.usage.get("latency_s", 0))
+                + check.usage.get("shown_s", check.usage.get("latency_s", 0)))
+        out = check.model_copy(update={"usage": {
+            **check.usage, "model_calls": out.usage.get("model_calls", 0) + check.usage.get("model_calls", 0),
+            "shown_s": round(secs, 1), "safe_mode": True, "cached": out.usage.get("cached")}})
+        slot["head"].markdown(head_html(TITLES[aid], "simple RAG, then the agent's check", secs, aid),
+                              unsafe_allow_html=True)
     bad = (unsupported_quotes(out.explanation, policy)
            if aid != FLOOR and out.verdict in ("covered", "partially_covered") else [])
     if quotes and bad:
@@ -738,14 +825,11 @@ def finish(aid: str, out, box, outs: dict, slot: dict) -> None:
                                      "without quoting policy terms, and we will check it against the real wording."})
     slot["stamp"].markdown(stamp_html(out, aid, notes, GOLD), unsafe_allow_html=True)
     with box:
-        show_body(out)
-
+        show_body(out, aid)
+    return out   # what the card shows, after safe mode and the quote check: the summary table uses the same
 
 BOARD = ROOT / "results" / "test" / "report" / "leaderboard.csv"
 BOARD_MODEL = {"vllm_gptoss20b": "gpt-oss-20b", "vllm_llama8b": "Llama 8B"}   # model names in leaderboard.csv
-# From results/test/report/leaderboard.md (not in the CSV): pre-registered McNemar A4 vs A0, and safe mode's wrong
-# "covered" count out of the 53 not_covered test claims.
-STUDY_EXTRA = {"gpt-oss-20b": {"p": 0.88, "safe_wrong": 0}, "Llama 8B": {"p": 0.38, "safe_wrong": 2}}
 NOT_COVERED = 53   # not_covered claims in the 124-claim test set (REPORT section 3)
 
 
@@ -759,62 +843,62 @@ def study(model_name: str) -> dict:
 
 
 def summary(outs: dict) -> None:
-    """Under the cards: what differed on this claim (left), and the study's winner with its numbers (right)."""
+    """Under the cards: this claim side by side (verdict, right or wrong, time, calls, clauses cited) in one box; the
+    study's test results, which do not change with the claim, folded away below it."""
     if not outs:
         return
-    name = BOARD_MODEL[model]
-    rows, extra = study(name), STUDY_EXTRA[name]
-    a0, a4 = rows[WINNER], rows[BASELINE]
-    acc0, acc4 = float(a0["accuracy"]), float(a4["accuracy"])
-    ratio = float(a4["latency_s"]) / float(a0["latency_s"])
-    wc = {aid: round(float(r["wrong_covered_rate"]) * NOT_COVERED) for aid, r in rows.items()}
+    order = [a for a in METHODS if a in outs]
+    verdicts = {a: outs[a].verdict for a in order}
     with st.container(key="summary"):
-        st.markdown('<div class="sum-head"><div class="kicker-free">Which one wins?</div>'
-                    f'<span class="sub">This claim, then our 124-claim test on {html.escape(name)}</span></div>',
+        pills = []
+        if len(order) > 1:
+            pills.append("All agree" if len(set(verdicts.values())) == 1 else "They disagree")
+        if GOLD:
+            pills.append(f"Correct answer: {plain(GOLD)}")
+        st.markdown('<div class="kicker-free">This claim, side by side</div>'
+                    + ('<div class="sum-pills">' + "".join(f"<span>{html.escape(p)}</span>" for p in pills) + "</div>"
+                       if pills else ""), unsafe_allow_html=True)
+        head = ("<th>Method</th><th>Verdict</th>" + ("<th>Result</th>" if GOLD else "")
+                + '<th class="num">Time</th><th class="num">Model calls</th><th class="num">Clauses cited</th>')
+        body = ""
+        for a in order:
+            o, v = outs[a], verdicts[a]
+            result = (f'<td class="{"ok" if v == GOLD else "no"}">{"&#10003; right" if v == GOLD else "&#10007; wrong"}</td>'
+                      if GOLD else "")
+            secs = o.usage.get("shown_s", o.usage.get("latency_s", 0))
+            cited = len(dict.fromkeys(title_of(s) for s in o.cited_sections))
+            label = TITLES[a] + (" + safe mode" if o.usage.get("safe_mode") else "")
+            body += (f'<tr><td class="m">{html.escape(label)}</td>'
+                     f'<td><span class="vpill" style="color:{VERDICT[v][2]}">{VERDICT[v][0]}</span></td>{result}'
+                     f'<td class="num">{secs:.1f} s</td><td class="num">{o.usage.get("model_calls", 0)}</td>'
+                     f'<td class="num">{cited}</td></tr>')
+        st.markdown(f'<table class="cmp"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>',
                     unsafe_allow_html=True)
-        left, right = st.columns([5, 6], gap="large")
-        with left:
-            verdicts = {aid: o.verdict for aid, o in outs.items()}
-            facts = []
-            if len(outs) > 1:
-                head = "All agree" if len(set(verdicts.values())) == 1 else "They disagree"
-                facts.append(("This claim", f'<span class="big">{head}</span>'))
-            if GOLD:
-                facts.append(("Correct answer", f'<span class="gold">{html.escape(plain(GOLD).capitalize())}'
-                                                '<small>our label, from the test set</small></span>'))
-            tick = {True: "&#10003; ", False: "&#10007; "}
-            chips = "".join(f'<span class="chip{" no" if GOLD and v != GOLD else ""}" style="color:{VERDICT[v][2]}">'
-                            f'<b>{SHORT[aid]}</b>{tick[v == GOLD] if GOLD else ""}{VERDICT[v][0]}</span>'
-                            for aid, v in verdicts.items())
-            facts.append(("Verdicts", f'<div class="chips">{chips}</div>'))
-            facts.append(("Time", '<div class="times">' + "".join(
-                f'<span><b>{SHORT[aid]}</b>{o.usage.get("shown_s", o.usage.get("latency_s", 0)):.1f} s</span>'
-                for aid, o in outs.items()) + "</div>"))
-            agents = [a for a in (BASELINE, "A3") if a in outs]
-            if WINNER in outs and agents:   # clauses an agent cited that simple RAG did not
-                found = [s for a in agents for s in outs[a].cited_sections if s not in outs[WINNER].cited_sections]
-                if found:
-                    facts.append(("Simple RAG missed", names(found)))
-            st.markdown('<dl class="facts">' + "".join(f"<dt>{k}</dt><dd>{v}</dd>" for k, v in facts) + "</dl>",
-                        unsafe_allow_html=True)
-        with right:
-            body = "".join(
-                f'<tr class="{"win" if aid == WINNER else ""}"><td><span class="aid">{html.escape(TITLES[aid])}</span>{'<span class="nm">added later</span>' if aid == "A3" else ""}</td>'
-                f'<td><div class="bar"><i style="width:{float(r["accuracy"]):.0%}"></i>'
-                f'<span>{float(r["accuracy"]):.0%}</span></div></td>'
-                f'<td>{wc[aid]} of {NOT_COVERED}</td><td>{float(r["latency_s"]):.1f} s</td></tr>'
-                for aid, r in ((a, rows[a]) for a in METHODS if a in rows))
-            st.markdown('<table class="study"><thead><tr><th>Method</th><th>Right</th><th>Wrongly "covered"</th>'
-                        f'<th>Time</th></tr></thead><tbody>{body}</tbody></table>', unsafe_allow_html=True)
-            st.markdown(
-                '<div class="take">'
-                f'<span class="tl win">Best value</span><p><b>Simple RAG</b>, as accurate as the agent '
-                f'<span class="q">({acc0:.0%} vs {acc4:.0%}, no real difference, p = {extra["p"]:.2f})</span> '
-                f'and {ratio:.1f}× faster</p>'
-                f'<span class="tl safe">Safer</span><p><b>Workflow agent</b>, {wc[BASELINE]} wrong "covered" vs simple RAG\'s '
-                f'{wc[WINNER]}</p>'
-                f'<span class="tl adv">Our advice</span><p>Simple RAG, with the agent checking every "covered" '
-                f'<span class="q">(safe mode: {extra["safe_wrong"]} wrong)</span></p></div>', unsafe_allow_html=True)
+        agents = [a for a in (BASELINE, "A3") if a in outs]
+        if WINNER in outs and agents:   # clauses an agent cited that simple RAG did not (not the limits tables)
+            missed = [s for a in agents for s in outs[a].cited_sections
+                      if s not in outs[WINNER].cited_sections and ":benefit_limits:" not in s]
+            if missed:
+                st.markdown(f'<p class="sum-foot"><b>Found only by the agents:</b> {names(missed, 3)}</p>',
+                            unsafe_allow_html=True)
+    study_results()
+
+
+def study_results() -> None:
+    """The 124-claim test results for the chosen model: the same for every claim, so folded away by default."""
+    name = BOARD_MODEL[model]
+    rows = study(name)
+    wc = {a: round(float(r["wrong_covered_rate"]) * NOT_COVERED) for a, r in rows.items()}
+    body = "".join(f'<tr><td class="m">{html.escape(TITLES[a])}'
+                   + (' <span class="pg">added later</span>' if a == "A3" else "") + "</td>"
+                   f'<td class="num">{float(rows[a]["accuracy"]):.0%}</td><td class="num">{wc[a]} of {NOT_COVERED}</td>'
+                   f'<td class="num">{float(rows[a]["latency_s"]):.1f} s</td></tr>' for a in METHODS if a in rows)
+    with st.expander(f"How each method did on our 124 test claims ({name})"):
+        st.markdown('<table class="cmp"><thead><tr><th>Method</th><th class="num">Right (of 124)</th>'
+                    '<th class="num">Said “covered” on a not-covered claim (of 53)</th><th class="num">Time per claim</th></tr></thead>'
+                    f'<tbody>{body}</tbody></table><p class="sum-foot"><b>Best value:</b> simple RAG &middot; '
+                    "<b>Safer:</b> workflow agent &middot; <b>Our advice:</b> simple RAG by default; the workflow agent "
+                    'where a wrong "covered" is costly.</p>', unsafe_allow_html=True)
 
 
 if asked:
@@ -844,6 +928,9 @@ if asked:
             slots[aid]["head"].markdown(head_html(TITLES[aid], status, o.usage.get("latency_s", 0), aid),
                                         unsafe_allow_html=True)
             slots[aid]["steps"].markdown(steps_html(aid, o.steps), unsafe_allow_html=True)
+    shown = {}
     for aid in aids:
-        finish(aid, outs[aid], boxes[aid], outs, slots[aid])
-    summary({aid: o for aid, o in outs.items() if not isinstance(o, Exception)})
+        final = finish(aid, outs[aid], boxes[aid], outs, slots[aid])
+        if final is not None:
+            shown[aid] = final
+    summary(shown)

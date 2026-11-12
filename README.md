@@ -116,16 +116,18 @@ test claims blind. `python -m src.eval.agreement` reports Cohen's kappa. Rules: 
 ## 5. Demo
 
 ```
-powershell -ExecutionPolicy Bypass -File scripts\demo_start.ps1     (starts the gpt-oss server, tunnel and app)
+powershell -ExecutionPolicy Bypass -File scripts\demo_start.ps1     (gpt-oss server on an L40S, tunnel and app)
 powershell -ExecutionPolicy Bypass -File scripts\demo_stop.ps1      (closes the tunnel, frees the GPU)
-streamlit run app/streamlit_app.py                                  (app only: saved answers, or a server you started)
+streamlit run app/streamlit_app.py --server.port 8502             (app only: saved answers, or a server you started)
 ```
 
-Pick a policy and a model, describe what happened, and tick the methods to compare: no retrieval (B0), simple RAG
-(A0, the winner) and the workflow agent (A4). Ticked methods run at the same time, side by side; with the model server
-up, each card shows its steps live and its verdict as soon as it finishes. Each card gives a hedged verdict, a short
-"why", one line per cited clause (full wording one click away) and the step trace. Under the cards, "Which one wins?"
-says what differed on this claim and shows the study's test results for the chosen model. Two exploratory toggles,
+Pick a policy and a model, describe what happened, and tick the methods to compare: no retrieval (B0) and simple RAG
+(A0, the winner) as the baselines, the workflow agent (A4) and the ReAct agent (A3) as agentic RAG. Ticked methods
+run at the same time in side-by-side cards; with the model server up, each card shows its steps live and its
+verdict as soon as it finishes. Each card gives a hedged verdict (with a tick or cross when the claim is one of our
+labelled claims), a short "why", the cited clauses with the deciding wording (full text one click away), the policy
+limit for a covered verdict, and the step trace. Under the cards, "This claim, side by side" compares the answers,
+times and model calls, with the study's test results for the chosen model folded below. Two exploratory toggles,
 both off by default: safe mode (A4 re-checks every covered or partially covered from A0) and the quote check (a
 covered answer that quotes wording not in the policy becomes insufficient_info). The example questions are cached in
 `app/demo_cache.json` (gpt-oss), so they work offline; new questions need the model server and an open tunnel.
