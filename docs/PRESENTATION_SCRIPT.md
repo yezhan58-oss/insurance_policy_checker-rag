@@ -18,9 +18,8 @@ its word count.
 ## [Slide 1: Is the agent worth it?] Ye Zhan, 25 s
 
 Hi, we're Ye Zhan and Liang Than. When something goes wrong on a trip, people want to know straight away whether
-they're covered. Insurers' chatbots today mostly follow scripts to sell a policy or file a claim, and we didn't find
-one that reads your policy and tells you whether your situation is covered, with the clause to back it up. So we
-tested how an LLM should read the policy, looking at how accurate, how safe and how costly each way is, and asked
+they're covered, but the answer sits in a policy of 45 to 70 pages, and the clauses that decide it can be pages
+apart. So we tested how an LLM should read the policy, looking at how accurate, how safe and how costly each way is, and asked
 a simple question: is an agent worth what it costs?
 
 ## [Slide 2: One claim, three clauses, pages apart] Ye Zhan, 35 s
