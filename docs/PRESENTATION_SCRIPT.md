@@ -89,7 +89,7 @@ usually answers first. The workflow agent is working through its fixed steps, an
 lookups one at a time.
 
 *(point at the verdict labels, and the tick or cross under each)* No-RAG says it doesn't have enough information. Simple RAG
-says covered, because it found the delay benefit and stopped. The workflow agent says not covered, because it found the
+gets it wrong: it found the delay benefit but never saw the exclusion, so it says covered or asks for more detail. The workflow agent says not covered, because it found the
 exclusion for events already reported by the media. ReAct chooses its own lookups, so it may or may not get there:
 point at its tick or cross either way.
 
