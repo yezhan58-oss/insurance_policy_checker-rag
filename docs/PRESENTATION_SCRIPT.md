@@ -1,15 +1,15 @@
 # IS469 presentation script (7 minutes, live demo included)
 
-Deck: `docs/IS469_presentation.pptx`, 11 slides. The split follows the brief: Ye Zhan presents the comparison and
-results, and Liang Than presents the agent and runs the live demo. Target is **6:40 spoken**, which leaves about 20 s of buffer for
+Deck: `docs/IS469_presentation.pptx`, 11 slides. Ye Zhan presents the problem, the comparison, the model finding and the
+advice; Liang Than presents the workflow agent, its results and cost, and runs the live demo. Target is **6:40 spoken**, which leaves about 20 s of buffer for
 slide changes and a slow first model answer. At a normal pace of about 140 words a minute, each timing below matches
 its word count.
 
 | Slides | Speaker | Time | Running total |
 |---|---|---|---|
 | 1–4: why it matters, problem, methods, fair test | Ye Zhan | 2:15 | 2:15 |
-| 5: how the workflow agent reads the policy | Liang Than | 0:35 | 2:50 |
-| 6–8: results, cost, the model | Ye Zhan | 1:35 | 4:25 |
+| 5–7: the workflow agent, results, cost | Liang Than | 1:45 | 4:00 |
+| 8: the model | Ye Zhan | 0:25 | 4:25 |
 | 9: live demo | Liang Than (Ye Zhan drives the laptop) | 1:30 | 5:55 |
 | 10–11: advice, close | Ye Zhan | 0:45 | 6:40 |
 
@@ -48,7 +48,7 @@ differences together against the policy text. We also wrote the winner rule befo
 first, a method must not wrongly say "covered" more often than simple RAG; then the most accurate one wins; and if the
 gap isn't statistically significant, the cheaper, faster method wins.
 
-*(hand over)* Liang will show you how the workflow agent works.
+*(hand over)* Liang will show you how the workflow agent works, and how it did.
 
 ## [Slide 5: The workflow agent reads like a claims assessor] Liang Than, 35 s
 
@@ -57,23 +57,23 @@ defined terms by name at the back, and then keeps the general exclusions that co
 usually lands near the benefit and stops there. That's why the workflow agent reached 84 to 91% of the clauses that decide a
 claim, compared with 66% for simple RAG.
 
-*(hand back)* Ye Zhan will take you through the results.
+## [Slide 6: The agents led, but not by enough] Liang Than, 35 s
 
-## [Slide 6: The agents led, but not by enough] Ye Zhan, 35 s
-
-The two agents were the most accurate, but only just: on gpt-oss, ReAct got 94 of 124 right against simple RAG's 86.
+So did all that extra reading pay off? The two agents were the most accurate, but only just: on gpt-oss, ReAct got 94 of 124 right against simple RAG's 86.
 None of these gaps is statistically significant: with 124 claims, differences this small could just be luck. So they are too close to call, and the best value is simple RAG. (If asked: our planned rule picks simple RAG;
 with ReAct added later, its tie-break picks the workflow agent. Either way, no agent is significantly better.)
 
-## [Slide 7: What the workflow agent costs, and what it buys] Ye Zhan, 35 s
+## [Slide 7: What the workflow agent costs, and what it buys] Liang Than, 35 s
 
 The workflow agent takes 2.6 times as long per claim, and for that you get two more right answers, which isn't a
 real difference. Where it does matter is safety: on the claims that are not covered, simple RAG wrongly told the
 customer "you're covered" 9 times, the workflow agent only once.
 
+*(hand back)* Ye Zhan has one more surprise for you.
+
 ## [Slide 8: The model mattered more than the method] Ye Zhan, 25 s
 
-One surprise: the model mattered more than the method. Switching to the bigger model lifted simple RAG by 13 points,
+The model mattered more than the method. Switching to the bigger model lifted simple RAG by 13 points,
 while switching method added at most 6. Without the policy, the bigger model actually did worse, but given the whole
 policy in one prompt it got 76% right against the small model's 32%, at thirteen times the tokens.
 
