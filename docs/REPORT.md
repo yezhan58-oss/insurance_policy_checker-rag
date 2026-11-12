@@ -262,7 +262,7 @@ A claim describes what happened and never uses the defined terms or exclusion wo
 
 The demo is a Streamlit app that runs no retrieval, simple RAG, the workflow agent and ReAct side by side on gpt-oss-20b, so the user sees the floor, the winner and both agents answer the same claim on one page.
 
-![The demo (earlier version, 7-hour typhoon claim). To be replaced with a screenshot of the current page on the Manila claim.](demo_typhoon.png)
+![The demo on the Manila claim (typhoon in the news before the policy was bought; correct answer: not covered), live on gpt-oss-20b. No retrieval and simple RAG ask for more detail; the workflow agent and ReAct both find the exclusion for events known before cover started.](demo_manila.png)
 
 - **Each card shows** a possible verdict ("Likely covered under Travel delay, subject to the insurer's assessment", never a payout amount), the steps taken, a short reason and one deciding line per cited clause. On labelled test claims it also marks the verdict right or wrong, and a table under the cards lines up the four answers with their time and model calls; the test-set results are folded below it. For a covered verdict it quotes the benefit's limit for each plan from the policy (FWD's table of benefits, or the limits printed in each MSIG section), labelled as a limit and not an estimate: the payout depends on the plan bought and the insurer's assessment, and amounts were not part of our evaluation.
 - **Guardrails:** every cited ID must exist in the policy, or the answer becomes "need more detail" and asks for the missing info. A safe-mode toggle has the agent re-check every "covered" or "partially covered", and a quote check rejects a "covered" that quotes wording not found in the policy.
