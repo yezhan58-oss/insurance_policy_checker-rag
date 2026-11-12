@@ -209,6 +209,19 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   4.2, the new advice (now "covered or partially covered", his precision), and section 8's lines on the summary table
   and policy limit that his older base lacked; typo "itss" fixed. His changes were then copied into the shared doc
   (rev 389), which again matches REPORT.md.
+- **Figure 4 (12 Nov)** [8]: the demo on the Manila claim (fwd-010, saved gpt-oss answers), stitched from YZ's three
+  screenshots (input and verdicts; steps, reasons and clauses; the side-by-side table) into docs/figures/demo_manila.png.
+  Then split so the page flows better: Figure 4 = the claim and the four cards (docs/figures/demo_manila.png, in place
+  of the old placeholder); Figure 5 = the side-by-side table (demo_manila_table.png), after the section 8 bullets, which
+  now point to it. Same in the shared doc (rev 392) and REPORT.md.
+- **Full-context on the slides (12 Nov)** [7.3]: slide 8 gets a fourth line, paired with "No policy": "Whole policy: the
+  bigger model did far better (76% vs 32%, 13x the tokens)" (gpt-oss 0.758 vs Llama 0.323; tokens 40,842 vs simple RAG's
+  3,247 on gpt-oss, 34,246 vs 2,635 on Llama, both about 13x). Script slide 8 now 25 s, total 6:40; that sentence is
+  the first cut if running long. The report already covers Full-context (sections 2, 4, 7.1, 7.3, 9).
+- **Two Figure 4s (12 Nov)**: Member B's PR #77 added a live-run Manila screenshot (docs/demo_manila.png; simple RAG said
+  "need more detail") while we split ours. YZ kept the split Figures 4 and 5 (saved test-run answers, simple RAG says
+  covered, matching the reported results, slide 9 and the shared doc); his file stays in the repo, unused. His slide 9
+  script line (simple RAG says covered or asks for more detail) is kept.
 - **Power** [9]: with the observed discordance (32 to 42 of 124 claims), a 5-point gap needs about 800 to 1,100
   claims for 80% power (McNemar, two-sided 5%); about 230 to 290 for a 10-point gap.
 - **Course links** [1, 2]: Topic 7 slides 18-19 (ReAct loop), 36 (ReAct vs Plan-and-Execute: the workflow agent is

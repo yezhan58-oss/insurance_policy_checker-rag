@@ -1,7 +1,7 @@
 # IS469 presentation script (7 minutes, live demo included)
 
 Deck: `docs/IS469_presentation.pptx`, 11 slides. The split follows the brief: Ye Zhan presents the comparison and
-results, and Liang Than presents the agent and runs the live demo. Target is **6:30 spoken**, which leaves about 30 s of buffer for
+results, and Liang Than presents the agent and runs the live demo. Target is **6:40 spoken**, which leaves about 20 s of buffer for
 slide changes and a slow first model answer. At a normal pace of about 140 words a minute, each timing below matches
 its word count.
 
@@ -9,9 +9,9 @@ its word count.
 |---|---|---|---|
 | 1–4: why it matters, problem, methods, fair test | Ye Zhan | 2:15 | 2:15 |
 | 5: how the workflow agent reads the policy | Liang Than | 0:35 | 2:50 |
-| 6–8: results, cost, the model | Ye Zhan | 1:25 | 4:15 |
-| 9: live demo | Liang Than (Ye Zhan drives the laptop) | 1:30 | 5:45 |
-| 10–11: advice, close | Ye Zhan | 0:45 | 6:30 |
+| 6–8: results, cost, the model | Ye Zhan | 1:35 | 4:25 |
+| 9: live demo | Liang Than (Ye Zhan drives the laptop) | 1:30 | 5:55 |
+| 10–11: advice, close | Ye Zhan | 0:45 | 6:40 |
 
 ---
 
@@ -71,10 +71,11 @@ The workflow agent takes 2.6 times as long per claim, and for that you get two m
 real difference. Where it does matter is safety: on the claims that are not covered, simple RAG wrongly told the
 customer "you're covered" 9 times, the workflow agent only once.
 
-## [Slide 8: The model mattered more than the method] Ye Zhan, 15 s
+## [Slide 8: The model mattered more than the method] Ye Zhan, 25 s
 
 One surprise: the model mattered more than the method. Switching to the bigger model lifted simple RAG by 13 points,
-while switching method added at most 6. Without the policy, though, the bigger model actually did worse.
+while switching method added at most 6. Without the policy, the bigger model actually did worse, but given the whole
+policy in one prompt it got 76% right against the small model's 32%, at thirteen times the tokens.
 
 *(hand over)* Liang will now show it live.
 
@@ -128,6 +129,6 @@ So, is the agent worth it? For accuracy, not yet. For safety, yes. Thank you, an
 - Open `localhost:8502` in the browser before you start, with all four methods ticked. Click the "Typhoon already in the
   news" example instead of pasting: the wording then matches our test claim exactly, so the page shows the tick or
   cross under each verdict. After "Check my claim" the banner shrinks, so all four verdicts fit on the first screen.
-- Rehearse once with a timer. If you run long, cut in this order: the "Without the policy" line on slide 8, the
+- Rehearse once with a timer. If you run long, cut in this order: the "without the policy / whole policy" sentence on slide 8, the
   limits sentence on slide 10, then "We ran all of it on two models" on slide 3 (the slide still shows it).
 - Say one number per point; the slides hold the rest. Avoid "McNemar", "Holm" and "kappa" unless asked.

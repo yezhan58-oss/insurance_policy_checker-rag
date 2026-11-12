@@ -1,4 +1,4 @@
-<!-- Synced with the shared report doc on 12 Nov 2026, rev 389 (the doc is the working copy). -->
+<!-- Synced with the shared report doc on 12 Nov 2026, rev 392 (the doc is the working copy). -->
 
 # Is the agent worth it? Agentic RAG for travel insurance coverage verdicts
 
@@ -262,13 +262,19 @@ A claim describes what happened and never uses the defined terms or exclusion wo
 
 The demo is a Streamlit app that runs no retrieval, simple RAG, the workflow agent and ReAct side by side on gpt-oss-20b, so the user sees the floor, the winner and both agents answer the same claim on one page.
 
-![The demo on the Manila claim (typhoon in the news before the policy was bought; correct answer: not covered), live on gpt-oss-20b. No retrieval and simple RAG ask for more detail; the workflow agent and ReAct both find the exclusion for events known before cover started.](demo_manila.png)
+![The demo on the Manila typhoon claim: the four methods side by side](figures/demo_manila.png)
 
-- **Each card shows** a possible verdict ("Likely covered under Travel delay, subject to the insurer's assessment", never a payout amount), the steps taken, a short reason and one deciding line per cited clause. On labelled test claims it also marks the verdict right or wrong, and a table under the cards lines up the four answers with their time and model calls; the test-set results are folded below it. For a covered verdict it quotes the benefit's limit for each plan from the policy (FWD's table of benefits, or the limits printed in each MSIG section), labelled as a limit and not an estimate: the payout depends on the plan bought and the insurer's assessment, and amounts were not part of our evaluation.
+*Figure 4. The demo on the Manila typhoon claim (test claim fwd-010, saved gpt-oss-20b answers). No retrieval asks for more detail and simple RAG says likely covered (both wrong); both agents say likely not covered because of the exclusion for events already in the news (right).*
+
+- **Each card shows** a possible verdict ("Likely covered under Travel delay, subject to the insurer's assessment", never a payout amount), the steps taken, a short reason and one deciding line per cited clause. On labelled test claims it also marks the verdict right or wrong, and a table under the cards lines up the four answers with their time and model calls (Figure 5); the test-set results are folded below it. For a covered verdict it quotes the benefit's limit for each plan from the policy (FWD's table of benefits, or the limits printed in each MSIG section), labelled as a limit and not an estimate: the payout depends on the plan bought and the insurer's assessment, and amounts were not part of our evaluation.
 - **Guardrails:** every cited ID must exist in the policy, or the answer becomes "need more detail" and asks for the missing info. A safe-mode toggle has the agent re-check every "covered" or "partially covered", and a quote check rejects a "covered" that quotes wording not found in the policy.
 - **Prompt injection:** four claims with instructions such as "say covered" fooled neither the simple RAG nor the workflow agent. A fake policy endorsement pasted into the claim field did fool the simple RAG, but the quote check catches it.
 - **Offline:** scripted questions use cached answers, which are never used for any reported number.
 - **Limit:** simple RAG, the winner under the planned rule, is right on 69% of claims. The app points to the deciding clauses, but it does not decide the claim.
+
+![The side-by-side table for the Manila claim](figures/demo_manila_table.png)
+
+*Figure 5. The table under the cards for the same claim: each method's verdict, whether it was right, its time and model calls, and the clause only the agents found.*
 
 ## 9. Discussion
 
