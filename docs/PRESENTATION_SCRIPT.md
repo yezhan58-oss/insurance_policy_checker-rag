@@ -59,12 +59,13 @@ could just be luck, we pick the cheaper one.
 
 *(hand over)* Liang will show you how the workflow agent works, and how it did.
 
-## [Slide 5: The workflow agent reads like a claims assessor] Liang Than, 35 s
+## [Slide 5: The agents found more of the clauses that decide a claim] Liang Than, 35 s
 
-This strip is the whole FWD policy. The workflow agent first picks up to three benefits from the contents, then looks up the
-defined terms by name at the back, and then keeps the general exclusions that could apply. Simple RAG's single search
-usually lands near the benefit and stops there. That's why the workflow agent reached 84 to 91% of the clauses that decide a
-claim, compared with 66% for simple RAG.
+This strip is the whole FWD policy. Our workflow agent reads it like a claims assessor: benefits first, then the
+defined terms at the back, then the exclusions that could apply. Simple RAG's one search usually lands near the
+benefit and stops there. Across all four methods, the two that look things up step by step, the workflow agent and
+ReAct, got 77 to 91% of the deciding clauses in front of the model. Simple RAG and corrective RAG, which only search,
+stayed at about two thirds.
 
 ## [Slide 6: The agents led, but not by enough] Liang Than, 35 s
 
