@@ -21,7 +21,8 @@ final report: `docs/REPORT.md`.
 **Result (test, 124 claims):** the agents were the most accurate (A4 0.61 Llama / 0.71 gpt-oss, A3 0.61 / 0.76) but
 not significantly better than A0 (0.56 / 0.69), so the pre-registered rule picks the cheaper A0 on both models (with A3
 included, its tie-break picks A4). A4 was the safest: on gpt-oss it wrongly said "covered" on 1 of 53 not-covered
-claims, against 9 for A0. Details: `results/test/report/leaderboard.md` and `docs/REPORT.md`.
+claims, against 9 for A0 (exploratory, p = 0.021). Our advice to an insurer is therefore A4, with A0 as the budget
+option. Details: `results/test/report/leaderboard.md` and `docs/REPORT.md`.
 
 ## 1. Laptop setup (Windows; Python 3.11 or 3.12)
 

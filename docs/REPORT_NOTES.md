@@ -486,3 +486,9 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   (10.5 sections kept), 0.81/0.25 (1.0 kept); A2 grader 0.70/0.53, 0.67/0.72. ReAct called its definition tool only
   41 times (Llama) and 6 times (gpt-oss) in 124 claims. Unneeded share of context: A4 and A3 0.92 (Llama), 0.81
   (gpt-oss); A0 0.80.
+- **Recommendation changed (12 Nov, team decision)**: advise insurers to use the workflow agent (A4), with simple RAG
+  (A0) as the budget option. Reason: A4 is as accurate as A0 (no significant gap) and far safer on the costliest error
+  (wrong "covered" 1 vs 9 of 53 on gpt-oss, p = 0.021 exploratory; 4 vs 7 on Llama, not significant), for about 2x
+  the tokens and 2.6x the time. The pre-registered rule still picks A0 (it weighs only accuracy and cost); the report
+  says so. Updated: abstract, section 9 advice, conclusion bullet, README, demo advice line. Slides and script are
+  edited outside the repo.

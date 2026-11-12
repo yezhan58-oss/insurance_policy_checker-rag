@@ -10,13 +10,15 @@ We took two real Singapore policies (FWD and MSIG), wrote 124 test claims with h
 
 1. No retrieval (No-RAG)
 2. simple RAG (RAG)
-3. agentic RAG: corrective (CRAG)&#32;
-4. agentic RAG: workflow agent (Agent)
-5. agentic RAG: ReAct, which chooses its own lookups, added after the core runs; plus a whole-policy baseline (Full-context) as an exploratory extra
+3. agentic RAG: **C****orrective (CRAG) **
+4. agentic RAG: **W****orkflow Agent (Agent)**
+5. agentic RAG: **ReAct**, which chooses its own lookups, added after the core runs; plus a whole-policy baseline (Full-context) as an exploratory extra
 
-The two agents were the most accurate (workflow agent 0.61 and 0.71, ReAct 0.61 and 0.76, against 0.56 and 0.69 for simple RAG), and the workflow agent found much more of the evidence a claim needs (0.91 and 0.84, against 0.66).&#32;
+On both models, the two strongest agentic setups, the workflow agent and ReAct, got slightly more claims right than simple RAG (at best 76% against 69%, on gpt-oss-20b), and the workflow agent got far more of the deciding clauses in front of the model (84–91%, against 66%).
 
-None of these gaps was statistically significant, so on accuracy alone the agents are not worth their extra cost, and the rule we fixed before testing picks simple RAG (section 7.2 shows how adding ReAct later shifts its tie-break). What the workflow agent did change was the kind of mistake: its errors moved from retrieval to reasoning, and on gpt-oss it called a "not\_covered" claim covered only once in 53, where simple RAG did so 9 times. We therefore recommend simple RAG by default and the workflow agent wherever a wrong "covered" is costly; the demo shows the methods side by side, behind guardrails.
+None of these gaps was statistically significant, so on accuracy alone the agents are not worth their extra cost. What the workflow agent did change was the kind of mistake: its errors moved from retrieval to reasoning, and on gpt-oss it called a "not\_covered" claim covered **only once** in 53, where simple RAG did so **9 times. **
+
+For an insurer, we recommend the workflow agent: it is as accurate as simple RAG and far less likely to wrongly tell a customer they are covered, for about twice the tokens. Simple RAG is the budget option. Our pre-set rule picked simple RAG because it weighed only accuracy and cost; the safety gap was an exploratory finding and should be confirmed on more claims. A small web demo runs the methods side by side on a user's claim.
 
 ## 1. Introduction
 
@@ -242,7 +244,7 @@ The four core setups and Full-context ran once per model over the 124 test claim
 **Tool calls, step by step.** We also scored each step of the agentic setups against the gold sections: how many of the needed sections it found, and how much of what it kept was needed (precision).
 
 | Tool call | Llama: found / precision | gpt-oss: found / precision |
-|---|---|---|
+| --- | --- | --- |
 | Workflow agent: pick benefits | 0.94 / 0.43 | 0.88 / 0.80 |
 | Workflow agent: look up definitions | 0.62 / 0.02 | 0.58 / 0.02 |
 | Workflow agent: keep exclusions | 0.90 / 0.04 (keeps 10.5) | 0.81 / 0.25 (keeps 1.0) |
@@ -302,7 +304,7 @@ The demo is a Streamlit app that runs no retrieval, simple RAG, the workflow age
 
 ## 9. Discussion on our study
 
-**Answer to the research question.** None of the agentic setups (corrective RAG, the workflow agent, ReAct) was significantly more accurate than simple RAG. Both agents were slightly more accurate (the workflow agent by 5 and 2 points, ReAct by 5 and 6), but they cost 1.9 to 4.8× the time and 2 to 17× the tokens. On accuracy alone, simple RAG is the better buy; the workflow agent's real advantage is safety.
+**Answer to the research question.** None of the agentic setups (corrective RAG, the workflow agent, ReAct) was significantly more accurate than simple RAG. Both agents were slightly more accurate (the workflow agent by 5 and 2 points, ReAct by 5 and 6), but they cost 1.9 to 4.8× the time and 2 to 17× the tokens. On accuracy alone, simple RAG is the better buy, but the workflow agent's real advantage is safety, and that is what an insurer should pay for.
 
 **What we learned**
 
@@ -314,7 +316,7 @@ The demo is a Streamlit app that runs no retrieval, simple RAG, the workflow age
 
 **Our a****dvice to an insurance company:**&#32;
 
-Use simple RAG by default: no agent was significantly more accurate, and it needs one model call. Where a wrong "covered" is the costly mistake, run the workflow agent on every claim: on gpt-oss it made that mistake once in 53 claims, against 9 times for simple RAG, for about twice the tokens. We also tried a cheaper mix, safe mode, where the agent re-checks only simple RAG's "covered" or "partially covered" answers (simulated from the stored answers, exploratory). On gpt-oss it stopped every wrong "covered" (0 of 53), but it got fewer claims right than the agent alone (66% against 71%) for 91% of its tokens, because simple RAG's other answers go unchecked (Llama: 2 of 53 wrong, 56% right, 72% of the agent's tokens). So we do not recommend it over the agent. Keep ReAct for open-ended questions, such as comparing plans, and only with a strong model and a cap on lookups: claim checking is a well-structured task, where Topic 7's rule of thumb favours a fixed plan over ReAct, and our results agree (more calls, less safe). Invest in the model before the method, and at about 70% accuracy let the tool point customers to the deciding clauses while a person decides the claim.
+Use the workflow agent. It is as accurate as simple RAG (no setup was significantly more accurate), and far less likely to wrongly tell a customer they are covered: on gpt-oss once in 53 claims, against 9 times for simple RAG (Llama: 4 against 7), for about twice the tokens and 2.6× the time. Simple RAG, with one model call, is the budget option. The rule we fixed before testing picked simple RAG because it weighed only accuracy and cost; the safety gap was an exploratory finding (p = 0.021 on gpt-oss, not significant on Llama), so an insurer should confirm it on its own claims. We also tried a cheaper mix, safe mode, where the agent re-checks only simple RAG's "covered" or "partially covered" answers (simulated from the stored answers, exploratory). On gpt-oss it stopped every wrong "covered" (0 of 53), but it got fewer claims right than the agent alone (66% against 71%) for 91% of its tokens, because simple RAG's other answers go unchecked (Llama: 2 of 53 wrong, 56% right, 72% of the agent's tokens). So we do not recommend it over the agent. Keep ReAct for open-ended questions, such as comparing plans, and only with a strong model and a cap on lookups: claim checking is a well-structured task, where Topic 7's rule of thumb favours a fixed plan over ReAct, and our results agree (more calls, less safe). Invest in the model before the method, and at about 70% accuracy let the tool point customers to the deciding clauses while a person decides the claim.
 
 **Limitations in** **our** **project**
 
@@ -337,7 +339,7 @@ Is agentic RAG, where the model decides what to look up, worth its extra cost ov
 
 This project delivers:
 
-- **A clear answer for insurers:** simple RAG by default, and the workflow agent wherever a wrong "covered" is the costly mistake.
+- **A clear answer for insurers:** the workflow agent, which is far less likely to wrongly say "covered" for about twice the tokens, with simple RAG as the budget option.
 - **A fair, reusable test bed:** 144 human-checked claims on two real policies, a winner rule fixed before testing, and a trace evaluation that separates retrieval failures from reasoning failures.
 - **A working demo:** "Am I covered?" runs four methods side by side, cites the deciding clauses, and never promises a payout.
 - **A pointer to what comes next:** the bottleneck has moved from finding the clauses to reading them, so a stronger model now matters more than a cleverer method (+13 points against at most +6).

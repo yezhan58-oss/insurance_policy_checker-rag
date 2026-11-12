@@ -909,9 +909,9 @@ def study_results() -> None:
     with st.expander(f"How each method did on our 124 test claims ({name})"):
         st.markdown('<table class="cmp"><thead><tr><th>Method</th><th class="num">Right (of 124)</th>'
                     '<th class="num">Said “covered” on a not-covered claim (of 53)</th><th class="num">Time per claim</th><th class="num">Tokens per claim</th></tr></thead>'
-                    f'<tbody>{body}</tbody></table><p class="sum-foot"><b>Best value:</b> simple RAG &middot; '
-                    "<b>Safer:</b> workflow agent &middot; <b>Our advice:</b> simple RAG by default; the workflow agent "
-                    'where a wrong "covered" is costly.</p>', unsafe_allow_html=True)
+                    f'<tbody>{body}</tbody></table><p class="sum-foot"><b>Our advice:</b> the workflow agent, far '
+                    'less likely to wrongly say "covered" for about twice the tokens &middot; <b>Budget option:</b> '
+                    "simple RAG</p>", unsafe_allow_html=True)
 
 
 if asked:
