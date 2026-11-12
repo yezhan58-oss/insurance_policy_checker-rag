@@ -43,8 +43,8 @@ stays the same, so only the reading strategy changes. We ran all of it on two mo
 ## [Slide 4: How we kept the comparison fair] Ye Zhan, 30 s
 
 We wrote 144 claims against two real policies, FWD and MSIG. We tuned on 20 of them and froze the other 124 as a test
-set before any test run. A second person re-labelled 40 claims blind; agreement was moderate, so we settled the
-differences together against the policy text. We also wrote the winner rule before testing:
+set before any test run. A second person re-labelled 40 claims blind: we matched on 25, and settled the other 15
+together against the policy text. We also wrote the winner rule before testing:
 first, a method must not wrongly say "covered" more often than simple RAG; then the most accurate one wins; and if the
 gap isn't statistically significant, the cheaper, faster method wins.
 
