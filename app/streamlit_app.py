@@ -897,8 +897,8 @@ def study_results() -> None:
         st.markdown('<table class="cmp"><thead><tr><th>Method</th><th class="num">Right (of 124)</th>'
                     '<th class="num">Said “covered” on a not-covered claim (of 53)</th><th class="num">Time per claim</th></tr></thead>'
                     f'<tbody>{body}</tbody></table><p class="sum-foot"><b>Best value:</b> simple RAG &middot; '
-                    "<b>Safer:</b> workflow agent &middot; <b>Our advice:</b> simple RAG, with the workflow agent "
-                    'checking every "covered".</p>', unsafe_allow_html=True)
+                    "<b>Safer:</b> workflow agent &middot; <b>Our advice:</b> simple RAG by default; the workflow agent "
+                    'where a wrong "covered" is costly.</p>', unsafe_allow_html=True)
 
 
 if asked:

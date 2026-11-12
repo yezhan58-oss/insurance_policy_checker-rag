@@ -193,6 +193,14 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   where Topic 7 slide 36 (ReAct vs Plan-and-Execute) favours a fixed plan, and A3 was less safe (4 of 53 vs 1) with
   unpredictable cost (7.9 calls on Llama). Invest in the model first (+13 points vs at most +6 from method). At
   about 70% accuracy, point customers to the deciding clauses and leave the claim decision to a person.
+- **Advice changed (12 Nov, replaces the safe-mode advice above)** [9]: YZ noticed safe mode is nearly the workflow
+  agent anyway. On gpt-oss it costs 5,913 tokens per claim against the agent's 6,476 (91%) and 12.3 s against 15.2 s,
+  because simple RAG says covered on 50 of 124 claims and those all go to the agent; and it gets 66% right against
+  the agent's 71%, because simple RAG's other answers go unchecked. Its only gain is 0 wrong "covered" of 53 against 1.
+  (Llama: 4,790 vs 6,626 tokens, 56% vs 61%, 2 vs 4 wrong.) New advice: simple RAG by default; the workflow agent on
+  every claim where a wrong "covered" is costly (about 2x simple RAG's tokens, 2.6x its time); safe mode reported as
+  tried, not recommended. Updated in slide 10, its script, the report doc (abstract and advice, rev 387), REPORT.md
+  and the demo's advice line. The ReAct and model-first points stand.
 - **Power** [9]: with the observed discordance (32 to 42 of 124 claims), a 5-point gap needs about 800 to 1,100
   claims for 80% power (McNemar, two-sided 5%); about 230 to 290 for a 10-point gap.
 - **Course links** [1, 2]: Topic 7 slides 18-19 (ReAct loop), 36 (ReAct vs Plan-and-Execute: the workflow agent is
@@ -256,6 +264,10 @@ result. On dev, 9 of A4's 10 Llama misses had all needed sections in context (re
   rounded cards with Baseline / Agentic RAG labels, flat verdict stamps). Kept from rounds 3-4: the renamed
   columns ("Right (of 124)", "Said 'covered' on a not-covered claim (of 53)"), the clean-up of stray "}" and ".…"
   in the one-line reasons, and the live-run counts and script fallback for ReAct.
+  Demo tables (12 Nov): even columns, values centred under their headers, no vertical grid lines.
+  scripts/demo_start.ps1 (12 Nov): asks for an L40S by default (`-Gpu a40` to switch back; the A40 node avenue is
+  still drained, so the old request would have waited and failed on the day) and opens the app on port 8502, the
+  address in the script's checklist. Checked with `sbatch --test-only`: the L40S job would start at once on lucas.
 - **A0K10 on test (11 Nov, branch a/a0-k10 at bd31b05, L40S; exploratory, a test only; code merged in PR #71)** [7]: A0 with
   top_k 10. 124 claims each, 0 errors. Accuracy (wrong-covered): gpt-oss 0.70 (0.15) vs A0 0.69 (0.17), McNemar
   p = 1.00 (13 vs 12); Llama 0.59 (0.13) vs A0 0.56 (0.13), p = 0.607 (9 vs 6). Evidence recall 0.66 to 0.75 on

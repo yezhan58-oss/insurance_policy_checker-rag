@@ -1,4 +1,4 @@
-<!-- Synced from the shared report doc on 11 Nov 2026, rev 385 (the doc is the working copy). -->
+<!-- Synced from the shared report doc on 12 Nov 2026, rev 387 (the doc is the working copy). -->
 
 # Is the agent worth it? Agentic RAG for travel insurance coverage verdicts
 
@@ -18,7 +18,7 @@ We took two real Singapore policies (FWD and MSIG), wrote 124 test claims with h
 
 The two agents were the most accurate (workflow agent 0.61 and 0.71, ReAct 0.61 and 0.76, against 0.56 and 0.69 for simple RAG), and the workflow agent found much more of the evidence a claim needs (0.91 and 0.84, against 0.66).
 
-None of these gaps was statistically significant, so on accuracy alone the agents are not worth their extra cost, and the rule we fixed before testing picks simple RAG (section 7.2 shows how adding ReAct later shifts its tie-break). What the workflow agent did change was the kind of mistake: its errors moved from retrieval to reasoning, and on gpt-oss it called a "not\_covered" claim covered only once in 53, where simple RAG did so 9 times. Our demo therefore runs simple RAG behind guardrails and offers the agent as a second opinion.
+None of these gaps was statistically significant, so on accuracy alone the agents are not worth their extra cost, and the rule we fixed before testing picks simple RAG (section 7.2 shows how adding ReAct later shifts its tie-break). What the workflow agent did change was the kind of mistake: its errors moved from retrieval to reasoning, and on gpt-oss it called a "not\_covered" claim covered only once in 53, where simple RAG did so 9 times. We therefore recommend simple RAG by default and the workflow agent wherever a wrong "covered" is costly; the demo shows the methods side by side, behind guardrails.
 
 ## 1. Introduction
 
@@ -284,7 +284,7 @@ The demo is a Streamlit app that runs no retrieval, simple RAG and the workflow 
 - **The formal winner depends on which setups are in the race.** Our tie-break only compares the top two, so adding ReAct afterwards switched the winner from simple RAG to the workflow agent without changing either one's results. A rule that compares every setup against the cheapest would be more stable.
 - **Safety is where the workflow agent earns its cost.** On gpt-oss it wrongly said "covered" on 1 of 53 claims, against 9 for simple RAG and 4 for ReAct (exploratory, p = 0.021 against simple RAG; not significant on Llama). Our rule only checked safety against simple RAG, so it could not reward this; a real deployment should break ties on safety.
 
-**Advice to an insurer.** Use simple RAG as the main engine and let the workflow agent re-check every "covered". On the stored gpt-oss answers this gave 0 wrong "covered" of 53, at 66% accuracy and about 1.8× simple RAG's tokens (simulated, exploratory). Keep ReAct for open-ended questions, such as comparing plans, and only with a strong model and a cap on lookups: claim checking is a well-structured task, where Topic 7's rule of thumb favours a fixed plan over ReAct, and our results agree (more calls, less safe). Invest in the model before the method, and at about 70% accuracy let the chatbot point customers to the deciding clauses while a person decides the claim.
+**Advice to an insurer.** Use simple RAG by default: no agent was significantly more accurate, and it needs one model call. Where a wrong "covered" is the costly mistake, run the workflow agent on every claim: on gpt-oss it made that mistake once in 53 claims, against 9 times for simple RAG, for about twice the tokens. We also tried a cheaper mix, safe mode, where the agent re-checks only simple RAG's "covered" answers (simulated from the stored answers, exploratory). On gpt-oss it stopped every wrong "covered" (0 of 53), but it got fewer claims right than the agent alone (66% against 71%) for 91% of its tokens, because simple RAG's other answers go unchecked (Llama: 2 of 53 wrong, 56% right, 72% of the agent's tokens). So we do not recommend it over the agent. Keep ReAct for open-ended questions, such as comparing plans, and only with a strong model and a cap on lookups: claim checking is a well-structured task, where Topic 7's rule of thumb favours a fixed plan over ReAct, and our results agree (more calls, less safe). Invest in the model before the method, and at about 70% accuracy let the chatbot point customers to the deciding clauses while a person decides the claim.
 
 **Limitations**
 

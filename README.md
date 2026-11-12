@@ -116,9 +116,9 @@ test claims blind. `python -m src.eval.agreement` reports Cohen's kappa. Rules: 
 ## 5. Demo
 
 ```
-powershell -ExecutionPolicy Bypass -File scripts\demo_start.ps1     (starts the gpt-oss server, tunnel and app)
+powershell -ExecutionPolicy Bypass -File scripts\demo_start.ps1     (gpt-oss server on an L40S, tunnel and app)
 powershell -ExecutionPolicy Bypass -File scripts\demo_stop.ps1      (closes the tunnel, frees the GPU)
-streamlit run app/streamlit_app.py                                  (app only: saved answers, or a server you started)
+streamlit run app/streamlit_app.py --server.port 8502             (app only: saved answers, or a server you started)
 ```
 
 Pick a policy and a model, describe what happened, and tick the methods to compare: no retrieval (B0) and simple RAG
